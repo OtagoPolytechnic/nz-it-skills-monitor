@@ -1,10 +1,10 @@
 import scrapy
 import random
 
-class TrademespiderSpider(scrapy.Spider):
-    name = "trademespider"
-    allowed_domains = ["www.trademe.co.nz"]
-    start_urls = ["https://www.trademe.co.nz/a/jobs/it"]
+class SeekspiderSpider(scrapy.Spider):
+    name = "seekspider"
+    allowed_domains = ["www.seek.co.nz"]
+    start_urls = ["https://www.seek.co.nz/jobs-in-information-communication-technology"]
     
     user_agent_list = [
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
