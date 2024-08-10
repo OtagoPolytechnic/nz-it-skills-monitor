@@ -33,4 +33,3 @@ class SeekspiderSpider(scrapy.Spider):
 
 # jobs = response.css('article._4603vi0._4603vi1._9l8a1v7i._9l8a1v6e._9l8a1v9q._9l8a1v8m._9l8a1vh._9l8a1v66._9l8a1v5e.z30zvmb.z30zvm9.z30zvma._1wqtj1z18._1wqtj1z1b._9l8a1v32._9l8a1v35')
 # url =  job.css('a').attrib['href']
-

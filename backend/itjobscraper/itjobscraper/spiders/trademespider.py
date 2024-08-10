@@ -42,4 +42,3 @@ class TrademespiderSpider(scrapy.Spider):
 # First 2 are not real
 # job = jobs[2]
 # url =  job.css('a').attrib['href']
-
