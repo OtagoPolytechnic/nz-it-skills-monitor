@@ -18,6 +18,7 @@ class TrademespiderSpider(scrapy.Spider):
         jobs = response.css('div.tm-search-results__listing.tm-search-results__listing--sticky.ng-star-inserted')
         jobs.pop(0)
         jobs.pop(0)
+            
         title = ''
         for job in jobs:
             
@@ -31,12 +32,10 @@ class TrademespiderSpider(scrapy.Spider):
                 'url': job.css('a').attrib['href']
             }
             
-        # next_page = response.xpath("/html/body/tm-root/div[1]/main/div/tm-jobs-search-results/div/div/div[3]/tm-flex-search-results/div/div[2]/tg-pagination/nav/ul/li[8]/tg-pagination-link/a/@href").get()
-        # if next_page is not None:
-        #     next_page_url = 'https://www.trademe.co.nz' + next_page
-        #     print("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
-        #     print(next_page_url)
-        #     yield response.follow(next_page_url, callback= self.parse)
+        next_page = response.xpath("/html/body/tm-root/div[1]/main/div/tm-jobs-search-results/div/div/div[3]/tm-flex-search-results/div/div[2]/tg-pagination/nav/ul/li[8]/tg-pagination-link/a/@href").get()
+        if next_page is not None:
+            next_page_url = 'https://www.trademe.co.nz' + next_page
+            yield response.follow(next_page_url, callback= self.parse)
 
 
 # jobs = response.css('div.tm-search-results__listing')
