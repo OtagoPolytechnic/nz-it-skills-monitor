@@ -1,6 +1,6 @@
-from flask import Flask, json, jsonify, request, Blueprint
+from flask import Flask, json, jsonify, request, Blueprint, render_template
 
-app = Flask(__name__)
+app = Blueprint('main', __name__)
 
 positions = [
  { 'id': 1, 'jobTitle': 'QA', 'company': 'Google', 'location': 'Mountain View, CA', 
@@ -66,5 +66,3 @@ def delete_position(id):
     positions = [p for p in positions if p['id'] != id]
     return jsonify(position), 200
 
-if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000)
