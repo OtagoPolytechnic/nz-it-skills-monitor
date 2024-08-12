@@ -1,30 +1,36 @@
-from datetime import date
-from typing import List
-import json
-from marshmallow import Schema, fields
+from . import db
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy.fields import Nested
 
-class Job:
-    def __init__(self, title, desc, salary, location, company, date_list, date_end):
-        self.title = title
-        self.desc = desc
-        self.salary = salary
-        self.location = location
-        self.company = company
-        self.date_list = date_list
-        self.date_end = date_end
+class Job(db.Model):
+    __tablename__ = 'jobs'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255))
+    desc = db.Column(db.Text)
+    salary = db.Column(db.Integer)
+    location = db.Column(db.String(255))
+    type = db.Column(db.String(50))
+    duration = db.Column(db.String(50))
+    company_name = db.Column(db.String(255))
+    date_list = db.Column(db.Date)
+    date_end = db.Column(db.Date)
+    skills = db.relationship('Skill', backref='job', lazy=True)
 
-class Skill:
-    def __init__(self, name):
-        self.name = name
+class Skill(db.Model):
+    __tablename__ = 'skills'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False)
 
-class JobSchema(Schema):
-    title = fields.Str()
-    desc = fields.Str()
-    salary = fields.Int()
-    location = fields.Str()
-    company = fields.Str()
-    date_list = fields.Date()
-    date_end = fields.Date()
+class SkillSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Skill
+        load_instance = True
 
-class SkillSchema(Schema):
-    name = fields.List(fields.Nested(SkillSchema))
+class JobSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Job
+        include_relationships = True
+        load_instance = True
+
+    skills = Nested(SkillSchema, many=True)
