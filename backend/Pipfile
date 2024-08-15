@@ -10,6 +10,7 @@ python-dotenv = "*"
 flask-sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
 psycopg2 = "*"
+alembic = "*"
 
 [dev-packages]
 
