@@ -15,10 +15,8 @@ class TrademespiderSpider(scrapy.Spider):
     # ]
 
     def parse(self, response):
-        jobs = response.css('div.tm-search-results__listing.tm-search-results__listing--sticky.ng-star-inserted')
-        jobs.pop(0)
-        jobs.pop(0)
-            
+        jobs = response.css('div.tm-search-results__listing.tm-search-results__listing--sticky.ng-star-inserted:not(.ad-card)')
+
         #into each job
         for job in jobs:
             relative_url = ''
@@ -29,8 +27,6 @@ class TrademespiderSpider(scrapy.Spider):
                 relative_url = job.css('a.tm-jobs-search-card__link ::attr(href)').get()
                 
             job_url = 'https://www.trademe.co.nz/a/' + relative_url
-            print("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
-            print(job_url)
             yield response.follow(job_url, callback= self.parse_job_page) 
         
         #pagination
@@ -38,6 +34,9 @@ class TrademespiderSpider(scrapy.Spider):
         # if next_page is not None:
         #     next_page_url = 'https://www.trademe.co.nz' + next_page
         #     yield response.follow(next_page_url, callback= self.parse)
+        # else:
+        #     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        #     print("No next page")
             
     def parse_job_page(self, response):
         yield{
