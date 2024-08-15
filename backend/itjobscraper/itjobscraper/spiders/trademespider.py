@@ -6,37 +6,32 @@ class TrademespiderSpider(scrapy.Spider):
     allowed_domains = ["www.trademe.co.nz"]
     start_urls = ["https://www.trademe.co.nz/a/jobs/it"]
     
-    # user_agent_list = [
-    #     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
-    #     'Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1',
-    #     'Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)',
-    #     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
-    #     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363',
-    # ]
-
     def parse(self, response):
         jobs = response.css('div.tm-search-results__listing.tm-search-results__listing--sticky.ng-star-inserted:not(.ad-card)')
 
         #into each job
         for job in jobs:
-            relative_url = ''
-            
-            if job.css('a.tm-jobs-search-card__link ::attr(href)').get() is None:
-                relative_url = job.css('a.tm-promoted-listing-card__link.tm-promoted-listing-card__link--branded.o-card.ng-star-inserted ::attr(href)').get()
-            else:
+
+            if job.css('a.tm-jobs-search-card__link ::attr(href)').get() is not None:
                 relative_url = job.css('a.tm-jobs-search-card__link ::attr(href)').get()
-                
+
+            if job.css('a.tm-promoted-listing-card__link.tm-promoted-listing-card__link--branded.o-card.ng-star-inserted ::attr(href)').get() is not None:
+                relative_url = job.css('a.tm-promoted-listing-card__link.tm-promoted-listing-card__link--branded.o-card.ng-star-inserted ::attr(href)').get()
+
+            if job.css('a.tm-promoted-listing-card__link.tm-promoted-listing-card__link--image.o-card.ng-star-inserted ::attr(href)').get() is not None:
+                relative_url = job.css('a.tm-promoted-listing-card__link.tm-promoted-listing-card__link--image.o-card.ng-star-inserted ::attr(href)').get()
+
             job_url = 'https://www.trademe.co.nz/a/' + relative_url
             yield response.follow(job_url, callback= self.parse_job_page) 
         
         #pagination
-        # next_page = response.xpath("/html/body/tm-root/div[1]/main/div/tm-jobs-search-results/div/div/div[3]/tm-flex-search-results/div/div[2]/tg-pagination/nav/ul/li[8]/tg-pagination-link/a/@href").get()
-        # if next_page is not None:
-        #     next_page_url = 'https://www.trademe.co.nz' + next_page
-        #     yield response.follow(next_page_url, callback= self.parse)
-        # else:
-        #     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        #     print("No next page")
+        next_page = response.xpath("/html/body/tm-root/div[1]/main/div/tm-jobs-search-results/div/div/div[3]/tm-flex-search-results/div/div[2]/tg-pagination/nav/ul/li[8]/tg-pagination-link/a/@href").get()
+        if next_page is not None:
+            next_page_url = 'https://www.trademe.co.nz' + next_page
+            yield response.follow(next_page_url, callback= self.parse)
+        else:
+            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print("No next page")
             
     def parse_job_page(self, response):
         yield{
