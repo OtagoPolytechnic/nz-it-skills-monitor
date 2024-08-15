@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from model import init_app, db
 from model.job import JobSchema, Job
 
@@ -17,13 +18,11 @@ init_app(app)
 def hello_world():
     return "Hello, World!"
 
-@app.route('/db_version', methods=['GET'])
+@app.route('/test-db')
 def get_db_version():
     try:
-        # Connect to the database
         with db.engine.connect() as connection:
-            # Query for the database version
-            result = connection.execute("SELECT version();")
+            result = connection.execute(text("SELECT version();"))
             version = result.fetchone()[0]
             return jsonify({"database_version": version})
     except Exception as e:
