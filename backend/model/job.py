@@ -1,4 +1,5 @@
 from . import db
+from marshmallow import fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.fields import Nested
 
@@ -11,7 +12,7 @@ class Job(db.Model):
     location = db.Column(db.String(255))
     type = db.Column(db.String(50))
     duration = db.Column(db.String(50))
-    company_name = db.Column(db.String(255))
+    company = db.Column(db.String(255))
     date_list = db.Column(db.Date)
     date_end = db.Column(db.Date)
     skills = db.relationship('Skill', backref='job', lazy=True)
@@ -34,3 +35,6 @@ class JobSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
     skills = Nested(SkillSchema, many=True)
+    salary = fields.Integer(required=False)
+    date_list = fields.Date(required=False)
+    date_end = fields.Date(required=False)
