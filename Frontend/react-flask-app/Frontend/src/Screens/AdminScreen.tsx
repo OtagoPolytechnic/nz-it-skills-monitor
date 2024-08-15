@@ -1,10 +1,10 @@
 
-function App() {
+const Admin = () => {
   return (
     <>
-      <text>Admin</text>
+      <p>Admin</p>
     </>
   );
 }
 
-export default App;
+export default Admin;

@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
 import Home from "../Screens/HomeScreen"
-import Admin from "../Screens/AdminScreen"
+import Admin from "../Screens/AdminScreen";
 
 const Navigation = () => {
   return (
