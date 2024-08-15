@@ -20,10 +20,13 @@ def hello_world():
 
 @app.route('/test-db')
 def get_db_version():
+    session = db.session()
     try:
-        with db.engine.connect() as connection:
-            result = connection.execute(text("SELECT version();"))
-            version = result.fetchone()[0]
-            return jsonify({"database_version": version})
+        result = session.execute(text("SELECT version();"))
+        version = result.fetchone()[0]
+        return jsonify({"database_version": version})
     except Exception as e:
+        session.rollback()
         return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
