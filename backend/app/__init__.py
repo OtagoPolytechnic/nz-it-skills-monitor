@@ -1,10 +1,7 @@
-from flask import Flask
+# app/routes/__init__.py
+from flask import Blueprint
 
-def create_app():
-    app = Flask(__name__)
+# Create a Blueprint instance
+position = Blueprint('position', __name__)
 
-    # Import the routes and register them
-    from .routes import main_blueprint
-    app.register_blueprint(main_blueprint)
-
-    return app
+from . import positions
