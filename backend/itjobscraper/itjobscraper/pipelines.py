@@ -27,16 +27,13 @@ class ItjobscraperPipeline:
             value = adapter.get(field_name)
             
             if isinstance(value, list):
-                # Convert each element in the list to a string, strip whitespace, and join into a single string
                 value = ' '.join(str(item).strip() for item in value)
             elif isinstance(value, tuple):
-                # Convert each element of the tuple to a string and strip whitespace
                 if len(value) == 1:
                     value = str(value[0]).strip()
                 else:
                     value = ' '.join(str(item).strip() for item in value)
             else:
-                # Convert to string and strip whitespace if it's not a list or tuple
                 value = str(value).strip()
             
             adapter[field_name] = value
@@ -44,11 +41,9 @@ class ItjobscraperPipeline:
         ##remove region from location
         location_string = adapter.get('location')
 
-        # If location_string is a tuple, convert it to a string
         if isinstance(location_string, tuple):
-            location_string = ", ".join(location_string)  # Join tuple elements into a single string
+            location_string = ", ".join(location_string)  
 
-        # Proceed with splitting the location string
         split_location_array = location_string.split(',')
 
         if len(split_location_array) == 2:
