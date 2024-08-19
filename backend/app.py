@@ -9,14 +9,7 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
 
-    # Configuration settings
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    # Initialize extensions
-    db.init_app(app)
-    migrate = Migrate(app, db)
-
+    
     # Import and register the API routes
     from app.routes.position import api_blueprint
     app.register_blueprint(positions, url_prefix='/api')
