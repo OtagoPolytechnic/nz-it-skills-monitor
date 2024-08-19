@@ -1,7 +1,10 @@
 ## Backend setup
 Make .env file in root of backend folder
 
-`DATABASE_URL=<url>`
+```
+DATABASE_URL=<url>
+FLASK_APP=index.py
+```
 
 Inside Command Prompt
 
