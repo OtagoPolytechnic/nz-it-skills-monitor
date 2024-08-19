@@ -18,7 +18,7 @@ const LineChart3 = () => {
           width={600}
           height={300}
           data={data}
-          margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+          margin={{ top: 5, right: 30, left: 0, bottom: 0}}
         >
           <Line type="monotone" dataKey="uv" stroke="#0096C7" fill="#0096C7" />
           <CartesianGrid stroke="#ccc" />

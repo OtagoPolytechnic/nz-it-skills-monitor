@@ -2,38 +2,53 @@ import {  BarChart, Bar, Rectangle, CartesianGrid,  XAxis,  YAxis,  Tooltip, Res
 
 const BarChart1 = () => {
   const data = [
-    { name: "Page A", uv: 30, pv: 2400, amt: 2400 },
-    { name: "Page B", uv: 20, pv: 2400, amt: 2400 },
-    { name: "Page C", uv: 40, pv: 2400, amt: 2400 },
-    { name: "Page D", uv: 3, pv: 2400, amt: 2400 },
-    { name: "Page E", uv: 43, pv: 2400, amt: 2400 },
-    { name: "Page F", uv: 35, pv: 2400, amt: 2400 },
-    { name: "Page G", uv: 75, pv: 2400, amt: 2400 },
-    { name: "Page H", uv: 30, pv: 2400, amt: 2400 },
+    {
+      "name": "Python",
+      "quantity": 16,
+      "type": "Language"
+    },
+    {
+      "name": "Django",
+      "quantity": 12,
+      "type": "Framework"
+    },
+    {
+      "name": "Flask",
+      "quantity": 7,
+      "type": "Framework"
+    },
+    {
+      "name": "FastAPI",
+      "quantity": 5,
+      "type": "Framework"
+    },
+    {
+      "name": "JavaScript",
+      "quantity": 18,
+      "type": "Language"
+    },
+    {
+      "name": "React",
+      "quantity": 14,
+      "type": "Framework"
+    }
   ];
 
   return (
     <>
       <view>
         <div style={{ width: '100%', height: 300 }}>
-          <ResponsiveContainer>
-            <BarChart width={500} height={300} data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5}}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <BarChart width={600 } height={300} data={data} margin={{ top: 5, right: 30, left: 0, bottom: 0}}>
             <XAxis dataKey="name" />
-            <YAxis />
+            <YAxis dataKey="quantity" />
             <Tooltip />
             <Bar
-              dataKey="uv"
+              dataKey="quantity"
               fill="#B3CDAD"
+              barSize={40}
               activeBar={<Rectangle fill="pink" stroke="blue" />}
             />
-            <Bar
-              dataKey="pv"
-              fill="#FF5F5E"
-              activeBar={<Rectangle fill="gold" stroke="purple" />}
-            />
             </BarChart>
-          </ResponsiveContainer>
         </div>
       </view>
     </>

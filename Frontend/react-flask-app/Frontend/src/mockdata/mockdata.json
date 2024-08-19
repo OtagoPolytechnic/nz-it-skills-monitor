@@ -1,0 +1,154 @@
+{
+  "technologies": [
+    {
+      "name": "Python",
+      "quantity": 16,
+      "type": "Language"
+    },
+    {
+      "name": "Django",
+      "quantity": 12,
+      "type": "Framework"
+    },
+    {
+      "name": "Flask",
+      "quantity": 7,
+      "type": "Framework"
+    },
+    {
+      "name": "FastAPI",
+      "quantity": 5,
+      "type": "Framework"
+    },
+    {
+      "name": "JavaScript",
+      "quantity": 18,
+      "type": "Language"
+    },
+    {
+      "name": "React",
+      "quantity": 14,
+      "type": "Framework"
+    },
+    {
+      "name": "Angular",
+      "quantity": 10,
+      "type": "Framework"
+    },
+    {
+      "name": "Vue.js",
+      "quantity": 9,
+      "type": "Framework"
+    },
+    {
+      "name": "Node.js",
+      "quantity": 13,
+      "type": "Framework"
+    },
+    {
+      "name": "Java",
+      "quantity": 15,
+      "type": "Language"
+    },
+    {
+      "name": "Spring",
+      "quantity": 8,
+      "type": "Framework"
+    },
+    {
+      "name": "Hibernate",
+      "quantity": 4,
+      "type": "Framework"
+    },
+    {
+      "name": "JavaFX",
+      "quantity": 3,
+      "type": "Framework"
+    },
+    {
+      "name": "C#",
+      "quantity": 11,
+      "type": "Language"
+    },
+    {
+      "name": ".NET",
+      "quantity": 14,
+      "type": "Framework"
+    },
+    {
+      "name": "ASP.NET",
+      "quantity": 6,
+      "type": "Framework"
+    },
+    {
+      "name": "Xamarin",
+      "quantity": 9,
+      "type": "Framework"
+    },
+    {
+      "name": "C++",
+      "quantity": 7,
+      "type": "Language"
+    },
+    {
+      "name": "Qt",
+      "quantity": 5,
+      "type": "Framework"
+    },
+    {
+      "name": "Boost",
+      "quantity": 4,
+      "type": "Framework"
+    },
+    {
+      "name": "SQL",
+      "quantity": 19,
+      "type": "Database Language"
+    },
+    {
+      "name": "MySQL",
+      "quantity": 13,
+      "type": "Database"
+    },
+    {
+      "name": "PostgreSQL",
+      "quantity": 10,
+      "type": "Database"
+    },
+    {
+      "name": "MongoDB",
+      "quantity": 8,
+      "type": "Database"
+    },
+    {
+      "name": "Redis",
+      "quantity": 6,
+      "type": "Database"
+    },
+    {
+      "name": "AWS",
+      "quantity": 17,
+      "type": "Cloud Platform"
+    },
+    {
+      "name": "Azure",
+      "quantity": 12,
+      "type": "Cloud Platform"
+    },
+    {
+      "name": "Google Cloud",
+      "quantity": 11,
+      "type": "Cloud Platform"
+    },
+    {
+      "name": "Docker",
+      "quantity": 15,
+      "type": "Containerization"
+    },
+    {
+      "name": "Kubernetes",
+      "quantity": 9,
+      "type": "Container Orchestration"
+    }
+  ]
+}

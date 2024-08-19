@@ -16,12 +16,11 @@ const LineChart1 = () => {
     <>
       <view>
         <div style={{ width: '100%', height: 300 }}>
-          <ResponsiveContainer>
             <AreaChart
               width={600}
               height={300}
               data={data}
-              margin={{ top: 5, right: 60, bottom: 5, left: 0 }}
+              margin={{ top: 5, right: 30, left: 0, bottom: 0}}
             >
               <Area type="monotone" dataKey="uv" stroke="#0096C7" fill="#0096C7" strokeWidth={2} />
               <CartesianGrid stroke="#ccc" />
@@ -29,7 +28,6 @@ const LineChart1 = () => {
               <YAxis />
               <Tooltip />
             </AreaChart>
-          </ResponsiveContainer>
         </div>
       </view>
     </>
