@@ -24,3 +24,8 @@ To run a new migration
 To apply migrations
 
 `flask db upgrade`
+
+## Data Scrape Script (testing)
+Inside Command Prompt with the virtual environment activated
+
+`pipenv run python process_scrape.py`
