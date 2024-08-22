@@ -1,36 +1,6 @@
 {
   "technologies": [
     {
-      "name": "Python",
-      "quantity": 16,
-      "type": "Language"
-    },
-    {
-      "name": "Django",
-      "quantity": 12,
-      "type": "Framework"
-    },
-    {
-      "name": "Flask",
-      "quantity": 7,
-      "type": "Framework"
-    },
-    {
-      "name": "FastAPI",
-      "quantity": 5,
-      "type": "Framework"
-    },
-    {
-      "name": "JavaScript",
-      "quantity": 18,
-      "type": "Language"
-    },
-    {
-      "name": "React",
-      "quantity": 14,
-      "type": "Framework"
-    },
-    {
       "name": "Angular",
       "quantity": 10,
       "type": "Framework"

@@ -1,56 +1,83 @@
 import {  BarChart, Bar, Rectangle, CartesianGrid,  XAxis,  YAxis,  Tooltip, ResponsiveContainer,} from "recharts";
+import { TrendingUp } from "lucide-react"
+import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardTitle,} from "@/components/ui/card"
+import {  ChartConfig,  ChartContainer,  ChartTooltip,  ChartTooltipContent,} from "@/components/ui/chart"
+import MockData from "../mockdata/mockdata.json"
+
+const data = [
+  {
+    "name": "Python",
+    "quantity": 16,
+    "type": "Language"
+  },
+  {
+    "name": "Django",
+    "quantity": 12,
+    "type": "Framework"
+  },
+  {
+    "name": "Flask",
+    "quantity": 7,
+    "type": "Framework"
+  },
+  {
+    "name": "FastAPI",
+    "quantity": 5,
+    "type": "Framework"
+  },
+  {
+    "name": "JavaScript",
+    "quantity": 18,
+    "type": "Language"
+  }]
+
+const chartConfig = {
+} satisfies ChartConfig
 
 const BarChart1 = () => {
-  const data = [
-    {
-      "name": "Python",
-      "quantity": 16,
-      "type": "Language"
-    },
-    {
-      "name": "Django",
-      "quantity": 12,
-      "type": "Framework"
-    },
-    {
-      "name": "Flask",
-      "quantity": 7,
-      "type": "Framework"
-    },
-    {
-      "name": "FastAPI",
-      "quantity": 5,
-      "type": "Framework"
-    },
-    {
-      "name": "JavaScript",
-      "quantity": 18,
-      "type": "Language"
-    },
-    {
-      "name": "React",
-      "quantity": 14,
-      "type": "Framework"
-    }
-  ];
-
   return (
-    <>
-      <view>
-        <div style={{ width: '100%', height: 300 }}>
-            <BarChart width={600 } height={300} data={data} margin={{ top: 5, right: 30, left: 0, bottom: 0}}>
-            <XAxis dataKey="name" />
-            <YAxis dataKey="quantity" />
-            <Tooltip />
-            <Bar
-              dataKey="quantity"
-              fill="#B3CDAD"
-              barSize={40}
-              activeBar={<Rectangle fill="pink" stroke="blue" />}
-            />
-            </BarChart>
-        </div>
-      </view>
+    <><Card>
+    <CardHeader>
+      <CardTitle>Bar Chart - Technologies</CardTitle>
+      <CardDescription>Asked quantity's</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <ChartContainer 
+            config={chartConfig}
+            className="">
+        <BarChart accessibilityLayer data={MockData.technologies}>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="name"
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+          />
+          <YAxis
+            dataKey="quantity"
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+          />
+          <Bar
+            dataKey="quantity"
+            fill="#2563eb"
+            strokeWidth={2}
+            radius={8}
+            activeIndex={2}
+          />
+        </BarChart>
+      </ChartContainer>
+    </CardContent>
+    <CardFooter className="flex-col items-start gap-2 text-sm">
+      <div className="flex gap-2 font-medium leading-none">
+        Data from mon 19 aug 2024<TrendingUp className="h-4 w-4" />
+      </div>
+      <div className="leading-none text-muted-foreground">
+        Showing the quantity of asked technologies from 19-8-24
+      </div>
+    </CardFooter>
+  </Card>
     </>
   );
 };
