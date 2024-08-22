@@ -12,19 +12,21 @@ Inside Command Prompt:
 
 Create a virtual environment if there isn't one there
 
-`py -m venv .venv`
+```py -m venv .venv```
+
+```.venv\Scripts\activate```
 
 Install packages stored in the Pipfile using pipenv
 
-`pip install pipenv`
-`pipenv install`
+```pip install pipenv```
 
-`.venv\Scripts\activate`
+```pipenv install```
 
-`pipenv install`
+```flask --app index run```
 
-`flask --app index run`
-(add --debug flag if you want hotswap)
+[!NOTE]
+add --debug flag if you want hotswap
+
 
 
 ## Database Migration
