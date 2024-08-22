@@ -12,17 +12,27 @@ Inside Command Prompt:
 
 Create a virtual environment if there isn't one there
 
-```py -m venv .venv```
+```
+py -m venv .venv
+```
 
-```.venv\Scripts\activate```
+```
+.venv\Scripts\activate
+```
 
 Install packages stored in the Pipfile using pipenv
 
-```pip install pipenv```
+```
+pip install pipenv
+```
 
-```pipenv install```
+```
+pipenv install
+```
 
-```flask --app index run```
+```
+flask --app index run
+```
 
 >[!NOTE]
 >add --debug flag if you want hotswap
@@ -32,13 +42,19 @@ Install packages stored in the Pipfile using pipenv
 ## Database Migration
 To run a new migration
 
-`flask db migrate -m "<name of migration>"`
+```
+flask db migrate -m "<name of migration>"
+```
 
 To apply migrations
 
-`flask db upgrade`
+```
+flask db upgrade
+```
 
 ## Data Scrape Script (testing)
 Inside Command Prompt with the virtual environment activated
 
-`pipenv run python process_scrape.py`
+```
+pipenv run python process_scrape.py
+```
