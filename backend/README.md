@@ -24,8 +24,8 @@ Install packages stored in the Pipfile using pipenv
 
 ```flask --app index run```
 
-[!NOTE]
-add --debug flag if you want hotswap
+>[!NOTE]
+>add --debug flag if you want hotswap
 
 
 
