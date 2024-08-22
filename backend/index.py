@@ -21,6 +21,17 @@ migrate = Migrate(app, db)
 def hello_world():
     return "Hello, World!"
 
+@app.route('/jobs', methods=['GET'])
+def get_jobs():
+    # Query all jobs from the Job table
+    jobs = Job.query.all()
+
+    # Serialize the data using the JobSchema
+    job_schema = JobSchema(many=True)
+    jobs_data = job_schema.dump(jobs)
+
+    return jsonify(jobs_data)
+
 @app.route('/tables', methods=['GET'])
 def list_tables():
     # Retrieve the list of tables from the database
