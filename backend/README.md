@@ -6,7 +6,18 @@ DATABASE_URL=<url>
 FLASK_APP=index.py
 ```
 
-Inside Command Prompt
+You may have to edit the database url to begin with `postgresql` instead of `postgres`
+
+Inside Command Prompt:
+
+Create a virtual environment if there isn't one there
+
+`py -m venv .venv`
+
+Install packages stored in the Pipfile using pipenv
+
+`pip install pipenv`
+`pipenv install`
 
 `.venv\Scripts\activate`
 
