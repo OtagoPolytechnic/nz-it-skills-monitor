@@ -41,3 +41,28 @@ def create_position():
 @app.route('/positions', methods=['GET'])
 def get_positions():
     return jsonify(positions)
+
+@app.route('/positions/<int:id>', methods=['PUT'])
+def update_position(id):
+    position = get_position(id)
+    if position is None:
+        return jsonify({'error': 'Position does not exist.'}), 404
+
+    updated_position = json.loads(request.data)
+    if not position_is_valid(updated_position):
+        return jsonify({'error': 'Invalid position properties.'}), 400
+
+    position.update(updated_position)
+
+    return jsonify(position)
+
+@app.route('/positions/<int:id>', methods=['DELETE'])
+def delete_position(id):
+    global positions
+    position = get_position(id)
+    if position is None:
+        return jsonify({'error': 'Position does not exist.'}), 404
+
+    positions = [p for p in positions if p['id'] != id]
+    return jsonify(position), 200
+
