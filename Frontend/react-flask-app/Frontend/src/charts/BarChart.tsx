@@ -1,35 +1,8 @@
-import {  BarChart, Bar, Rectangle, CartesianGrid,  XAxis,  YAxis,  Tooltip, ResponsiveContainer,} from "recharts";
+import { BarChart, Bar, CartesianGrid,  XAxis,  YAxis } from "recharts";
 import { TrendingUp } from "lucide-react"
 import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardTitle,} from "@/components/ui/card"
-import {  ChartConfig,  ChartContainer,  ChartTooltip,  ChartTooltipContent,} from "@/components/ui/chart"
+import {  ChartConfig,  ChartContainer } from "@/components/ui/chart"
 import MockData from "../mockdata/mockdata.json"
-
-const data = [
-  {
-    "name": "Python",
-    "quantity": 16,
-    "type": "Language"
-  },
-  {
-    "name": "Django",
-    "quantity": 12,
-    "type": "Framework"
-  },
-  {
-    "name": "Flask",
-    "quantity": 7,
-    "type": "Framework"
-  },
-  {
-    "name": "FastAPI",
-    "quantity": 5,
-    "type": "Framework"
-  },
-  {
-    "name": "JavaScript",
-    "quantity": 18,
-    "type": "Language"
-  }]
 
 const chartConfig = {
 } satisfies ChartConfig
