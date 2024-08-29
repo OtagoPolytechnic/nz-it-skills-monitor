@@ -18,10 +18,9 @@ class Job(db.Model):
     skills = db.relationship('Skill', backref='job', lazy=True, cascade="all, delete-orphan")  # If a job is deleted, all of its skills will also be deleted
 
 class Skill(db.Model):
-    __tablename__ = 'skills'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255))
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False)
+    __tablename__ = 'skills'    
+    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False, primary_key=True)
+    name = db.Column(db.String(255), primary_key=True)
 
 class SkillSchema(SQLAlchemyAutoSchema):
     class Meta:
