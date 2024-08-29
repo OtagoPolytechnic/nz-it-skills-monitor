@@ -44,7 +44,7 @@ const chartConfig = {
 const PieChart1 = () => {  
   return (
     <>      
-      <Card className="flex flex-col max-w-lg mx-auto shadow-lg rounded-lg pb-6">
+      <Card >
         <CardHeader className="text-center pb-0">
           <CardTitle className="text-lg font-semibold">Pie Chart - Technologies</CardTitle>
           <CardDescription className="text-sm text-gray-600">Asked quantity's</CardDescription>

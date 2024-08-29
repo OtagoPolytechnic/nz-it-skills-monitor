@@ -28,9 +28,7 @@ const Home = () => {
           </div>
         </div>
       </nav>
-      <div>
-      </div>
-      <div className="grid grid-cols-2 gap-10">
+      <div className="grid grid-cols-2 gap-2">
         <BarChart1></BarChart1>
         <PieChart1></PieChart1>
       </div>
