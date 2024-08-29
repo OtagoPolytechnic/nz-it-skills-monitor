@@ -25,7 +25,7 @@ class TrademespiderSpider(scrapy.Spider):
             yield response.follow(job_url, callback= self.parse_job_page) 
         
         #pagination
-        next_page = response.xpath("/html/body/tm-root/div[1]/main/div/tm-jobs-search-results/div/div/div[3]/tm-flex-search-results/div/div[2]/tg-pagination/nav/ul/li[8]/tg-pagination-link/a/@href").get()
+        next_page = response.xpath("/html/body/tm-root/div[1]/main/div/tm-jobs-search-results/div/div/div[3]/tm-flex-search-results/div/div[2]/tg-pagination/nav/ul/li[last()]/tg-pagination-link/a/@href").get()
         if next_page is not None:
             next_page_url = 'https://www.trademe.co.nz' + next_page
             yield response.follow(next_page_url, callback= self.parse)
