@@ -9,10 +9,13 @@ load_dotenv()
 api_key = os.getenv('OPENAI')
 client = OpenAI(api_key=api_key)
 
+class Skills(BaseModel):
+    name:str
+    
 class SkillsParse(BaseModel):
     salary: str
-    skills: list[str]
-    
+    skills: list[Skills]
+
 class ItjobscraperPipeline:
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
