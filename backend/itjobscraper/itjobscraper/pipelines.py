@@ -1,4 +1,5 @@
 from openai import OpenAI
+from pydantic import BaseModel
 from itemadapter import ItemAdapter
 from itertools import chain
 from dotenv import load_dotenv
@@ -8,6 +9,10 @@ load_dotenv()
 api_key = os.getenv('OPENAI')
 client = OpenAI(api_key=api_key)
 
+class SkillsParse(BaseModel):
+    salary: str
+    skills: list[str]
+    
 class ItjobscraperPipeline:
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
@@ -60,20 +65,25 @@ class ItjobscraperPipeline:
         description = adapter.get('description')
         if description:
             openai_response = self.call_openai(description)
-            adapter['skills'] = openai_response
+            adapter['skills'] = openai_response.skills
+            adapter['salary'] = openai_response.salary
 
         return item
 
     def call_openai(self, description):
         try:
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",  # Ensure you are using the correct model name
+            response = client.beta.chat.completions.parse(
+                model="gpt-4o-mini-2024-07-18",  # Ensure you are using the correct model name
                 messages=[
-                    {"role": "user", "content": f"Return a list of IT skills, frameworks, and languages mentioned in the following description: {description}"}
+                    {"role": "system", "content": "Extract the IT skill information and the salary information. skills should be a list of IT frameworks and language names. The salary infomration should be an integer with the largest value being given if it is a range, or left null if no information is availbale."},
+                    {"role": "user", "content": f"{description}"}
                 ],
+                response_format=SkillsParse,
                 max_tokens=150  # Adjust the max_tokens parameter based on your needs
             )
-            return response.choices[0].message.content
+            print('-----------------------------------AIRESPONSE--------------------------------------')
+            print(response.choices[0].message.parsed)
+            return response.choices[0].message.parsed
         except Exception as e:
             # Handle API errors
             print(f"Error calling OpenAI API: {e}")
