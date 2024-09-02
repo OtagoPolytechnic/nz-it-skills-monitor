@@ -1,56 +1,60 @@
-import { BarChart, Bar, CartesianGrid,  XAxis,  YAxis } from "recharts";
-import { TrendingUp } from "lucide-react"
-import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardTitle,} from "@/components/ui/card"
-import {  ChartConfig,  ChartContainer } from "@/components/ui/chart"
-import MockData from "../mockdata/mockdata.json"
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
+import { TrendingUp } from "lucide-react";
+import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardTitle,} from "@/components/ui/card";
+import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import MockData from "../mockdata/mockdata.json";
+import countSkills from "../utils/countSkills";
 
-const chartConfig = {
-} satisfies ChartConfig
+const chartConfig = {} satisfies ChartConfig;
 
 const BarChart1 = () => {
+  let count = countSkills();
+  console.log(count);
+  let skills = Object.keys(count);
+  let counts = Object.values(count);
   return (
-    <><Card>
-    <CardHeader>
-      <CardTitle>Bar Chart - Technologies</CardTitle>
-      <CardDescription>Asked quantity's</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <ChartContainer 
-            config={chartConfig}
-            className="">
-        <BarChart accessibilityLayer data={MockData.technologies}>
-          <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey="name"
-            tickLine={false}
-            tickMargin={10}
-            axisLine={false}
-          />
-          <YAxis
-            dataKey="quantity"
-            tickLine={false}
-            tickMargin={10}
-            axisLine={false}
-          />
-          <Bar
-            dataKey="quantity"
-            fill="#2563eb"
-            strokeWidth={2}
-            radius={8}
-            activeIndex={2}
-          />
-        </BarChart>
-      </ChartContainer>
-    </CardContent>
-    <CardFooter className="flex-col items-start gap-2 text-sm">
-      <div className="flex gap-2 font-medium leading-none">
-        Data from mon 19 aug 2024<TrendingUp className="h-4 w-4" />
-      </div>
-      <div className="leading-none text-muted-foreground">
-        Showing the quantity of asked technologies from 19-8-24
-      </div>
-    </CardFooter>
-  </Card>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Bar Chart - Technologies</CardTitle>
+          <CardDescription>Asked quantity's</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="">
+            <BarChart accessibilityLayer data={counts}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="location"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+              />
+              <YAxis
+                dataKey="id"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+              />
+              <Bar
+                dataKey="id"
+                fill="#2563eb"
+                strokeWidth={2}
+                radius={8}
+                activeIndex={2}
+              />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+        <CardFooter className="flex-col items-start gap-2 text-sm">
+          <div className="flex gap-2 font-medium leading-none">
+            Data from mon 19 aug 2024
+            <TrendingUp className="h-4 w-4" />
+          </div>
+          <div className="leading-none text-muted-foreground">
+            Showing the quantity of asked technologies from 19-8-24
+          </div>
+        </CardFooter>
+      </Card>
     </>
   );
 };
