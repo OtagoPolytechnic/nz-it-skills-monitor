@@ -11,9 +11,10 @@ client = OpenAI(api_key=api_key)
 
 class Skills(BaseModel):
     name:str
+    type:str
     
 class SkillsParse(BaseModel):
-    salary: str
+    salary: int
     skills: list[Skills]
 
 class ItjobscraperPipeline:
@@ -76,13 +77,13 @@ class ItjobscraperPipeline:
     def call_openai(self, description):
         try:
             response = client.beta.chat.completions.parse(
-                model="gpt-4o-mini-2024-07-18",  # Ensure you are using the correct model name
+                model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Extract the IT skill information and the salary information. skills should be a list of IT frameworks and language names. The salary infomration should be an integer with the largest value being given if it is a range, or left null if no information is availbale."},
+                    {"role": "system", "content": "You are a computer science graduate looking at job advertisements, extract IT skill information and salary information from the description, skills must be catagorized by the following options: language, framework, tool, certification, platform, protocol. if a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following language, framework, tool, certification, platform, protocol. example: name: javascript, type:language. Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number, if no salary figure is given return 0"},
                     {"role": "user", "content": f"{description}"}
                 ],
                 response_format=SkillsParse,
-                max_tokens=150  # Adjust the max_tokens parameter based on your needs
+                max_tokens=150  
             )
             print('-----------------------------------AIRESPONSE--------------------------------------')
             print(response.choices[0].message.parsed)
