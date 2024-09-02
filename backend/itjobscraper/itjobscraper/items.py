@@ -5,7 +5,7 @@
 
 import scrapy
 
-
+# defines the job object that will be build during the scraping process 
 class ItjobscraperItem(scrapy.Item):
     title = scrapy.Field()
     description = scrapy.Field()

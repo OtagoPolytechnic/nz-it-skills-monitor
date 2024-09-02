@@ -9,6 +9,7 @@ load_dotenv()
 api_key = os.getenv('OPENAI')
 client = OpenAI(api_key=api_key)
 
+## Schema for structured response 
 class Skills(BaseModel):
     name:str
     type:str
@@ -65,7 +66,7 @@ class ItjobscraperPipeline:
             else:
                 adapter['location'] = city_name[0]   
         
-        # Get skills from description
+        # Get skills and salary from description
         description = adapter.get('description')
         if description:
             openai_response = self.call_openai(description)
@@ -74,12 +75,13 @@ class ItjobscraperPipeline:
 
         return item
 
+    # function for sending description to open ai
     def call_openai(self, description):
         try:
             response = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a computer science graduate looking at job advertisements, extract IT skill information and salary information from the description, skills must be catagorized by the following options: language, framework, tool, certification, platform, protocol. if a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following language, framework, tool, certification, platform, protocol. example: name: javascript, type:language. Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number, if no salary figure is given return 0"},
+                    {"role": "system", "content": "You are a computer science graduate looking at job advertisements, extract IT skill information and salary information from the description, skills must be categorized by the following options: language, framework, tool, certification, platform, protocol. if a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following language, framework, tool, certification, platform, protocol. example: name: javascript, type:language. Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number, if no salary figure is given return 0"},
                     {"role": "user", "content": f"{description}"}
                 ],
                 response_format=SkillsParse,
