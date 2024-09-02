@@ -87,7 +87,7 @@ class ItjobscraperPipeline:
                 response_format=SkillsParse,
                 max_tokens=150  
             )
-            print('-----------------------------------AIRESPONSE--------------------------------------')
+            print('-----------------------------------AI RESPONSE--------------------------------------')
             print(response.choices[0].message.parsed)
             return response.choices[0].message.parsed
         except Exception as e:
