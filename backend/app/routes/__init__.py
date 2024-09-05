@@ -2,6 +2,6 @@
 from flask import Blueprint
 
 # Create a Blueprint instance
-position = Blueprint('position', __name__)
+position = Blueprint('positions', __name__)
 
 from . import positions

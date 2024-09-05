@@ -1,6 +1,18 @@
-from flask import Flask, json, jsonify, request, Blueprint, render_template
+from flask import Flask, json, jsonify, request, render_template
 
-app = Blueprint('main', __name__)
+app = Flask(__name__)
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///items.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+from models import Item
+
+@app.route('/')
+def index():
+    return 'Hello, Flask!'
 
 positions = [
  { 'id'}]
@@ -61,5 +73,8 @@ def delete_position(id):
         return jsonify({'error': 'Position does not exist.'}), 404
 
     positions = [p for p in positions if p['id'] != id]
-    return jsonify(position), 200
 
+
+    return jsonify(position), 200
+if __name__ == '__main__':
+    app.run(debug=True)
