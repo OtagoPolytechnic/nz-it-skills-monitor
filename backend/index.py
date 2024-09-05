@@ -1,11 +1,10 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, jsonify
 from sqlalchemy import text, inspect
 from flask_migrate import Migrate
 from model import init_app, db
-from model.job import JobSchema, Job, Skill
+from model.job import JobSchema, Job
 
 load_dotenv()
 
@@ -32,35 +31,35 @@ def get_jobs():
 
     return jsonify(jobs_data)
 
-@app.route('/tables', methods=['GET'])
-def list_tables():
-    # Retrieve the list of tables from the database
-    inspector = inspect(db.engine)
-    tables = inspector.get_table_names()
+# @app.route('/tables', methods=['GET'])
+# def list_tables():
+#     # Retrieve the list of tables from the database
+#     inspector = inspect(db.engine)
+#     tables = inspector.get_table_names()
 
-    # Dictionary to hold table schemas
-    schemas = {}
+#     # Dictionary to hold table schemas
+#     schemas = {}
 
-    # Iterate over tables to get their schema
-    for table in tables:
-        columns = inspector.get_columns(table)
-        # Convert column types to strings to make them JSON serializable
-        for column in columns:
-            column['type'] = str(column['type'])
-        schemas[table] = columns
+#     # Iterate over tables to get their schema
+#     for table in tables:
+#         columns = inspector.get_columns(table)
+#         # Convert column types to strings to make them JSON serializable
+#         for column in columns:
+#             column['type'] = str(column['type'])
+#         schemas[table] = columns
     
-    return jsonify(schemas)
+#     return jsonify(schemas)
 
 
-@app.route('/test-db')
-def get_db_version():
-    session = db.session()
-    try:
-        result = session.execute(text("SELECT version();"))
-        version = result.fetchone()[0]
-        return jsonify({"database_version": version})
-    except Exception as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        session.close()
+# @app.route('/test-db')
+# def get_db_version():
+#     session = db.session()
+#     try:
+#         result = session.execute(text("SELECT version();"))
+#         version = result.fetchone()[0]
+#         return jsonify({"database_version": version})
+#     except Exception as e:
+#         session.rollback()
+#         return jsonify({"error": str(e)}), 500
+#     finally:
+#         session.close()
