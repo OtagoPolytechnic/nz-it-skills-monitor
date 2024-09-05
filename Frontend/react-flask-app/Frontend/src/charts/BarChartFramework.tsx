@@ -2,41 +2,41 @@ import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
 import { TrendingUp } from "lucide-react";
 import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardTitle,} from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
-import MockData from "../mockdata/mockdata.json";
+import filterData from "../utils/filterSkills";
 import countSkills from "../utils/countSkills";
 
+console.log(filterData);
 const chartConfig = {} satisfies ChartConfig;
 
 const BarChart1 = () => {
-  let count = countSkills();
-  console.log(count);
-  let skills = Object.keys(count);
-  let counts = Object.values(count);
+  let filter = filterData();
+  let skills = Object.values(filter);
+
   return (
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Bar Chart - Technologies</CardTitle>
+          <CardTitle>Bar Chart - {Object.keys(filter)[1]}</CardTitle>
           <CardDescription>Asked quantity's</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="">
-            <BarChart accessibilityLayer data={counts}>
+          <ChartContainer config={chartConfig}>
+            <BarChart accessibilityLayer data={skills[1]}>
               <CartesianGrid vertical={false} />
               <XAxis
-                dataKey="location"
+                dataKey="name"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
               />
               <YAxis
-                dataKey="id"
+                dataKey="quantity"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
               />
               <Bar
-                dataKey="id"
+                dataKey="quantity"
                 fill="#2563eb"
                 strokeWidth={2}
                 radius={8}

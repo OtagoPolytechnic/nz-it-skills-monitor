@@ -1,9 +1,8 @@
 import { DiscAlbum } from "lucide-react";
-import BarChart1 from "../charts/BarChart";
-import LineChart1 from "../charts/linechart1";
-import LineChart2 from "../charts/linechart2";
-import LineChart3 from "../charts/linechart3";
-import PieChart1 from "../charts/PieChart";
+import BarChart1 from "../charts/BarChartFramework";
+import BarChart2 from "../charts/BarChartLanguage";
+import BarChart3 from "../charts/BarChartPlatform";
+import BarChart4 from "../charts/BarChartCertification";
 
 const Home = () => {
   return (
@@ -32,7 +31,9 @@ const Home = () => {
       </div>
       <div className="grid grid-cols-2 gap-10">
         <BarChart1></BarChart1>
-        <PieChart1></PieChart1>
+        <BarChart2></BarChart2>
+        <BarChart3></BarChart3>
+        <BarChart4></BarChart4>
       </div>
     </>
   );
