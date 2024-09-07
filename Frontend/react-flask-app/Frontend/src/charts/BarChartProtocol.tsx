@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 // Default configuration for the chart, could be customized further if needed
 const chartConfig = {} satisfies ChartConfig;
 
-const BarChart3 = () => {
+const BarChart5 = () => {
   // State to store fetched job data
   const [data, setData] = useState([]);
 
@@ -47,13 +47,13 @@ const BarChart3 = () => {
       <Card>
         <CardHeader>
           {/* Title and description for the card */}
-          <CardTitle>Bar Chart - {Object.keys(filter)[3]}</CardTitle>
+          <CardTitle>Bar Chart - {Object.keys(filter)[5]}</CardTitle>
           <CardDescription>Asked quantity's</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig}>
             {/* BarChart component from Recharts library */}
-            <BarChart accessibilityLayer data={skills[3]}>
+            <BarChart accessibilityLayer data={skills[5]}>
               {/* Add a Cartesian grid for better readability */}
               <CartesianGrid vertical={false} />
               {/* X-axis configuration */}
@@ -96,4 +96,4 @@ const BarChart3 = () => {
   );
 };
 
-export default BarChart3;
+export default BarChart5;
