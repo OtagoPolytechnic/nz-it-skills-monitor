@@ -5,11 +5,13 @@
 
 import scrapy
 
-
+# defines the job object that will be build during the scraping process 
 class ItjobscraperItem(scrapy.Item):
     title = scrapy.Field()
     description = scrapy.Field()
     location = scrapy.Field()
     company = scrapy.Field()
     type = scrapy.Field()
+    skills = scrapy.Field()
+    salary = scrapy.Field()
     duration = scrapy.Field()

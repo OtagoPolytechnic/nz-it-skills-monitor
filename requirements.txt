@@ -1,2 +1,5 @@
-scrapy
-ipython
+Packages for scrapy:
+    scrapy
+    ipython
+    openai
+    python-dotenv

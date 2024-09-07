@@ -7,9 +7,10 @@ class TrademespiderSpider(scrapy.Spider):
     start_urls = ["https://www.trademe.co.nz/a/jobs/it"]
     
     def parse(self, response):
+        #Top level job item response 
         jobs = response.css('div.tm-search-results__listing.tm-search-results__listing--sticky.ng-star-inserted:not(.ad-card)')
 
-        #into each job
+        #into each job, based on job type 
         for job in jobs:
 
             if job.css('a.tm-jobs-search-card__link ::attr(href)').get() is not None:
@@ -24,8 +25,8 @@ class TrademespiderSpider(scrapy.Spider):
             job_url = 'https://www.trademe.co.nz/a/' + relative_url
             yield response.follow(job_url, callback= self.parse_job_page) 
         
-        #pagination
-        next_page = response.xpath("/html/body/tm-root/div[1]/main/div/tm-jobs-search-results/div/div/div[3]/tm-flex-search-results/div/div[2]/tg-pagination/nav/ul/li[8]/tg-pagination-link/a/@href").get()
+        #pagination scraping
+        next_page = response.xpath("/html/body/tm-root/div[1]/main/div/tm-jobs-search-results/div/div/div[3]/tm-flex-search-results/div/div[2]/tg-pagination/nav/ul/li[last()]/tg-pagination-link/a/@href").get()
         if next_page is not None:
             next_page_url = 'https://www.trademe.co.nz' + next_page
             yield response.follow(next_page_url, callback= self.parse)
@@ -33,6 +34,7 @@ class TrademespiderSpider(scrapy.Spider):
             print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             print("No next page")
             
+    ## Builds the job object from xpaths and css selectors        
     def parse_job_page(self, response):
         job_item = ItjobscraperItem()
         
