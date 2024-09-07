@@ -12,7 +12,7 @@ BOT_NAME = "itjobscraper"
 SPIDER_MODULES = ["itjobscraper.spiders"]
 NEWSPIDER_MODULE = "itjobscraper.spiders"
 FEEDS = {
-  'trademedata.json' : {'format' : 'json', 'overwrite':True}
+  'trademedata.json' : {'format' : 'json'}
 }
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "itjobscraper (+http://www.yourdomain.com)"
