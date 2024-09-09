@@ -1,14 +1,14 @@
 ## Backend setup
-Make .env file in root of backend folder
+Make .env file in root of backend folder, using the example file
 
 ```
 DATABASE_URL=<url>
 FLASK_APP=index.py
 ```
+>[!NOTE]
+>You may have to edit the database url to begin with `postgresql` instead of `postgres`
 
-You may have to edit the database url to begin with `postgresql` instead of `postgres`
-
-Inside Command Prompt:
+### Inside Command Prompt:
 
 Create a virtual environment if there isn't one there
 
@@ -20,14 +20,15 @@ py -m venv .venv
 .venv\Scripts\activate
 ```
 
-Install packages stored in the Pipfile using pipenv
+Install packages stored in the `requirements.txt`
 
 ```
-pip install pipenv
+pip install -r requirements.txt
 ```
 
+Save packages to `requirements.txt`
 ```
-pipenv install
+pip freeze > requirements.txt
 ```
 
 ```
@@ -35,8 +36,7 @@ flask --app index run
 ```
 
 >[!NOTE]
->add --debug flag if you want hotswap
-
+>Append --debug flag if you want the server to enable hotswap
 
 
 ## Database Migration
