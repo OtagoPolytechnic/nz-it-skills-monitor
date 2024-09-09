@@ -52,25 +52,20 @@ const BarChart5 = () => {
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig}>
-            {/* BarChart component from Recharts library */}
             <BarChart accessibilityLayer data={skills[5]}>
-              {/* Add a Cartesian grid for better readability */}
               <CartesianGrid vertical={false} />
-              {/* X-axis configuration */}
               <XAxis
                 dataKey="name" // Key for data to be displayed on X-axis
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
               />
-              {/* Y-axis configuration */}
               <YAxis
                 dataKey="quantity" // Key for data to be displayed on Y-axis
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
               />
-              {/* Bar configuration */}
               <Bar
                 dataKey="quantity" // Key for the data to be displayed in the bars
                 fill="#2563eb" // Color of the bars
@@ -82,7 +77,6 @@ const BarChart5 = () => {
           </ChartContainer>
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 text-sm">
-          {/* Footer with additional information */}
           <div className="flex gap-2 font-medium leading-none">
             Data from mon 19 aug 2024
             <TrendingUp className="h-4 w-4" />

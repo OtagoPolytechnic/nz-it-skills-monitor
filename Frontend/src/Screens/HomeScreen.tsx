@@ -1,4 +1,3 @@
-import { DiscAlbum } from "lucide-react"; // Imported but not used in this component
 import BarChart1 from "../charts/BarChartFramework";
 import BarChart2 from "../charts/BarChartLanguage";
 import BarChart3 from "../charts/BarChartPlatform";
@@ -66,7 +65,7 @@ const Home = () => {
       </nav>
       
       {/* Main content area */}
-      <div className="grid grid-cols-2 gap-10">
+      <div className="grid grid-cols-3 gap-10">
         {/* Rendering multiple bar charts */}
         <BarChart1 />
         <BarChart2 />
