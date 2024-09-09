@@ -3,6 +3,7 @@ import { TrendingUp } from "lucide-react";
 import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardTitle,} from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import filterData from "../utils/filterSkills";
+import { ChartTooltip, ChartTooltipContent } from "../components/ui/chart";
 
 // Log the filterData function to the console (useful for debugging or verification)
 console.log(filterData);
@@ -21,32 +22,31 @@ const BarChart2 = () => {
     <>
       <Card>
         <CardHeader>
-          {/* Title of the card, displaying the name of the filter category based on its index */}
           <CardTitle>Bar Chart - {Object.keys(filter)[2]}</CardTitle>
-          {/* Description for the card content */}
           <CardDescription>Asked quantity's</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig}>
-            {/* Render the BarChart component from Recharts library */}
             <BarChart accessibilityLayer data={skills[2]}>
-              {/* Cartesian grid for the chart, with vertical lines disabled for cleaner appearance */}
               <CartesianGrid vertical={false} />
-              {/* X-axis configuration */}
               <XAxis
                 dataKey="name" // Key to access data for X-axis labels
                 tickLine={false} // Hide tick lines on X-axis
                 tickMargin={10} // Margin for ticks on X-axis
                 axisLine={false} // Hide axis line
               />
-              {/* Y-axis configuration */}
               <YAxis
                 dataKey="quantity" // Key to access data for Y-axis labels
                 tickLine={false} // Hide tick lines on Y-axis
                 tickMargin={10} // Margin for ticks on Y-axis
                 axisLine={false} // Hide axis line
               />
-              {/* Bar configuration */}
+              <ChartTooltip
+                cursor={false}
+                trigger="hover"
+                template="#name#  -  #quantity#"
+                content={<ChartTooltipContent hideLabel />}
+              />
               <Bar
                 dataKey="quantity" // Key to access data for bar heights
                 fill="#2563eb" // Color of the bars
@@ -60,12 +60,10 @@ const BarChart2 = () => {
         <CardFooter className="flex-col items-start gap-2 text-sm">
           {/* Footer with additional information */}
           <div className="flex gap-2 font-medium leading-none">
-            {/* Static text indicating the data source and date */}
             Data from mon 19 aug 2024
             <TrendingUp className="h-4 w-4" />
           </div>
           <div className="leading-none text-muted-foreground">
-            {/* Additional description of the data displayed */}
             Showing the quantity of asked technologies from 19-8-24
           </div>
         </CardFooter>
