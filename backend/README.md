@@ -62,5 +62,5 @@ flask db upgrade
 Inside Command Prompt with the virtual environment activated
 
 ```
-pipenv run python process_scrape.py
+py process_scrape.py
 ```
