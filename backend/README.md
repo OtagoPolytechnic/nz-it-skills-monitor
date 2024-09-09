@@ -16,9 +16,13 @@ Create a virtual environment if there isn't one there
 py -m venv .venv
 ```
 
+Activate the virtual environment
 ```
 .venv\Scripts\activate
 ```
+
+>[!NOTE]
+>To deactivate, use .venv\Scripts\deactivate
 
 Install packages stored in the `requirements.txt`
 
@@ -31,6 +35,8 @@ Save packages to `requirements.txt`
 pip freeze > requirements.txt
 ```
 
+
+Run the development server
 ```
 flask --app index run
 ```
