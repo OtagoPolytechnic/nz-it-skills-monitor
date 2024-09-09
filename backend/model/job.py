@@ -5,14 +5,15 @@ from marshmallow_sqlalchemy.fields import Nested
 from datetime import date
 
 #   jobs table
-#   | id          | title       | salary  | location    | type       | duration   | company     | description | date                 | skills      |
-#   | primary key | String(255) | Integer | String(255) | String(50) | String(50) | String(255) | Text        | Date (default today) | foreign key |  
+#   | id          | title       | salary  | location    | type       | duration   | company     | description | date                 | skills      | category   |
+#   | primary key | String(255) | Integer | String(255) | String(50) | String(50) | String(255) | Text        | Date (default today) | foreign key | String(50) |
            
 class Job(db.Model):
     __tablename__ = 'jobs'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255))
     description = db.Column(db.Text)
+    category = db.Column(db.String(50))
     salary = db.Column(db.Integer)
     location = db.Column(db.String(255))
     type = db.Column(db.String(50))
