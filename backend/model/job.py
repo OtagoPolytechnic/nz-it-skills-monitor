@@ -2,7 +2,12 @@ from . import db
 from marshmallow import fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.fields import Nested
+from datetime import date
 
+#   jobs table
+#   | id          | title       | salary  | location    | type       | duration   | company     | description | date                 | skills      |
+#   | primary key | String(255) | Integer | String(255) | String(50) | String(50) | String(255) | Text        | Date (default today) | foreign key |  
+           
 class Job(db.Model):
     __tablename__ = 'jobs'
     id = db.Column(db.Integer, primary_key=True)
@@ -13,15 +18,19 @@ class Job(db.Model):
     type = db.Column(db.String(50))
     duration = db.Column(db.String(50))
     company = db.Column(db.String(255))
-    date_list = db.Column(db.Date)
-    date_end = db.Column(db.Date)
-    skills = db.relationship('Skill', backref='job', lazy=True)
+    date = db.Column(db.Date, default=date.today)
+    skills = db.relationship('Skill', backref='job', lazy=True, cascade="all, delete-orphan")  # If a job is deleted, all of its skills will also be deleted
 
+#  skills table
+#  | job_id   | name        | type        |
+#  | combo primary key      | ########### |
+#  | ######## | String(255) | String(255) |
+    
 class Skill(db.Model):
-    __tablename__ = 'skills'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255))
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False)
+    __tablename__ = 'skills'    
+    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False, primary_key=True)
+    name = db.Column(db.String(255), primary_key=True)
+    type = db.Column(db.String(255))
 
 class SkillSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -36,5 +45,3 @@ class JobSchema(SQLAlchemyAutoSchema):
 
     skills = Nested(SkillSchema, many=True)
     salary = fields.Integer(required=False)
-    date_list = fields.Date(required=False)
-    date_end = fields.Date(required=False)
