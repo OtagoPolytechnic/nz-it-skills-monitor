@@ -22,7 +22,7 @@ Activate the virtual environment
 ```
 
 >[!NOTE]
->To deactivate, use .venv\Scripts\deactivate
+>To deactivate, use `.venv\Scripts\deactivate`
 
 Install packages stored in the `requirements.txt`
 
