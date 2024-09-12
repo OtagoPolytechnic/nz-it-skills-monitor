@@ -44,8 +44,6 @@ const BarChart2 = () => {
               <ChartTooltip
                 cursor={false}
                 trigger="hover"
-                template="#name#  -  #quantity#"
-                content={<ChartTooltipContent hideLabel />}
               />
               <Bar
                 dataKey="quantity" // Key to access data for bar heights

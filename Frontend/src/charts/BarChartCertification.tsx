@@ -4,6 +4,7 @@ import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardT
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import filterData from "../utils/filterSkills";
 import { useEffect, useState } from "react";
+import { ChartTooltip, ChartTooltipContent } from "../components/ui/chart";
 
 // Default configuration for the chart, could be customized further if needed
 const chartConfig = {} satisfies ChartConfig;
@@ -40,8 +41,7 @@ const BarChart3 = () => {
   // Filter and structure the data using the filterData function
   let filter = filterData();
   let skills = Object.values(filter);
-  console.log("DATA: ", data); // Log data to the console for debugging purposes
-
+  
   return (
     <>
       <Card>
@@ -68,15 +68,20 @@ const BarChart3 = () => {
                 dataKey="quantity" // Key for data to be displayed on Y-axis
                 tickLine={false}
                 tickMargin={10}
+                tickCount={3} // Custom tick count for Y-axis
                 axisLine={false}
+              />
+              <ChartTooltip
+                cursor={false}
+                trigger="hover"
               />
               {/* Bar configuration */}
               <Bar
                 dataKey="quantity" // Key for the data to be displayed in the bars
                 fill="#2563eb" // Color of the bars
-                strokeWidth={2} // Width of the bar borders
+                strokeWidth={5} // Width of the bar borders
                 radius={8} // Radius of the bar corners
-                activeIndex={2} // Active index to highlight a specific bar, if needed
+                activeIndex={8} // Active index to highlight a specific bar, if needed
               />
             </BarChart>
           </ChartContainer>

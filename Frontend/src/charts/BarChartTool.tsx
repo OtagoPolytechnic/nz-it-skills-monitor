@@ -4,6 +4,7 @@ import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardT
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import filterData from "../utils/filterSkills";
 import { useEffect, useState } from "react";
+import { ChartTooltip, ChartTooltipContent } from "../components/ui/chart";
 
 // Default configuration for the chart, could be customized further if needed
 const chartConfig = {} satisfies ChartConfig;
@@ -70,7 +71,10 @@ const BarChart4 = () => {
                 tickMargin={10}
                 axisLine={false}
               />
-              {/* Bar configuration */}
+              <ChartTooltip
+                cursor={false}
+                trigger="hover"
+              />
               <Bar
                 dataKey="quantity" // Key for the data to be displayed in the bars
                 fill="#2563eb" // Color of the bars

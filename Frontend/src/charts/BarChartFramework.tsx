@@ -3,6 +3,7 @@ import { TrendingUp } from "lucide-react";
 import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardTitle,} from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import filterData from "../utils/filterSkills";
+import { ChartTooltip, ChartTooltipContent } from "../components/ui/chart";
 
 // Log the filterData function to the console (for debugging or verification purposes)
 console.log(filterData);
@@ -46,7 +47,10 @@ const BarChart1 = () => {
                 tickMargin={10} // Margin for ticks
                 axisLine={false} // Hide axis line
               />
-              {/* Bar configuration */}
+              <ChartTooltip
+                cursor={false}
+                trigger="hover"
+              />
               <Bar
                 dataKey="quantity" // Key to access data for bar heights
                 fill="#2563eb" // Color of the bars
