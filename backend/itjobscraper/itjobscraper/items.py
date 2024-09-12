@@ -13,5 +13,6 @@ class ItjobscraperItem(scrapy.Item):
     company = scrapy.Field()
     type = scrapy.Field()
     skills = scrapy.Field()
+    date = scrapy.Field()
     salary = scrapy.Field()
     duration = scrapy.Field()
