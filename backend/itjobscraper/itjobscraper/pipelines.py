@@ -5,6 +5,7 @@ from itertools import chain
 from dotenv import load_dotenv
 import os
 import psycopg2
+from psycopg2.extras import execute_values
 from datetime import date
 import json
 
@@ -69,7 +70,7 @@ class ItjobscraperPipeline:
             response = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Extract IT skills and salary information..."},
+                    {"role": "system", "content": "You are a computer science graduate looking at job advertisements, extract IT skill information and salary information from the description, skills must be categorized by the following options: language, framework, tool, certification, platform, protocol, soft skill. if a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following language, framework, tool, certification, platform, protocol. example: name: javascript, type:language. Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number, if no salary figure is given return 0"},
                     {"role": "user", "content": f"{description}"}
                 ],
                 response_format=SkillsParse,
@@ -81,8 +82,15 @@ class ItjobscraperPipeline:
             return None
 
 # PostgresPipeline for bulk inserting data into PostgreSQL
+import psycopg2
+from psycopg2.extras import execute_values
+from itemadapter import ItemAdapter
+from datetime import date
+import json
+
 class PostgresPipeline:
     def open_spider(self, spider):
+        # Connect to the PostgreSQL database using psycopg2
         self.conn = psycopg2.connect(
             dbname=os.getenv('PGDATABASE'),
             user=os.getenv('PGUSER'),
@@ -90,3 +98,99 @@ class PostgresPipeline:
             host=os.getenv('PGHOST'),
             port=os.getenv('PGPORT')
         )
+        self.cur = self.conn.cursor()
+
+    def close_spider(self, spider):
+        # Close the cursor and connection when the spider is done
+        self.cur.close()
+        self.conn.close()
+
+    def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+        
+        # Prepare data for the Job
+        job_data = (
+            adapter.get('title'),
+            adapter.get('description'),
+            adapter.get('salary'),
+            adapter.get('location'),
+            adapter.get('type'),
+            adapter.get('duration'),
+            adapter.get('company'),
+            adapter.get('date', str(date.today()))  # Default to today's date if not present
+        )
+
+        # SQL query to insert a job into the 'jobs' table
+        insert_job_query = """
+        INSERT INTO jobs (title, description, salary, location, type, duration, company, date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
+        """
+
+        try:
+            # Insert the job and retrieve the job ID
+            self.cur.execute(insert_job_query, job_data)
+            job_id_row = self.cur.fetchone()
+
+            # Check if fetchone() returned None
+            if job_id_row is None:
+                raise ValueError("Failed to retrieve job ID after insertion.")
+
+            # Extract the job ID from the returned tuple
+            job_id = job_id_row[0]
+
+            # Parse and insert skills if they exist
+            skills = json.loads(adapter.get('skills', '[]'))
+            if skills:
+                skill_data = [(job_id, skill['name'], skill.get('type', 'Unknown')) for skill in skills]
+                # SQL query to insert skills into the 'skills' table
+                insert_skill_query = """
+                INSERT INTO skills (job_id, name, type)
+                VALUES %s
+                """
+                # Bulk insert skills
+                execute_values(self.cur, insert_skill_query, skill_data)
+
+            # Commit the transaction
+            self.conn.commit()
+
+        except Exception as e:
+            print(f"Error inserting job and skills into the database: {e}")
+            self.conn.rollback()  # Rollback in case of error
+
+        return item
+
+    def insert_job(self, job_data):
+        """
+        Insert a single job entry and return the job ID.
+        """
+        insert_job_query = """
+        INSERT INTO jobs (title, description, salary, location, type, duration, company, date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
+        """
+        try:
+            self.cur.execute(insert_job_query, job_data)
+            job_id = self.cur.fetchone()[0]
+            self.conn.commit()
+            return job_id
+        except Exception as e:
+            self.conn.rollback()
+            print(f"Error inserting job: {e}")
+            return None
+
+    def insert_skills(self, job_id, skills):
+        """
+        Insert multiple skills related to a job.
+        """
+        skill_data = [(job_id, skill['name'], skill.get('type', 'Unknown')) for skill in skills]
+        insert_skill_query = """
+        INSERT INTO skills (job_id, name, type)
+        VALUES %s
+        """
+        try:
+            execute_values(self.cur, insert_skill_query, skill_data)
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            print(f"Error inserting skills: {e}")
