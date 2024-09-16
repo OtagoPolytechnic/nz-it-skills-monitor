@@ -29,14 +29,14 @@ const BarChart = ({ dataKeyIndex, title }: BarChartProps) => {
   let skills = Object.values(filter);
 
   return (
-    <Card>
+    <Card >
       <CardHeader>
         <CardTitle>Bar Chart - {title}</CardTitle>
         <CardDescription>Asked quantity's</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <RechartsBarChart accessibilityLayer data={skills[dataKeyIndex]} >
+        <ChartContainer config={chartConfig} >
+          <RechartsBarChart  width={window.innerWidth -40 } data={skills[dataKeyIndex]} >
             <CartesianGrid vertical={false} />
             <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} angle={45} />
             <YAxis dataKey="quantity" tickLine={false} tickMargin={10} axisLine={false} />
