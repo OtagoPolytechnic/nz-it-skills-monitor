@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import filterData from "../utils/filterSkills";
 import { useEffect, useState } from "react";
+import { ChartTooltip } from "../components/ui/chart";
 
 // Default chart configuration
 const chartConfig = {} satisfies ChartConfig;
@@ -35,10 +36,11 @@ const BarChart = ({ dataKeyIndex, title }: BarChartProps) => {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <RechartsBarChart accessibilityLayer data={skills[dataKeyIndex]}>
+          <RechartsBarChart accessibilityLayer data={skills[dataKeyIndex]} >
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
+            <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} angle={45} />
             <YAxis dataKey="quantity" tickLine={false} tickMargin={10} axisLine={false} />
+            <ChartTooltip cursor={false} trigger="hover"/>
             <Bar dataKey="quantity" fill="#2563eb" strokeWidth={2} radius={8} />
           </RechartsBarChart>
         </ChartContainer>
