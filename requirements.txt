@@ -3,3 +3,4 @@ Packages for scrapy:
     ipython
     openai
     python-dotenv
+    psycopg2-binary
