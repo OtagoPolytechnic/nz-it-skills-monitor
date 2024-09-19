@@ -112,6 +112,7 @@ class PostgresPipeline:
         job_data = (
             adapter.get('title'),
             adapter.get('description'),
+            adapter.get('category'),
             adapter.get('salary'),
             adapter.get('location'),
             adapter.get('type'),
@@ -122,8 +123,8 @@ class PostgresPipeline:
 
         # SQL query to insert a job into the 'jobs' table
         insert_job_query = """
-        INSERT INTO jobs (title, description, salary, location, type, duration, company, date)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO jobs (title, description, category, salary, location, type, duration, company, date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id
         """
 
@@ -165,8 +166,8 @@ class PostgresPipeline:
         Insert a single job entry and return the job ID.
         """
         insert_job_query = """
-        INSERT INTO jobs (title, description, salary, location, type, duration, company, date)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO jobs (title, description, category, salary, location, type, duration, company, date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id
         """
         try:
