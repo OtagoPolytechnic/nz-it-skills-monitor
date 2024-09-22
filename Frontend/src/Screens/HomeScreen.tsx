@@ -1,4 +1,5 @@
-import BarChart from "../charts/BarChart";
+import BarChartVertical from "../charts/BarChartVertical";
+import BarChartHorizontal from "../charts/BarChartHorizontal";
 
 const Home = () => {
   const chartTitles = [
@@ -11,7 +12,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="w-full">
+    <div>
       <nav className="bg-white border-gray-200 dark:bg-gray-900">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           <button
@@ -48,14 +49,21 @@ const Home = () => {
           </div>
         </div>
       </nav>
-      
-      <div className="grid grid-cols-3 gap-4 p-4 w-full max-w-full">
-        {chartTitles.map((title, index) => (
-          <BarChart key={index} dataKeyIndex={index} title={title} />
-        ))}
-      </div>
+      <>
+        <div className="grid grid-cols-3 gap-4 p-4" >
+          {chartTitles.map((title, index) => (
+            <BarChartHorizontal key={index} dataKeyIndex={index} title={title} />
+          ))}
+        </div>
+      </>
     </div>
   );
 };
 
 export default Home;
+
+
+/*
+
+
+*/
