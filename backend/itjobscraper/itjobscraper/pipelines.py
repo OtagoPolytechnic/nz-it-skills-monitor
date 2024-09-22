@@ -70,7 +70,7 @@ class ItjobscraperPipeline:
             response = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a computer science graduate looking at job advertisements, extract IT skill information and salary information from the description, skills must be categorized by the following options: language, framework, tool, certification, platform, protocol, soft skill. if a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following language, framework, tool, certification, platform, protocol. example: name: javascript, type:language. Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number, if no salary figure is given return 0"},
+                    {"role": "system", "content": "You are a computer science graduate looking at job advertisements, extract IT skill information and salary information from the description, skills must be categorized by the following options: language, framework, tool, certification, platform, protocol, databases , soft skill. if a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following language, framework, tool, certification, platform, protocol. example: name: javascript, type:language. Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number, if no salary figure is given return 0. Return all skills in lowercase"},
                     {"role": "user", "content": f"{description}"}
                 ],
                 response_format=SkillsParse,
@@ -82,12 +82,6 @@ class ItjobscraperPipeline:
             return None
 
 # PostgresPipeline for bulk inserting data into PostgreSQL
-import psycopg2
-from psycopg2.extras import execute_values
-from itemadapter import ItemAdapter
-from datetime import date
-import json
-
 class PostgresPipeline:
     def open_spider(self, spider):
         # Connect to the PostgreSQL database using psycopg2
