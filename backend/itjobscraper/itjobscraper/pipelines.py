@@ -54,6 +54,22 @@ class ItjobscraperPipeline:
                 value = str(value).strip()
             adapter[field_name] = value
         
+        ##remove region from location
+        location_string = adapter.get('location')
+
+        if isinstance(location_string, tuple):
+            location_string = ", ".join(location_string)  
+
+        split_location_array = location_string.split(',')
+
+        if len(split_location_array) == 2:
+            #remove "city"
+            city_name = split_location_array[0].split(" ")
+            if len(city_name) == 2:
+                adapter['location'] = city_name[0]
+            else:
+               adapter['location'] = city_name[0]   
+        
         # Get skills and salary from description via OpenAI API
         description = adapter.get('description')
         if description:
