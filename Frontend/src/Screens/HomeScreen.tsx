@@ -1,5 +1,6 @@
 import BarChartVertical from "../charts/BarChartVertical";
 import BarChartHorizontal from "../charts/BarChartHorizontal";
+import TreeMaps from "../charts/TreeMaps"
 
 const Home = () => {
   const chartTitles = [
@@ -50,11 +51,12 @@ const Home = () => {
         </div>
       </nav>
       <>
-        <div className="grid grid-cols-3 gap-4 p-4" >
+        <div className="grid grid-cols-2 gap-4 p-4" >
           {chartTitles.map((title, index) => (
             <BarChartHorizontal key={index} dataKeyIndex={index} title={title} />
           ))}
         </div>
+        <TreeMaps />
       </>
     </div>
   );
