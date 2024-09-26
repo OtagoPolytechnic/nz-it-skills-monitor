@@ -1,7 +1,7 @@
-import { BarChart as RechartsBarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
 import { TrendingUp } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import { ChartConfig, ChartContainer } from "../components/ui/chart";
 import filterData from "../utils/filterSkills";
 import { useEffect, useState } from "react";
 import { ChartTooltip } from "../components/ui/chart";
@@ -14,7 +14,7 @@ interface BarChartProps {
   title: string; // Title of the chart
 }
 
-const BarChart = ({ dataKeyIndex, title }: BarChartProps) => {
+const BarChartVertical = ({ dataKeyIndex, title }: BarChartProps) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -29,20 +29,20 @@ const BarChart = ({ dataKeyIndex, title }: BarChartProps) => {
   let skills = Object.values(filter);
 
   return (
-    <Card>
+    <Card >
       <CardHeader>
         <CardTitle>Bar Chart - {title}</CardTitle>
         <CardDescription>Asked quantity's</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <RechartsBarChart accessibilityLayer data={skills[dataKeyIndex]} >
+        <ChartContainer config={chartConfig} >
+          <BarChart margin={{bottom:50}} data={skills[dataKeyIndex]} >
             <CartesianGrid vertical={false} />
             <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} angle={45} />
             <YAxis dataKey="quantity" tickLine={false} tickMargin={10} axisLine={false} />
             <ChartTooltip cursor={false} trigger="hover"/>
             <Bar dataKey="quantity" fill="#2563eb" strokeWidth={2} radius={8} />
-          </RechartsBarChart>
+          </BarChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
@@ -58,4 +58,4 @@ const BarChart = ({ dataKeyIndex, title }: BarChartProps) => {
   );
 };
 
-export default BarChart;
+export default BarChartVertical;
