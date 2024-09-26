@@ -62,6 +62,20 @@ def get_jobs():
 
     return jsonify(jobs_data)
 
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    
+    username = data.get('username')
+    password = data.get('password')
+    
+    # Check the credentials using the values from the .env file
+    if username == app.config['ADMIN_USERNAME'] and password == app.config['ADMIN_PASSWORD']:
+        token = generate_jwt_token(username)
+        return jsonify({"token": token}), 200
+    else:
+        return jsonify({"error": "Invalid username or password"}), 401
+
 # @app.route('/tables', methods=['GET'])
 # def list_tables():
 #     # Retrieve the list of tables from the database
