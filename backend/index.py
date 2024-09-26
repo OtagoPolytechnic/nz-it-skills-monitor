@@ -76,6 +76,25 @@ def login():
     else:
         return jsonify({"error": "Invalid username or password"}), 401
 
+@app.route('/admin', methods=['GET'])
+def admin():
+    token = request.headers.get('Authorization')
+
+    if not token:
+        return jsonify({"error": "Token is missing!"}), 403
+
+    try:
+        token = token.split()[1]  # Remove 'Bearer ' prefix
+        decoded_token = verify_jwt_token(token)
+
+        if not decoded_token:
+            return jsonify({"error": "Invalid or expired token"}), 403
+
+        return jsonify({"message": "Welcome to the admin panel!"}), 200
+    except Exception as e:
+        return jsonify({"error": "Invalid token format"}), 400
+
+
 # @app.route('/tables', methods=['GET'])
 # def list_tables():
 #     # Retrieve the list of tables from the database
