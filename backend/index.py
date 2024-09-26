@@ -37,6 +37,15 @@ def generate_jwt_token(username):
     )
     return token
 
+def verify_jwt_token(token):
+    try:
+        payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
 
 @app.route("/")
 def hello_world():
