@@ -86,7 +86,17 @@ class ItjobscraperPipeline:
             response = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a computer science graduate looking at job advertisements, extract IT skill information and salary information from the description, skills must be categorized by the following options: language, framework, tool, certification, platform, protocol, database, soft skill, methodology. if a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following language, framework, tool, certification, platform, protocol, methodology, database. example: name: javascript, type:language. Return all skills in lowercase, and if there are any acronyms convert these to there full names. Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number, if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0."},
+                    {"role": "system", "content": 
+                        """You are a computer science graduate looking at job advertisements, 
+                        extract IT skill information and salary information from the description, skills must be categorized by the following options: 
+                        language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
+                        Soft skills should not include the word skill, example: use communication not communication skills.
+                        If a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following options: 
+                        language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
+                        example: name: javascript, type: language. Return all skills in lowercase. Convert acronyms of certifications to their full name example example: oscp to offensive security certified professional. 
+                        Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number,
+                        if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0."""
+                    },
                     {"role": "user", "content": f"{description}"}
                 ],
                 response_format=SkillsParse,
