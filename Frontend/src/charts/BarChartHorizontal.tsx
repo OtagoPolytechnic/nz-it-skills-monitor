@@ -1,4 +1,4 @@
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { ChartConfig, ChartContainer } from "../components/ui/chart";
@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { ChartTooltip } from "../components/ui/chart";
 
 // Default chart configuration
-const chartConfig = {} satisfies ChartConfig;
 
 interface BarChartProps {
   dataKeyIndex: number; // Index of the skills data to display
@@ -35,7 +34,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
         <CardDescription>Asked quantity's</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ResponsiveContainer height={650}>
           <BarChart
             accessibilityLayer
             data={skills[dataKeyIndex]}
@@ -48,6 +47,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
             <YAxis
               dataKey="name"
               type="category"
+              height={50}
               tickLine={false}
               tickMargin={10}
               axisLine={false}
@@ -59,7 +59,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
             />
             <Bar dataKey="quantity" fill="#2563eb" strokeWidth={2} radius={8} />
           </BarChart>
-        </ChartContainer>
+        </ResponsiveContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex gap-2 font-medium leading-none">
