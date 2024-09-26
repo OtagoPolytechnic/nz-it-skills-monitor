@@ -26,6 +26,18 @@ app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 init_app(app)
 migrate = Migrate(app, db)
 
+def generate_jwt_token(username):
+    token = jwt.encode(
+        {
+            'username': username,  # User information
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Expiry time
+        },
+        app.config['SECRET_KEY'],  # Secret to sign the token
+        algorithm='HS256'  # Algorithm used for signing
+    )
+    return token
+
+
 @app.route("/")
 def hello_world():
     return "Hello, World!"
