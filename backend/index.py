@@ -2,13 +2,17 @@ import os
 from flask_cors import CORS
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-from sqlalchemy import text, inspect
+from sqlalchemy import text, inspect, select
+from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
 from model import init_app, db
 from model.job import JobSchema, Job
 import jwt
 from flask_bcrypt import Bcrypt
 import datetime
+
+import logging
+from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 
@@ -25,6 +29,10 @@ app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
 init_app(app)
 migrate = Migrate(app, db)
+
+# logging to see why query is slow
+# logging.basicConfig()
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 def generate_jwt_token(username):
     token = jwt.encode(
@@ -54,10 +62,9 @@ def hello_world():
 @app.route('/jobs', methods=['GET'])
 def get_jobs():
     # Query all jobs from the Job table
-    jobs = Job.query.all()
-
+    jobs = Job.query.options(subqueryload(Job.skills)).all()
     # Serialize the data using the JobSchema
-    job_schema = JobSchema(many=True)
+    job_schema = JobSchema(many=True, exclude=["description"])
     jobs_data = job_schema.dump(jobs)
 
     return jsonify(jobs_data)
