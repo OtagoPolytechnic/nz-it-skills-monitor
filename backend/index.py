@@ -1,19 +1,27 @@
 import os
 from flask_cors import CORS
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from sqlalchemy import text, inspect
 from flask_migrate import Migrate
 from model import init_app, db
 from model.job import JobSchema, Job
+import jwt
+from flask_bcrypt import Bcrypt
+import datetime
 
 load_dotenv()
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['ADMIN_USERNAME'] = os.getenv('ADMIN_USERNAME')
+app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
 init_app(app)
 migrate = Migrate(app, db)
