@@ -291,4 +291,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+#Sync react lib folder but not python lib folder
 !/Frontend/src/lib
