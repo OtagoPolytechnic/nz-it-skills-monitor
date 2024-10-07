@@ -1,7 +1,35 @@
 import BarChartVertical from "../charts/BarChartVertical";
 import BarChartHorizontal from "../charts/BarChartHorizontal";
+import { useState, useEffect } from "react";
 
 const Home = () => {
+  const [fetchedData, setFetchedData] = useState<any[]>([]); // Initialize with an empty array
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
+
+  useEffect(() => {
+    // Fetch job data from API
+    console.log('GETTING DATA');
+    getData();
+  }, []);
+
+  const getData = async () => {
+    try {
+      const response = await fetch("https://nz-it-skills-monitor.onrender.com/jobs");
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json(); // Parse the JSON data
+      setFetchedData(data);
+      console.log("FETCHED DATA: ", data); // Log the fetched data to the console
+    } catch (error: any) {
+      console.error("There was a problem with the fetch operation:", error.message);
+    } finally {
+      setIsLoading(false); // Set loading to false after fetching data
+    }
+  };
+
   const chartTitles = [
     "Frameworks",
     "Languages",
@@ -50,20 +78,23 @@ const Home = () => {
         </div>
       </nav>
       <>
-        <div className="grid grid-cols-3 gap-4 p-4" >
-          {chartTitles.map((title, index) => (
-            <BarChartHorizontal key={index} dataKeyIndex={index} title={title} />
-          ))}
-        </div>
+        {isLoading ? (
+          <h1 className="text-center text-2xl font-bold p-4">Loading...</h1>
+        ) : (
+          <div className="grid grid-cols-3 gap-4 p-4">
+            {chartTitles.map((title, index) => (
+              <BarChartHorizontal
+                key={index}
+                dataKeyIndex={index}
+                title={title}
+                data={fetchedData.length > 0 ? fetchedData : []} // Ensure data is an array
+              />
+            ))}
+          </div>
+        )}
       </>
     </div>
   );
 };
 
 export default Home;
-
-
-/*
-
-
-*/

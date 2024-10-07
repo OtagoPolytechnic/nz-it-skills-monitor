@@ -15,15 +15,7 @@ interface BarChartProps {
 }
 
 const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    // Fetch job data from API
-    fetch('https://nz-it-skills-monitor.onrender.com/jobs')
-      .then((response) => response.json())
-      .then((data) => setData(data));
-  }, []);
-
+  
   // Filtering and structuring data
   let filter = filterData();
   let skills = Object.values(filter);
