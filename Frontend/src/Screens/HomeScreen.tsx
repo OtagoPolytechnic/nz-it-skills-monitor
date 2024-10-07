@@ -36,7 +36,10 @@ const Home = () => {
     "Platforms",
     "Certifications",
     "Tools",
-    "Protocols"
+    "Protocols",
+    "Databases",
+    "Methodologies",
+    "Soft Skills",
   ];
 
   return (
@@ -88,6 +91,7 @@ const Home = () => {
                 dataKeyIndex={index}
                 title={title}
                 data={fetchedData.length > 0 ? fetchedData : []} // Ensure data is an array
+                date={fetchedData[0]?.date || "Unknown Date"} // Pass the date from the data
               />
             ))}
           </div>

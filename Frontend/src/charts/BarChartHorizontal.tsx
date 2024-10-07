@@ -3,7 +3,6 @@ import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { ChartConfig, ChartContainer } from "../components/ui/chart";
 import filterData from "../utils/filterSkills";
-import { useEffect, useState } from "react";
 import { ChartTooltip } from "../components/ui/chart";
 
 // Default chart configuration
@@ -12,12 +11,14 @@ const chartConfig = {} satisfies ChartConfig;
 interface BarChartProps {
   dataKeyIndex: number; // Index of the skills data to display
   title: string; // Title of the chart
+  data: any[];  // Data passed from parent component (Home)
+  date: string;
 }
 
-const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
-  
+const BarChartHorizontal = ({ dataKeyIndex, title, data, date }: BarChartProps) => {
+
   // Filtering and structuring data
-  let filter = filterData();
+  let filter = filterData(data);
   let skills = Object.values(filter);
 
   return (
@@ -59,7 +60,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
           <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing the quantity of asked technologies from 19-8-24
+        Showing the quantity of asked technologies from {date}
         </div>
       </CardFooter>
     </Card>
