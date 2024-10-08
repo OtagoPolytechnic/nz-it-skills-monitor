@@ -5,10 +5,11 @@ interface Skill {
 
 interface Job {
   skills: Skill[];
+  category: string; // Assuming each Job has a category field
 }
 
-// Function to count skills by type
-const filterSkills = (data: Job[]) => {
+// Function to count skills by type, filtered by selected category
+const filterSkills = (data: Job[], selectedCategory: string) => {
   // Initialize maps to store skill counts by type
   const skillCountsByType = {
     language: new Map<string, number>(),
@@ -24,19 +25,22 @@ const filterSkills = (data: Job[]) => {
 
   // Process each job and its skills from the fetched data
   data.forEach((job: Job) => {
-    job.skills.forEach((skill: Skill) => {
-      // Get the appropriate map based on skill type
-      const skillMap =
-        skillCountsByType[skill.type as keyof typeof skillCountsByType];
-      if (skillMap) {
-        // Increment the count for this skill
-        if (skillMap.has(skill.name)) {
-          skillMap.set(skill.name, skillMap.get(skill.name)! + 1);
-        } else {
-          skillMap.set(skill.name, 1);
+    // Check if the job matches the selected category or if "All" is selected
+    if (selectedCategory === "All" || job.category === selectedCategory) {
+      job.skills.forEach((skill: Skill) => {
+        // Get the appropriate map based on skill type
+        const skillMap =
+          skillCountsByType[skill.type as keyof typeof skillCountsByType];
+        if (skillMap) {
+          // Increment the count for this skill
+          if (skillMap.has(skill.name)) {
+            skillMap.set(skill.name, skillMap.get(skill.name)! + 1);
+          } else {
+            skillMap.set(skill.name, 1);
+          }
         }
-      }
-    });
+      });
+    }
   });
 
   // Convert Maps to plain objects for easier display

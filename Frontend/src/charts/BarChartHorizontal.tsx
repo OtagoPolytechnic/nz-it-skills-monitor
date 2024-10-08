@@ -17,7 +17,7 @@ interface BarChartProps {
 const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
 
   // Filtering and structuring data
-  let filter = filterData(data);
+  let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
 
   return (

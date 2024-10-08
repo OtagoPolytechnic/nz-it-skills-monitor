@@ -76,8 +76,8 @@ const Home = () => {
   };
 
   const chartTitles = [
-    "Frameworks",
     "Languages",
+    "Frameworks",
     "Platforms",
     "Certifications",
     "Tools",
