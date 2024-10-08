@@ -1,13 +1,31 @@
-import BarChartVertical from "../charts/BarChartVertical";
+import CategoryDropdown from "../components/categoryFilter";
 import BarChartHorizontal from "../charts/BarChartHorizontal";
 import { useState, useEffect } from "react";
 
 const Home = () => {
-  const [fetchedData, setFetchedData] = useState<any[]>([]); // Initialize with an empty array
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [fetchedData, setFetchedData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([]); // Use Record for category count
+
+  interface Skill {
+    name: string;
+    type: string; // type of skill category
+  }
+
+  interface Job {
+    category: string;
+    company: string;
+    date: string;
+    duration: string;
+    id: number;
+    location: string;
+    salary: number;
+    skills: Skill[];
+    title: string;
+    type: string;
+  }
 
   useEffect(() => {
-    // Fetch job data from API
     console.log("GETTING DATA");
     getData();
   }, []);
@@ -22,17 +40,36 @@ const Home = () => {
         throw new Error("Network response was not ok");
       }
 
-      const data = await response.json(); // Parse the JSON data
+      const data = await response.json();
       setFetchedData(data);
-      console.log("FETCHED DATA: ", data); // Log the fetched data to the console
+      console.log("FETCHED DATA: ", data);
+
+      // Call getUniqueCategoriesWithCount after setting fetchedData
+      getUniqueCategoriesWithCount(data);
     } catch (error: any) {
       console.error(
         "There was a problem with the fetch operation:",
         error.message
       );
     } finally {
-      setIsLoading(false); // Set loading to false after fetching data
+      setIsLoading(false);
     }
+  };
+
+  const getUniqueCategoriesWithCount = (jobs: Job[]) => {
+    const categoryCount: Record<string, number> = {};
+
+    jobs.forEach((job) => {
+      // Increment the count for each job category
+      if (categoryCount[job.category]) {
+        categoryCount[job.category]++;
+      } else {
+        categoryCount[job.category] = 1;
+      }
+    });
+
+    console.log("CATEGORIES: ", categoryCount);
+    setCategories(Object.keys(categoryCount));
   };
 
   const chartTitles = [
@@ -102,8 +139,13 @@ const Home = () => {
           <h1 className="text-center text-2xl font-bold p-4">Loading...</h1>
         ) : (
           <div>
-            <div className="text-right p-4">
-              <div>Data collected: {fetchedData[0].date}</div>
+            <div className="flex justify-between p-4">
+              <div>
+                <CategoryDropdown categories={categories} />
+              </div>
+              <div className="text-right">
+                Data collected: {fetchedData[0]?.date || "Unknown Date"}
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-4 p-4">
               {chartTitles.map((title, index) => (
@@ -111,8 +153,8 @@ const Home = () => {
                   key={index}
                   dataKeyIndex={index}
                   title={title}
-                  data={fetchedData.length > 0 ? fetchedData : []} // Ensure data is an array
-                  date={fetchedData[0]?.date || "Unknown Date"} // Pass the date from the data
+                  data={fetchedData.length > 0 ? fetchedData : []}
+                  date={fetchedData[0]?.date || "Unknown Date"}
                 />
               ))}
             </div>
