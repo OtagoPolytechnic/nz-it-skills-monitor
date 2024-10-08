@@ -22,7 +22,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, date }: BarChartProps) 
   let skills = Object.values(filter);
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle>Bar Chart - {title}</CardTitle>
         <CardDescription>Asked quantity's</CardDescription>
@@ -37,7 +37,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, date }: BarChartProps) 
               left: 40,
             }}
           >
-            <XAxis type="number" dataKey="quantity"  />
+            <XAxis type="number" dataKey="quantity" />
             <YAxis
               dataKey="name"
               type="category"
@@ -54,15 +54,6 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, date }: BarChartProps) 
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
-          Data from mon 19 aug 2024
-          <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-        Showing the quantity of asked technologies from {date}
-        </div>
-      </CardFooter>
     </Card>
   );
 };
