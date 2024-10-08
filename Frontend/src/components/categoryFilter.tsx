@@ -8,9 +8,6 @@ interface CategoryDropdownProps {
 const CategoryDropdown: React.FC<CategoryDropdownProps> = ({ categories, setSelectedCategory }) => {
   return (
     <div className="mb-4">
-      <label htmlFor="category-select" className="block mb-2 text-sm font-medium text-gray-700">
-        Select Category
-      </label>
       <select
         id="category-select"
         className="border border-gray-300 rounded p-2"
