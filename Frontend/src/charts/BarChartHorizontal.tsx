@@ -1,5 +1,4 @@
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
-import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { ChartConfig, ChartContainer } from "../components/ui/chart";
 import filterData from "../utils/filterSkills";
@@ -12,10 +11,10 @@ interface BarChartProps {
   dataKeyIndex: number; // Index of the skills data to display
   title: string; // Title of the chart
   data: any[];  // Data passed from parent component (Home)
-  date: string;
+  selectedCategory: string;
 }
 
-const BarChartHorizontal = ({ dataKeyIndex, title, data, date }: BarChartProps) => {
+const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
 
   // Filtering and structuring data
   let filter = filterData(data);

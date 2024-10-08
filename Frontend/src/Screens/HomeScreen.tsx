@@ -6,6 +6,7 @@ const Home = () => {
   const [fetchedData, setFetchedData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]); // Use Record for category count
+  const [selectedCategory, setSelectedCategory] = useState<string>("All")
 
   interface Skill {
     name: string;
@@ -143,7 +144,7 @@ const Home = () => {
           <div>
             <div className="flex justify-between p-4">
               <div>
-                <CategoryDropdown categories={categories} />
+                <CategoryDropdown categories={categories} setSelectedCategory={setSelectedCategory}/>
               </div>
               <div className="text-right">
                 Data collected: {fetchedData[0]?.date || "Unknown Date"}
@@ -156,7 +157,7 @@ const Home = () => {
                   dataKeyIndex={index}
                   title={title}
                   data={fetchedData.length > 0 ? fetchedData : []}
-                  date={fetchedData[0]?.date || "Unknown Date"}
+                  selectedCategory={selectedCategory}      
                 />
               ))}
             </div>
