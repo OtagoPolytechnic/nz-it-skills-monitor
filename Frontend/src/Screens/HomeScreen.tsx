@@ -58,7 +58,7 @@ const Home = () => {
 
   const getUniqueCategoriesWithCount = (jobs: Job[]) => {
     const categoryCount: Record<string, number> = {};
-
+  
     jobs.forEach((job) => {
       // Increment the count for each job category
       if (categoryCount[job.category]) {
@@ -67,9 +67,11 @@ const Home = () => {
         categoryCount[job.category] = 1;
       }
     });
-
+  
     console.log("CATEGORIES: ", categoryCount);
-    setCategories(Object.keys(categoryCount));
+  
+    // Add "All" category
+    setCategories(["All", ...Object.keys(categoryCount)]);
   };
 
   const chartTitles = [
