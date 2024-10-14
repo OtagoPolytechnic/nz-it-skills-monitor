@@ -54,6 +54,22 @@ class ItjobscraperPipeline:
                 value = str(value).strip()
             adapter[field_name] = value
         
+        ##remove region from location
+        location_string = adapter.get('location')
+
+        if isinstance(location_string, tuple):
+            location_string = ", ".join(location_string)  
+
+        split_location_array = location_string.split(',')
+
+        if len(split_location_array) == 2:
+            #remove "city"
+            city_name = split_location_array[0].split(" ")
+            if len(city_name) == 2:
+                adapter['location'] = city_name[0]
+            else:
+               adapter['location'] = city_name[0]   
+        
         # Get skills and salary from description via OpenAI API
         description = adapter.get('description')
         if description:
@@ -70,7 +86,19 @@ class ItjobscraperPipeline:
             response = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a computer science graduate looking at job advertisements, extract IT skill information and salary information from the description, skills must be categorized by the following options: language, framework, tool, certification, platform, protocol, soft skill. if a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following language, framework, tool, certification, platform, protocol. example: name: javascript, type:language. Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number, if no salary figure is given return 0"},
+                    {"role": "system", "content": 
+                        """You are a computer science graduate looking at job advertisements, 
+                        extract IT skill information and salary information from the description, skills must be categorized by the following options: 
+                        language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
+                        Only include the following soft skills: Communication, Teamwork, Problem-solving, Adaptability, Time Management, Customer Service, Emotional Intelligence, Leadership, Critical Thinking, Conflict Resolution, Creativity.
+                        Soft skills should not include the word skill or - characters, example: use communication not communication skills, use "problem solving" not "problem-solving".
+                        If a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following options: 
+                        language, framework, tool, certification, platform, protocol, database, soft skill, methodology example: name: javascript, type: language. 
+                        Convert acronyms of certifications to their full name example example: oscp to offensive security certified professional. 
+                        Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number,
+                        if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0.
+                        Return all in lowercase"""
+                    },
                     {"role": "user", "content": f"{description}"}
                 ],
                 response_format=SkillsParse,
@@ -82,12 +110,6 @@ class ItjobscraperPipeline:
             return None
 
 # PostgresPipeline for bulk inserting data into PostgreSQL
-import psycopg2
-from psycopg2.extras import execute_values
-from itemadapter import ItemAdapter
-from datetime import date
-import json
-
 class PostgresPipeline:
     def open_spider(self, spider):
         # Connect to the PostgreSQL database using psycopg2
@@ -112,6 +134,7 @@ class PostgresPipeline:
         job_data = (
             adapter.get('title'),
             adapter.get('description'),
+            adapter.get('category'),
             adapter.get('salary'),
             adapter.get('location'),
             adapter.get('type'),
@@ -122,8 +145,8 @@ class PostgresPipeline:
 
         # SQL query to insert a job into the 'jobs' table
         insert_job_query = """
-        INSERT INTO jobs (title, description, salary, location, type, duration, company, date)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO jobs (title, description, category, salary, location, type, duration, company, date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id
         """
 
@@ -165,8 +188,8 @@ class PostgresPipeline:
         Insert a single job entry and return the job ID.
         """
         insert_job_query = """
-        INSERT INTO jobs (title, description, salary, location, type, duration, company, date)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO jobs (title, description, category, salary, location, type, duration, company, date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id
         """
         try:

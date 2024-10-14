@@ -3,7 +3,6 @@ import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { ChartConfig, ChartContainer } from "../components/ui/chart";
 import filterData from "../utils/filterSkills";
-import { useEffect, useState } from "react";
 import { ChartTooltip } from "../components/ui/chart";
 
 // Default chart configuration
@@ -11,24 +10,18 @@ import { ChartTooltip } from "../components/ui/chart";
 interface BarChartProps {
   dataKeyIndex: number; // Index of the skills data to display
   title: string; // Title of the chart
+  data: any[];  // Data passed from parent component (Home)
+  selectedCategory: string;
 }
 
-const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    // Fetch job data from API
-    fetch('https://nz-it-skills-monitor.onrender.com/jobs')
-      .then((response) => response.json())
-      .then((data) => setData(data));
-  }, []);
+const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
 
   // Filtering and structuring data
-  let filter = filterData();
+  let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle>Bar Chart - {title}</CardTitle>
         <CardDescription>Asked quantity's</CardDescription>
@@ -43,7 +36,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
               left: 40,
             }}
           >
-            <XAxis type="number" dataKey="quantity"  />
+            <XAxis type="number" dataKey="quantity" />
             <YAxis
               dataKey="name"
               type="category"
@@ -61,15 +54,6 @@ const BarChartHorizontal = ({ dataKeyIndex, title }: BarChartProps) => {
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
-          Data from mon 19 aug 2024
-          <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing the quantity of asked technologies from 19-8-24
-        </div>
-      </CardFooter>
     </Card>
   );
 };
