@@ -150,7 +150,7 @@ const Home = () => {
                 Data collected: {fetchedData[0]?.date || "Unknown Date"}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4 p-4">
+            <div className="grid grid-cols-2 gap-4 p-4">
               {chartTitles.map((title, index) => (
                 <BarChartHorizontal
                   key={index}

@@ -1,4 +1,4 @@
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { ChartConfig, ChartContainer } from "../components/ui/chart";
 import filterData from "../utils/filterSkills";
@@ -27,7 +27,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
         <CardDescription>Asked quantity's</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ResponsiveContainer height={650}>
           <BarChart
             accessibilityLayer
             data={skills[dataKeyIndex]}
@@ -51,7 +51,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
             />
             <Bar dataKey="quantity" fill="#2563eb" strokeWidth={2} radius={8} />
           </BarChart>
-        </ChartContainer>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );
