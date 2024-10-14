@@ -1,3 +1,11 @@
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 const Admin = () => {
   return (
@@ -23,11 +31,11 @@ const Admin = () => {
       </div>
     </nav>
 
-    <div>
-      <h3>Password</h3>
+    <Card>
+      <CardTitle>Password</CardTitle>
       <div>password box</div>
       <button>Submit</button>
-    </div>
+    </Card>
     </>
   );
 }
