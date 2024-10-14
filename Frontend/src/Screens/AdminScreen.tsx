@@ -22,6 +22,12 @@ const Admin = () => {
         </div>
       </div>
     </nav>
+
+    <div>
+      <h3>Password</h3>
+      <div>password box</div>
+      <button>Submit</button>
+    </div>
     </>
   );
 }
