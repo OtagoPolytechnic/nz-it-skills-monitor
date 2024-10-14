@@ -1,6 +1,8 @@
 import CategoryDropdown from "../components/categoryFilter";
 import BarChartHorizontal from "../charts/BarChartHorizontal";
 import { useState, useEffect } from "react";
+import TreeMaps from "../charts/TreeMaps"
+
 
 const Home = () => {
   const [fetchedData, setFetchedData] = useState<any[]>([]);

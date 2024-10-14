@@ -1,11 +1,11 @@
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { ChartConfig, ChartContainer } from "../components/ui/chart";
 import filterData from "../utils/filterSkills";
 import { ChartTooltip } from "../components/ui/chart";
 
 // Default chart configuration
-const chartConfig = {} satisfies ChartConfig;
 
 interface BarChartProps {
   dataKeyIndex: number; // Index of the skills data to display
@@ -40,6 +40,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
             <YAxis
               dataKey="name"
               type="category"
+              height={50}
               tickLine={false}
               tickMargin={10}
               axisLine={false}
