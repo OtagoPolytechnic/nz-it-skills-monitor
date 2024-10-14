@@ -162,6 +162,7 @@ const Home = () => {
                   selectedCategory={selectedCategory}      
                 />
               ))}
+              <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
             </div>
           </div>
         )}

@@ -4,14 +4,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { TrendingUp } from "lucide-react"; // Adjust icon import
 import filterData from '../utils/filterSkills';
 
-const TreeMaps = () => {
+const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
   // Filtering and structuring data
-  let filteredSkills = filterData();
-  let skills = Object.values(filteredSkills);
-
+  let filter = filterData(data, selectedCategory);
+  let skills = Object.values(filter);
   // Use some fallback for data if it's undefined or empty
   const dataForTreemap = skills.length > 0 ? skills[0] : [];
-
+   
   return (
     <Card>
       <CardHeader>
@@ -30,16 +29,6 @@ const TreeMaps = () => {
           />
         </ResponsiveContainer>
       </CardContent>
-
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
-          Data from Mon 19 Aug 2024
-          <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing data distribution by size on 19-8-24
-        </div>
-      </CardFooter>
     </Card>
   );
 };
