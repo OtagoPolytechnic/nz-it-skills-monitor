@@ -91,7 +91,7 @@ class ItjobscraperPipeline:
                         extract IT skill information and salary information from the description, skills must be categorized by the following options: 
                         language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
                         Only include the following soft skills: Communication, Teamwork, Problem-solving, Adaptability, Time Management, Customer Service, Emotional Intelligence, Leadership, Critical Thinking, Conflict Resolution, Creativity.
-                        Soft skills should not include the word skill, example: use communication not communication skills.
+                        Soft skills should not include the word skill or - characters, example: use communication not communication skills, use "problem solving" not "problem-solving".
                         If a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following options: 
                         language, framework, tool, certification, platform, protocol, database, soft skill, methodology example: name: javascript, type: language. 
                         Convert acronyms of certifications to their full name example example: oscp to offensive security certified professional. 
