@@ -1,12 +1,21 @@
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
-import { ChartConfig, ChartContainer } from "../components/ui/chart";
 import filterData from "../utils/filterSkills";
 import { ChartTooltip } from "../components/ui/chart";
 
-// Default chart configuration
+// Define seven different shades of blue
+const blueShades = [
+  "#2563eb", // Blue 1
+  "#1d4ed8", // Blue 2
+  "#1e40af", // Blue 3
+  "#1e3a8a", // Blue 4
+  "#3b82f6", // Blue 5
+  "#60a5fa", // Blue 6
+  "#93c5fd", // Blue 7
+];
 
+// Default chart configuration
 interface BarChartProps {
   dataKeyIndex: number; // Index of the skills data to display
   title: string; // Title of the chart
@@ -15,10 +24,15 @@ interface BarChartProps {
 }
 
 const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
-
   // Filtering and structuring data
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
+
+  // Add a fill color for each bar based on its index
+  const processedData = skills[dataKeyIndex].map((item, index) => ({
+    ...item,
+    fill: blueShades[index % blueShades.length], // Cycle through the blue shades
+  }));
 
   return (
     <Card>
@@ -30,7 +44,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
         <ResponsiveContainer height={650}>
           <BarChart
             accessibilityLayer
-            data={skills[dataKeyIndex]}
+            data={processedData}
             layout="vertical"
             margin={{
               left: 40,
@@ -50,7 +64,12 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
               cursor={false}
               trigger="hover"
             />
-            <Bar dataKey="quantity" fill="#2563eb" strokeWidth={2} radius={8} />
+            <Bar
+              dataKey="quantity"
+              strokeWidth={2}
+              radius={8}
+              fill={({ fill }) => fill} // Use the fill property from the processed data
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

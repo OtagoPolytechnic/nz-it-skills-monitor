@@ -10,8 +10,19 @@ const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps
   let skills = Object.values(filter);
   // Use some fallback for data if it's undefined or empty
   const dataForTreemap = skills.length > 0 ? skills[0] : [];
-  console.log("Data for Treemap: ", dataForTreemap);
+
+  const COLORS = [
+    "#8884d8", "#83a6ed", "#8dd1e1", "#82ca9d", 
+    "#a4de6c", "#d0ed57", "#ffc658", "#ff8042", 
+    "#ffbb28", "#00C49F", "#FFBB28", "#FF8042"
+  ];
    
+  // Add color to each item
+  const coloredData = dataForTreemap.map((item, index) => ({
+    ...item,
+    fill: COLORS[index % COLORS.length],
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -24,7 +35,8 @@ const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps
           <Treemap
             width={400}
             height={400}
-            data={dataForTreemap}
+            
+            data={coloredData}
             dataKey="quantity"
             ratio={4 / 3}
             stroke="#fff"
