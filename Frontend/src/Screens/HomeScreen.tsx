@@ -153,6 +153,7 @@ const Home = () => {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 p-4">
+              <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
               {chartTitles.map((title, index) => (
                 <BarChartHorizontal
                   key={index}
@@ -162,7 +163,6 @@ const Home = () => {
                   selectedCategory={selectedCategory}      
                 />
               ))}
-              <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
             </div>
           </div>
         )}

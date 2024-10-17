@@ -10,6 +10,7 @@ const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps
   let skills = Object.values(filter);
   // Use some fallback for data if it's undefined or empty
   const dataForTreemap = skills.length > 0 ? skills[0] : [];
+  console.log("Data for Treemap: ", dataForTreemap);
    
   return (
     <Card>
@@ -19,11 +20,13 @@ const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps
       </CardHeader>
 
       <CardContent>
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width={530} height={625}>
           <Treemap
-            data={dataForTreemap}  // Make sure data is passed correctly
-            dataKey="size" // Ensure the correct key is provided in the data
-            aspectRatio={4 / 3}
+            width={400}
+            height={400}
+            data={dataForTreemap}
+            dataKey="quantity"
+            ratio={4 / 3}
             stroke="#fff"
             fill="#8884d8"
           />
