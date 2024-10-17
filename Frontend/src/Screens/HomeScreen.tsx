@@ -86,7 +86,6 @@ const Home = () => {
     "Protocols",
     "Databases",
     "Methodologies",
-    "Soft Skills",
   ];
 
   return (
