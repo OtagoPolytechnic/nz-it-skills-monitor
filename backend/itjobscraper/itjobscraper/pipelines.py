@@ -21,6 +21,7 @@ class Skills(BaseModel):
 
 class SkillsParse(BaseModel):
     salary: int
+    category: str
     skills: list[Skills]
 
 # ItjobscraperPipeline handles processing and cleaning of scraped data
@@ -77,6 +78,7 @@ class ItjobscraperPipeline:
             if openai_response:
                 adapter['skills'] = json.dumps([skill.dict() for skill in openai_response.skills])
                 adapter['salary'] = openai_response.salary
+                adapter['category'] = openai_response.category
         
         return item
 
@@ -88,7 +90,7 @@ class ItjobscraperPipeline:
                 messages=[
                     {"role": "system", "content": 
                         """You are a computer science graduate looking at job advertisements, 
-                        extract IT skill information and salary information from the description, skills must be categorized by the following options: 
+                        extract IT skill information and salary information from the description and assign a category for the job, skills must be categorized by the following options: 
                         language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
                         Only include the following soft skills: Communication, Teamwork, Problem-solving, Adaptability, Time Management, Customer Service, Emotional Intelligence, Leadership, Critical Thinking, Conflict Resolution, Creativity.
                         Soft skills should not include the word skill or - characters, example: use communication not communication skills, use "problem solving" not "problem-solving".
@@ -97,7 +99,10 @@ class ItjobscraperPipeline:
                         Convert acronyms of certifications to their full name example example: oscp to offensive security certified professional. 
                         Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number,
                         if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0.
-                        Return all in lowercase"""
+                        Return all in lowercase.
+                        For the job category, assign one of the following categories: Business & systems analysts, Systems engineers, Testing, Programming & development, Project management, 
+                        Other, Networking & storage, Sales & pre-sales, Service desk, Telecommunications, Management, Security, Architects, Web design, Database Development & Administration
+                        """
                     },
                     {"role": "user", "content": f"{description}"}
                 ],

@@ -44,5 +44,4 @@ class TrademespiderSpider(scrapy.Spider):
         job_item['company'] = response.css('h2.p-h3.jb-listing__company-name ::text').get(),
         job_item['type'] = response.xpath("/html/body/tm-root/div[1]/main/div/ng-component/div/div[4]/div/div[1]/div/tg-row/tg-col/tm-jobs-listing-body/tm-key-details-rack/tg-rack/tg-rack-item[2]/div/div/tg-rack-item-secondary/text()").get(),
         job_item['duration'] = response.xpath("/html/body/tm-root/div[1]/main/div/ng-component/div/div[4]/div/div[1]/div/tg-row/tg-col/tm-jobs-listing-body/tm-key-details-rack/tg-rack/tg-rack-item[3]/div/div/tg-rack-item-secondary/text()").get()
-        job_item['category'] = response.xpath("/html/body/tm-root/div[1]/main/div/ng-component/div/div[2]/tm-listing-breadcrumbs/div/div/tg-rack/tg-rack-item/div/div/tg-rack-item-primary/div/tm-breadcrumbs/ol/li[4]/a/span/text()").get()
         yield job_item
