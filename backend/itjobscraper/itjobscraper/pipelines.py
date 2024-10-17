@@ -35,10 +35,10 @@ class ItjobscraperPipeline:
         adapter['date'] = str(date.today())
         
         # Turn description into one string, remove encoded characters, and convert to lowercase
-        description_array = adapter.get('description')
-        flat_description = list(chain.from_iterable(description_array))
-        full_description = " ".join(flat_description).replace("\n", "")
-        adapter['description'] = full_description.lower()
+        # description_array = adapter.get('description')
+        # flat_description = list(chain.from_iterable(description_array))
+        # full_description = " ".join(flat_description).replace("\n", "")
+        # adapter['description'] = full_description.lower()
         
         # Strip whitespace and convert fields to strings
         field_names = adapter.field_names()
@@ -56,20 +56,34 @@ class ItjobscraperPipeline:
             adapter[field_name] = value
         
         ##remove region from location
+        source = adapter.get('source')
         location_string = adapter.get('location')
+        
+        #trademe
+        if source == "trademe":
+            if isinstance(location_string, tuple):
+                location_string = ", ".join(location_string)  
 
-        if isinstance(location_string, tuple):
-            location_string = ", ".join(location_string)  
+            split_location_array = location_string.split(',')
 
-        split_location_array = location_string.split(',')
+            if len(split_location_array) == 2:
+                # Remove "city"
+                city_name = split_location_array[0].split(" ")
 
-        if len(split_location_array) == 2:
-            #remove "city"
-            city_name = split_location_array[0].split(" ")
-            if len(city_name) == 2:
-                adapter['location'] = city_name[0]
-            else:
-               adapter['location'] = city_name[0]   
+                if len(city_name) == 2:
+                    adapter['location'] = city_name[0]
+                else:
+                    adapter['location'] = split_location_array[0]
+        
+        #seek
+        if source == "seek":
+            if isinstance(location_string, tuple):
+                location_string = ", ".join(location_string)  
+
+            # Split by spaces to extract the first word only
+            first_word = location_string.split()[0]
+
+            adapter['location'] = first_word
         
         # Get skills and salary from description via OpenAI API
         description = adapter.get('description')

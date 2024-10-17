@@ -29,7 +29,7 @@ class SeekspiderSpider(scrapy.Spider):
         job_item['company'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[2]/div/div/div/div[2]/div/div/div[1]/button/span/text()').get(),
         job_item['duration'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[3]/div/div[1]/div/div[3]/div/div[2]/div/div/div/span/text()').get()
         job_item['category'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[3]/div/div[1]/div/div[2]/div/div[2]/div/div/div/span/text()').get()
-
+        job_item['source'] = "seek"
 
         #     job_item['title'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[1]/div/div/div/div[1]/div/div/div[1]/h1/text()').get(),
         #     job_item['description'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[1]/section/div/div/div/div').getall(),

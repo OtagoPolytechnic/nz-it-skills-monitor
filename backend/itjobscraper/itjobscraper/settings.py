@@ -63,7 +63,7 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   # "itjobscraper.pipelines.ItjobscraperPipeline": 300,
+    "itjobscraper.pipelines.ItjobscraperPipeline": 300,
   #  "itjobscraper.pipelines.PostgresPipeline": 400,
 }
 
