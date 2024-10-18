@@ -108,9 +108,9 @@ class ItjobscraperPipeline:
                         Convert acronyms of certifications to their full name example example: oscp to offensive security certified professional. 
                         Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number,
                         if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0.
-                        Return all in lowercase.
-                        For the job category, assign one of the following categories: Business & systems analysts, Systems engineers, Testing, Programming & development, Project management, 
-                        Other, Networking & storage, Sales & pre-sales, Service desk, Telecommunications, Management, Security, Architects, Web design, Database Development & Administration, Consultant
+                        For the job category, assign one of the following categories: business & systems analysts, systems engineers, testing, programming & development, project management, 
+                        other, networking & storage, sales & pre-sales, service desk, telecommunications, management, security, architects, web design, database development & administration, consultant.
+                        Return all responses in lowercase.
                         """
                     },
                     {"role": "user", "content": f"{description}"}
