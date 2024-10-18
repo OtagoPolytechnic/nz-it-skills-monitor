@@ -39,7 +39,6 @@ class TrademespiderSpider(scrapy.Spider):
         job_item = ItjobscraperItem()
         
         job_item['title'] = response.css('.jb-listing__header-details h1::text').get(),
-        #job_item['description'] = response.css('.tm-jobs-listing-body__item-content ::text').getall(),
         job_item['location'] = response.xpath("/html/body/tm-root/div[1]/main/div/ng-component/div/div[4]/div/div[1]/div/tg-row/tg-col/tm-jobs-listing-body/tm-key-details-rack/tg-rack/tg-rack-item[1]/div/div/tg-rack-item-secondary/text()").get(),
         job_item['company'] = response.css('h2.p-h3.jb-listing__company-name ::text').get(),
         job_item['type'] = response.xpath("/html/body/tm-root/div[1]/main/div/ng-component/div/div[4]/div/div[1]/div/tg-row/tg-col/tm-jobs-listing-body/tm-key-details-rack/tg-rack/tg-rack-item[2]/div/div/tg-rack-item-secondary/text()").get(),

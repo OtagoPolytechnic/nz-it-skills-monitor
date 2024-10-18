@@ -34,12 +34,6 @@ class ItjobscraperPipeline:
         adapter['salary'] = 'NULL'
         adapter['date'] = str(date.today())
         
-        # Turn description into one string, remove encoded characters, and convert to lowercase
-        # description_array = adapter.get('description')
-        # flat_description = list(chain.from_iterable(description_array))
-        # full_description = " ".join(flat_description).replace("\n", "")
-        # adapter['description'] = full_description.lower()
-        
         # Strip whitespace and convert fields to strings
         field_names = adapter.field_names()
         for field_name in field_names:
@@ -87,6 +81,7 @@ class ItjobscraperPipeline:
         
         # Get skills and salary from description via OpenAI API
         description = adapter.get('description')
+        print(description)
         if description:
             openai_response = self.call_openai(description)
             if openai_response:
@@ -115,7 +110,7 @@ class ItjobscraperPipeline:
                         if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0.
                         Return all in lowercase.
                         For the job category, assign one of the following categories: Business & systems analysts, Systems engineers, Testing, Programming & development, Project management, 
-                        Other, Networking & storage, Sales & pre-sales, Service desk, Telecommunications, Management, Security, Architects, Web design, Database Development & Administration
+                        Other, Networking & storage, Sales & pre-sales, Service desk, Telecommunications, Management, Security, Architects, Web design, Database Development & Administration, Consultant
                         """
                     },
                     {"role": "user", "content": f"{description}"}
