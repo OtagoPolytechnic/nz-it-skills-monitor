@@ -45,7 +45,6 @@ class SeekspiderSpider(scrapy.Spider):
         job_item['location'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[3]/div/div[1]/div/div[1]/div/div[2]/div/div/div/span/text()').get(),
         job_item['company'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[2]/div/div/div/div[2]/div/div/div[1]/button/span/text()').get(),
         job_item['duration'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[3]/div/div[1]/div/div[3]/div/div[2]/div/div/div/span/text()').get()
-        job_item['category'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[3]/div/div[1]/div/div[2]/div/div[2]/div/div/div/span/text()').get()
         job_item['source'] = "seek"
   
         yield job_item
