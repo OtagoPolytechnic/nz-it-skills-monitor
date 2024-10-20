@@ -101,17 +101,17 @@ class ItjobscraperPipeline:
                         """You are a computer science graduate looking at job advertisements, 
                         extract IT skill information and salary information from the description and assign a category for the job, skills must be categorized by the following options: 
                         language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
-                        Operating systems should not be considered as skills, 
-                        Only include the following soft skills: Communication, Teamwork, Problem-solving, Adaptability, Time Management, Customer Service, Emotional Intelligence, Leadership, Critical Thinking, Conflict Resolution, Creativity.
-                        Soft skills should not include the word skill or - characters, example: use communication not communication skills, use "problem solving" not "problem-solving".
                         If a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following options: 
                         language, framework, tool, certification, platform, protocol, database, soft skill, methodology example: name: javascript, type: language. 
-                        Convert acronyms of certifications to their full name example example: oscp to offensive security certified professional, aws to amazon web services.
+                        Operating systems should not be considered as skills 
+                        Only include the following soft skills: communication, teamwork, problem solving, adaptability, time management, customer service, leadership, critical thinking, conflict resolution, creativity.
+                        Soft skills should not include the word skill or - characters, example: use "communication" not "communication skills", use "problem solving" not "problem-solving".
+                        Convert acronyms to their full name example example: oscp to offensive security certified professional, aws to amazon web services.
                         SQL should be considered a language. 
                         Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number,
                         if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0.
                         For the job category, assign one of the following categories: business & systems analysts, systems engineers, testing, programming & development, project management, 
-                        other, networking & storage, sales & pre-sales, service desk, telecommunications, management, security, architects, web design, database development & administration, consultant.
+                        other, networking & storage, sales & pre-sales, service desk, telecommunications, security, architects, web design, database development & administration, consultant.
                         Return all responses in lowercase.
                         """
                     },
