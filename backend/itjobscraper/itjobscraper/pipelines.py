@@ -97,24 +97,45 @@ class ItjobscraperPipeline:
             response = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": 
-                        """You are a computer science graduate looking at job advertisements, 
-                        extract IT skill information and salary information from the description and assign a category for the job, skills must be categorized by the following options: 
-                        language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
-                        If a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following options: 
-                        language, framework, tool, certification, platform, protocol, database, soft skill, methodology example: name: javascript, type: language. 
-                        Operating systems should not be considered as skills 
-                        Only include the following soft skills: communication, teamwork, problem solving, adaptability, time management, customer service, leadership, critical thinking, conflict resolution, creativity.
-                        Soft skills should not include the word skill or - characters, example: use "communication" not "communication skills", use "problem solving" not "problem-solving".
-                        Convert acronyms to their full name example example: oscp to offensive security certified professional, aws to amazon web services.
-                        SQL should be considered a language. 
-                        Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number,
-                        if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0.
-                        For the job category, assign one of the following categories: business & systems analysts, systems engineers, testing, programming & development, project management, 
-                        other, networking & storage, sales & pre-sales, service desk, telecommunications, security, architects, web design, database development & administration, consultant.
-                        Return all responses in lowercase.
-                        """
-                    },
+                {"role": "system", "content": 
+                                       """
+                You are a computer science graduate reviewing job advertisements. Your task is to extract IT skill information and salary details from the description and assign a job category. Follow these rules strictly:
+
+                1. Skill Extraction:
+                   - Extract only if the skill falls under one of these categories:
+                     language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
+                     Example: name: javascript, type: language.
+                   - Exclude operating systems (e.g., Windows, Linux).
+                   - If a skill doesn't fit any category, ignore it.
+
+                2. Soft Skills:
+                   - Only include the following:
+                     communication, teamwork, problem solving, adaptability, time management, customer service, leadership, critical thinking, conflict resolution, creativity.
+                   - Avoid using "skill" or hyphens (e.g., communication, not communication skills).
+
+                3. Acronym Handling:
+                   - Expand acronyms like:
+                     oscp → offensive security certified professional, aws → amazon web services.
+
+                4. SQL:
+                   - Always treat SQL as a language.
+
+                5. Salary Extraction:
+                   - For salary ranges (e.g., 100,000 - 120,000), return the highest value (120,000).
+                   - For hourly rates, convert to annual: hourly rate × 40 × 52.
+                   - If no salary is provided, return 0.
+
+                6. Job Category Assignment:
+                   - Assign one of the following categories:
+                     business & systems analysts, systems engineers, testing, programming & development, project management, other, networking & storage, sales & pre-sales, service desk, telecommunications, security, architects, web design, database development & administration, consultant.
+
+                Output:
+                - Skills: Each skill as name: [skill], type: [category].
+                - Salary: Annual integer value.
+                - Job Category: One of the provided categories.
+                - Format: All text in lowercase.
+                """
+                },
                     {"role": "user", "content": f"{description}"}
                 ],
                 response_format=SkillsParse,
