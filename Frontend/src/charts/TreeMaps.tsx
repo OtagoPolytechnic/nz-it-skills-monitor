@@ -32,9 +32,9 @@ const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps
       </CardHeader>
 
       <CardContent>
-        <ResponsiveContainer width={530} height={625}>
+        <ResponsiveContainer width={1170} height={625}>
           <Treemap
-            width={400}
+            width={700}
             height={400}
             
             data={coloredData}

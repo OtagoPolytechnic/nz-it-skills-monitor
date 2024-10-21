@@ -41,7 +41,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
         <CardDescription>Asked quantity's</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer height={650}>
+        <ResponsiveContainer height={900}>
           <BarChart
             accessibilityLayer
             data={processedData}

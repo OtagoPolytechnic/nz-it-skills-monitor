@@ -151,8 +151,8 @@ const Home = () => {
                 Data collected: {fetchedData[0]?.date || "Unknown Date"}
               </div>
             </div>
+            <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
             <div className="grid grid-cols-2 gap-4 p-4">
-              <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
               {chartTitles.map((title, index) => (
                 <BarChartHorizontal
                   key={index}
