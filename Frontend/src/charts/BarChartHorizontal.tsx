@@ -3,6 +3,7 @@ import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import filterData from "../utils/filterSkills";
 import { ChartTooltip } from "../components/ui/chart";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 // Define seven different shades of blue
 const blueShades = [
@@ -24,7 +25,11 @@ interface BarChartProps {
 }
 
 const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
+  // Initialize the navigate function
+  const navigate = useNavigate();
+
   // Filtering and structuring data
+  //let newdata = data.slice(0, 15) // Show only the top 15 skills
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
 
@@ -34,6 +39,11 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
     fill: blueShades[index % blueShades.length], // Cycle through the blue shades
   }));
 
+  // Handle button click to navigate to FullGraphScreen
+  const handleShowFullGraph = () => {
+    navigate("/full-graph", { state: { data, dataKeyIndex, selectedCategory, title } });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -41,7 +51,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
         <CardDescription>Asked quantity's</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer height={900}>
+        <ResponsiveContainer height={650}>
           <BarChart
             accessibilityLayer
             data={processedData}
@@ -73,6 +83,13 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
+      {/* Add button to show full graph */}
+      <CardFooter>
+        <button className="btn btn-primary" onClick={handleShowFullGraph}>
+          <TrendingUp size={16} />
+          Show Full Graph
+        </button>
+      </CardFooter>
     </Card>
   );
 };
