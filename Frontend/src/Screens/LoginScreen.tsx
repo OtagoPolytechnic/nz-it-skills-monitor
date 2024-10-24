@@ -1,5 +1,5 @@
 // LoginPage.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +8,15 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate(); // Use the useNavigate hook
+
+  useEffect(() => {
+    // Check if the user is logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate("/admin"); // Redirect to the admin page if the user is already logged in
+    }
+  }, []);
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
