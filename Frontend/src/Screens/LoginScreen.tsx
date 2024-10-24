@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate(); // Use the useNavigate hook
 
   const handleLogin = async (e) => {
@@ -19,6 +20,7 @@ const LoginPage = () => {
       navigate("/admin"); // Redirect to the admin page
     } catch (error) {
       console.error("Login failed:", error);
+      setErrorMessage(error.response?.data?.error);
     }
   };
 
@@ -97,6 +99,7 @@ const LoginPage = () => {
         />
         <button type="submit">Login</button>
       </form>
+      <p>{errorMessage}</p>
     </>
   );
 };
