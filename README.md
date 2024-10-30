@@ -7,6 +7,7 @@
   - openai
   - python-dotenv
   - psycopg2-binary
+  - python-dotenv
 - put env file into root directory
 - cd into backend/itjobscraper/itjobscraper
 - to run spiders use command "scrapy crawl trademespider" or "scrapy crawl seekspider"
