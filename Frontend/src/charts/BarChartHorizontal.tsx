@@ -3,41 +3,35 @@ import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import filterData from "../utils/filterSkills";
 import { ChartTooltip } from "../components/ui/chart";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 // Define seven different shades of blue
 const blueShades = [
-  "#2563eb", // Blue 1
-  "#1d4ed8", // Blue 2
-  "#1e40af", // Blue 3
-  "#1e3a8a", // Blue 4
-  "#3b82f6", // Blue 5
-  "#60a5fa", // Blue 6
-  "#93c5fd", // Blue 7
+  "#2563eb", "#1d4ed8", "#1e40af", "#1e3a8a", "#3b82f6", "#60a5fa", "#93c5fd",
 ];
 
 // Default chart configuration
 interface BarChartProps {
-  dataKeyIndex: number; // Index of the skills data to display
-  title: string; // Title of the chart
-  data: any[];  // Data passed from parent component (Home)
+  dataKeyIndex: number;
+  title: string;
+  data: any[];
   selectedCategory: string;
 }
 
 const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
-  // Initialize the navigate function
   const navigate = useNavigate();
 
   // Filtering and structuring data
-  //let newdata = data.slice(0, 15) // Show only the top 15 skills
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
 
-  // Add a fill color for each bar based on its index
-  const processedData = skills[dataKeyIndex].map((item, index) => ({
-    ...item,
-    fill: blueShades[index % blueShades.length], // Cycle through the blue shades
-  }));
+  // Slice data to show only top 15 items on the HomeScreen
+  const processedData = skills[dataKeyIndex]
+    .slice(0, 15) // Show only the top 15 items
+    .map((item, index) => ({
+      ...item,
+      fill: blueShades[index % blueShades.length], // Cycle through the blue shades
+    }));
 
   // Handle button click to navigate to FullGraphScreen
   const handleShowFullGraph = () => {
@@ -48,7 +42,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
     <Card>
       <CardHeader>
         <CardTitle>Bar Chart - {title}</CardTitle>
-        <CardDescription>Asked quantity's</CardDescription>
+        <CardDescription>Top 15 Items</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer height={650}>
@@ -56,9 +50,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
             accessibilityLayer
             data={processedData}
             layout="vertical"
-            margin={{
-              left: 40,
-            }}
+            margin={{ left: 40 }}
           >
             <XAxis type="number" dataKey="quantity" />
             <YAxis
@@ -70,20 +62,11 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
               axisLine={false}
               tickFormatter={(value) => value.slice(0, 10)}
             />
-            <ChartTooltip
-              cursor={false}
-              trigger="hover"
-            />
-            <Bar
-              dataKey="quantity"
-              strokeWidth={2}
-              radius={8}
-              fill={({ fill }) => fill} // Use the fill property from the processed data
-            />
+            <ChartTooltip cursor={false} trigger="hover" />
+            <Bar dataKey="quantity" strokeWidth={2} radius={8} fill={({ fill }) => fill} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
-      {/* Add button to show full graph */}
       <CardFooter>
         <button className="btn btn-primary" onClick={handleShowFullGraph}>
           <TrendingUp size={16} />

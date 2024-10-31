@@ -50,7 +50,6 @@ const filterSkills = (data: Job[], selectedCategory: string) => {
       const filteredSkills = Array.from(skillMap.entries())
         .filter(([_, quantity]) => quantity >= 2) // Filter here
         .sort((a, b) => b[1] - a[1]) // Sort by quantity in descending order
-        .slice(0, 15) // Show only the top 15 skills
         .map(([name, quantity]) => ({
           name,
           quantity,
@@ -64,7 +63,6 @@ const filterSkills = (data: Job[], selectedCategory: string) => {
     {} as Record<string, { name: string; quantity: number }[]>
   );
 
-  console.log(sortedAndStructuredResult);
   return sortedAndStructuredResult;
 };
 
