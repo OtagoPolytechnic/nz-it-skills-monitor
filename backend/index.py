@@ -5,11 +5,13 @@ from flask import Flask, jsonify, request
 from sqlalchemy import text, inspect, select
 from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
+from flask_socketio import SocketIO, emit
 from model import init_app, db
 from model.job import JobSchema, Job
 import jwt
 from flask_bcrypt import Bcrypt
 import datetime
+import subprocess
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -29,6 +31,7 @@ app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
 init_app(app)
 migrate = Migrate(app, db)
+socketio = SocketIO(app, async_mode='gevent')
 
 # logging to see why query is slow
 # logging.basicConfig()
@@ -101,7 +104,49 @@ def admin():
     except Exception as e:
         return jsonify({"error": "Invalid token format"}), 400
 
+@app.route('/run-scraper/<spider_name>', methods=['GET'])
+def run_scraper(spider_name):
+    token = request.headers.get('Authorization')
 
+    if not token:
+        return jsonify({"error": "Token is missing!"}), 403
+
+    try:
+        token = token.split()[1]  # Remove 'Bearer ' prefix
+        decoded_token = verify_jwt_token(token)
+
+        if not decoded_token:
+            return jsonify({"error": "Invalid or expired token"}), 403
+        
+        socketio.start_background_task(target=run_spider, spider_name=spider_name)
+        return jsonify({"message": f"{spider_name} scraper started"}), 200
+    except Exception as e:
+        return jsonify({"error": "Invalid token format"}), 400
+
+def run_spider(spider_name):
+    cwd = os.path.join(os.path.dirname(__file__), 'itjobscraper', 'itjobscraper')
+    if not os.path.exists(cwd):
+        socketio.emit('scraper_output', {'error': f"Directory not found: {cwd}"})
+        return
+    process = subprocess.Popen(
+        ['scrapy', 'crawl', spider_name],
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    try:
+        for line in iter(process.stdout.readline, ''):
+            socketio.emit('scraper_output', {'data': line})
+        process.wait()
+    except Exception as e:
+        socketio.emit('scraper_output', {'error': str(e)})
+    finally:
+        process.stdout.close()
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True)
+    
 # @app.route('/tables', methods=['GET'])
 # def list_tables():
 #     # Retrieve the list of tables from the database
