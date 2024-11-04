@@ -63,7 +63,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
               tickFormatter={(value) => value.slice(0, 10)}
             />
             <ChartTooltip cursor={false} trigger="hover" />
-            <Bar dataKey="quantity" strokeWidth={2} radius={8} fill={({ fill }) => fill} />
+            <Bar dataKey="quantity" strokeWidth={2} radius={8} /> {/* Removed `fill` prop */}
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
