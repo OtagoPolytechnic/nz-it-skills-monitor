@@ -1,0 +1,7 @@
+Packages for scrapy:
+    scrapy
+    ipython
+    openai
+    python-dotenv
+    psycopg2-binary
+    python-dotenv
