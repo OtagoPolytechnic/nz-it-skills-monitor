@@ -1,8 +1,6 @@
-import React from 'react';
-import BarChartHorizontal from './BarChartHorizontal';
 import { useLocation } from 'react-router-dom';
 import filterData from "../utils/filterSkills";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { ChartTooltip } from '../components/ui/chart';
 

@@ -1,10 +1,8 @@
-import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
-import { TrendingUp } from "lucide-react"; // Adjust icon import
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import filterData from '../utils/filterSkills';
 
-const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }) => {
+const TreeMaps = ({ data, selectedCategory }) => {
   // Filtering and structuring data
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
@@ -26,7 +24,7 @@ const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }) => {
 
   // Custom content renderer for Treemap
   const renderCustomContent = (props) => {
-    const { x, y, width, height, name, quantity } = props;
+    const { x, y, width, height, name}  = props;
     return (
       <g>
         <rect
