@@ -21,6 +21,7 @@ class Skills(BaseModel):
 
 class SkillsParse(BaseModel):
     salary: int
+    category: str
     skills: list[Skills]
 
 # ItjobscraperPipeline handles processing and cleaning of scraped data
@@ -32,12 +33,6 @@ class ItjobscraperPipeline:
         adapter['skills'] = 'NULL'
         adapter['salary'] = 'NULL'
         adapter['date'] = str(date.today())
-        
-        # Turn description into one string, remove encoded characters, and convert to lowercase
-        description_array = adapter.get('description')
-        flat_description = list(chain.from_iterable(description_array))
-        full_description = " ".join(flat_description).replace("\n", "")
-        adapter['description'] = full_description.lower()
         
         # Strip whitespace and convert fields to strings
         field_names = adapter.field_names()
@@ -55,28 +50,44 @@ class ItjobscraperPipeline:
             adapter[field_name] = value
         
         ##remove region from location
+        source = adapter.get('source')
         location_string = adapter.get('location')
+        
+        #trademe
+        if source == "trademe":
+            if isinstance(location_string, tuple):
+                location_string = ", ".join(location_string)  
 
-        if isinstance(location_string, tuple):
-            location_string = ", ".join(location_string)  
+            split_location_array = location_string.split(',')
 
-        split_location_array = location_string.split(',')
+            if len(split_location_array) == 2:
+                # Remove "city"
+                city_name = split_location_array[0].split(" ")
 
-        if len(split_location_array) == 2:
-            #remove "city"
-            city_name = split_location_array[0].split(" ")
-            if len(city_name) == 2:
-                adapter['location'] = city_name[0]
-            else:
-               adapter['location'] = city_name[0]   
+                if len(city_name) == 2:
+                    adapter['location'] = city_name[0]
+                else:
+                    adapter['location'] = split_location_array[0]
+        
+        #seek
+        if source == "seek":
+            if isinstance(location_string, tuple):
+                location_string = ", ".join(location_string)  
+
+            # Split by spaces to extract the first word only
+            first_word = location_string.split()[0]
+
+            adapter['location'] = first_word
         
         # Get skills and salary from description via OpenAI API
         description = adapter.get('description')
+        print(description)
         if description:
             openai_response = self.call_openai(description)
             if openai_response:
                 adapter['skills'] = json.dumps([skill.dict() for skill in openai_response.skills])
                 adapter['salary'] = openai_response.salary
+                adapter['category'] = openai_response.category
         
         return item
 
@@ -86,19 +97,45 @@ class ItjobscraperPipeline:
             response = client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": 
-                        """You are a computer science graduate looking at job advertisements, 
-                        extract IT skill information and salary information from the description, skills must be categorized by the following options: 
-                        language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
-                        Only include the following soft skills: Communication, Teamwork, Problem-solving, Adaptability, Time Management, Customer Service, Emotional Intelligence, Leadership, Critical Thinking, Conflict Resolution, Creativity.
-                        Soft skills should not include the word skill or - characters, example: use communication not communication skills, use "problem solving" not "problem-solving".
-                        If a skill does not fit into one of these catagories do not include it. Set the type of each skill as one of the following options: 
-                        language, framework, tool, certification, platform, protocol, database, soft skill, methodology example: name: javascript, type: language. 
-                        Convert acronyms of certifications to their full name example example: oscp to offensive security certified professional. 
-                        Salary information should be an integer, if a range is given example: 100,000 - 120,000 return the highest number,
-                        if an hourly rate is given, calculate the yearly salary based on a 40hr work week, if no salary figure is given return 0.
-                        Return all in lowercase"""
-                    },
+                {"role": "system", "content": 
+                                       """
+                You are a computer science graduate reviewing job advertisements. Your task is to extract IT skill information and salary details from the description and assign a job category. Follow these rules strictly:
+
+                1. Skill Extraction:
+                   - Extract only if the skill falls under one of these categories:
+                     language, framework, tool, certification, platform, protocol, database, soft skill, methodology.
+                     Example: name: javascript, type: language.
+                   - Exclude operating systems (e.g., Windows, Linux).
+                   - If a skill doesn't fit any category, ignore it.
+
+                2. Soft Skills:
+                   - Only include the following:
+                     communication, teamwork, problem solving, adaptability, time management, customer service, leadership, critical thinking, conflict resolution, creativity.
+                   - Avoid using "skill" or hyphens (e.g., communication, not communication skills).
+
+                3. Acronym Handling:
+                   - Expand acronyms like:
+                     oscp → offensive security certified professional, aws → amazon web services.
+
+                4. SQL:
+                   - Always treat SQL as a language.
+
+                5. Salary Extraction:
+                   - For salary ranges (e.g., 100,000 - 120,000), return the highest value (120,000).
+                   - For hourly rates, convert to annual: hourly rate × 40 × 52.
+                   - If no salary is provided, return 0.
+
+                6. Job Category Assignment:
+                   - Assign one of the following categories:
+                     business & systems analysts, systems engineers, testing, programming & development, project management, other, networking & storage, sales & pre-sales, service desk, telecommunications, security, architects, web design, database development & administration, consultant.
+
+                Output:
+                - Skills: Each skill as name: [skill], type: [category].
+                - Salary: Annual integer value.
+                - Job Category: One of the provided categories.
+                - Format: All text in lowercase.
+                """
+                },
                     {"role": "user", "content": f"{description}"}
                 ],
                 response_format=SkillsParse,

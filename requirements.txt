@@ -4,3 +4,4 @@ Packages for scrapy:
     openai
     python-dotenv
     psycopg2-binary
+    python-dotenv
