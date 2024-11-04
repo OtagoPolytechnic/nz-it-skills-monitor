@@ -1,51 +1,42 @@
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { TrendingUp } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import React from 'react';
+import BarChartHorizontal from './BarChartHorizontal';
+import { useLocation } from 'react-router-dom';
 import filterData from "../utils/filterSkills";
-import { ChartTooltip } from "../components/ui/chart";
-import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartTooltip } from '../components/ui/chart';
 
 // Define seven different shades of blue
 const blueShades = [
   "#2563eb", "#1d4ed8", "#1e40af", "#1e3a8a", "#3b82f6", "#60a5fa", "#93c5fd",
 ];
 
-// Default chart configuration
-interface BarChartProps {
-  dataKeyIndex: number;
-  title: string;
-  data: any[];
-  selectedCategory: string;
-}
+const FullGraphScreen = () => {
+  const location = useLocation();
+  const { data, dataKeyIndex, selectedCategory, title } = location.state;
 
-const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
-  const navigate = useNavigate();
-
-  // Filtering and structuring data
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
 
   // Slice data to show only top 15 items on the HomeScreen
   const processedData = skills[dataKeyIndex]
-    .slice(0, 15) // Show only the top 15 items
     .map((item, index) => ({
       ...item,
       fill: blueShades[index % blueShades.length], // Cycle through the blue shades
     }));
 
-  // Handle button click to navigate to FullGraphScreen
-  const handleShowFullGraph = () => {
-    navigate("/full-graph", { state: { data, dataKeyIndex, selectedCategory, title } });
-  };
+  console.log("PROCESSED DATA: ", processedData);
 
   return (
+    <div style={{ padding: '20px', height: '12000px', overflowY: 'scroll' }}>
+      
     <Card>
       <CardHeader>
         <CardTitle>Bar Chart - {title}</CardTitle>
         <CardDescription>Top 15 Items</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer height={650}>
+        <ResponsiveContainer height={1200}>
           <BarChart
             accessibilityLayer
             data={processedData}
@@ -67,14 +58,9 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
-      <CardFooter>
-        <button className="btn btn-primary" onClick={handleShowFullGraph}>
-          <TrendingUp size={16} />
-          Show Full Graph
-        </button>
-      </CardFooter>
     </Card>
+    </div>
   );
 };
 
-export default BarChartHorizontal;
+export default FullGraphScreen;

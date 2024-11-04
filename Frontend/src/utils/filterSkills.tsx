@@ -63,7 +63,6 @@ const filterSkills = (data: Job[], selectedCategory: string) => {
     {} as Record<string, { name: string; quantity: number }[]>
   );
 
-  console.log(sortedAndStructuredResult);
   return sortedAndStructuredResult;
 };
 

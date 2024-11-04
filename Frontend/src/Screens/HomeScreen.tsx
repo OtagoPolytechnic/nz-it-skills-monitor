@@ -86,7 +86,6 @@ const Home = () => {
     "Protocols",
     "Databases",
     "Methodologies",
-    "Soft Skills",
   ];
 
   return (
@@ -152,6 +151,7 @@ const Home = () => {
                 Data collected: {fetchedData[0]?.date || "Unknown Date"}
               </div>
             </div>
+            
             <div className="grid grid-cols-2 gap-4 p-4">
               {chartTitles.map((title, index) => (
                 <BarChartHorizontal
@@ -163,6 +163,7 @@ const Home = () => {
                 />
               ))}
             </div>
+            <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
           </div>
         )}
       </>
