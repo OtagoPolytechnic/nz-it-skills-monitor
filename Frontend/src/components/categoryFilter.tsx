@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface CategoryDropdownProps {
-  categories: string[]; // Array of unique categories
+  categories: { name: string; count: number }[]; // Array of category objects with name and count
   setSelectedCategory: (category: string) => void; // Function to set the selected category
 }
 
@@ -15,8 +15,8 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({ categories, setSele
       >
         <option value="">--Choose a category--</option>
         {categories.map((category, index) => (
-          <option key={index} value={category}>
-            {category}
+          <option key={index} value={category.name}>
+            {category.name} ({category.count}) {/* Display name and count */}
           </option>
         ))}
       </select>

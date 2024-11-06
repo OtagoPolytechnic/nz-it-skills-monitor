@@ -1,18 +1,17 @@
 import CategoryDropdown from "../components/categoryFilter";
 import BarChartHorizontal from "../charts/BarChartHorizontal";
 import { useState, useEffect } from "react";
-import TreeMaps from "../charts/TreeMaps"
-
+import TreeMaps from "../charts/TreeMaps";
 
 const Home = () => {
   const [fetchedData, setFetchedData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState<string[]>([]); // Use Record for category count
-  const [selectedCategory, setSelectedCategory] = useState<string>("All")
+  const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   interface Skill {
     name: string;
-    type: string; // type of skill category
+    type: string;
   }
 
   interface Job {
@@ -29,31 +28,19 @@ const Home = () => {
   }
 
   useEffect(() => {
-    console.log("GETTING DATA");
     getData();
   }, []);
 
   const getData = async () => {
     try {
-      const response = await fetch(
-        "https://nz-it-skills-monitor.onrender.com/jobs"
-      );
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      const response = await fetch("https://nz-it-skills-monitor.onrender.com/jobs");
+      if (!response.ok) throw new Error("Network response was not ok");
 
       const data = await response.json();
       setFetchedData(data);
-      console.log("FETCHED DATA: ", data);
-
-      // Call getUniqueCategoriesWithCount after setting fetchedData
       getUniqueCategoriesWithCount(data);
     } catch (error: any) {
-      console.error(
-        "There was a problem with the fetch operation:",
-        error.message
-      );
+      console.error("Fetch error:", error.message);
     } finally {
       setIsLoading(false);
     }
@@ -61,31 +48,25 @@ const Home = () => {
 
   const getUniqueCategoriesWithCount = (jobs: Job[]) => {
     const categoryCount: Record<string, number> = {};
-  
     jobs.forEach((job) => {
-      // Increment the count for each job category
-      if (categoryCount[job.category]) {
-        categoryCount[job.category]++;
-      } else {
-        categoryCount[job.category] = 1;
-      }
+      categoryCount[job.category] = (categoryCount[job.category] || 0) + 1;
     });
-  
-    console.log("CATEGORIES: ", categoryCount);
-  
-    // Add "All" category
-    setCategories(["All", ...Object.keys(categoryCount)]);
+
+    setCategories([
+      { name: "all", count: jobs.length },
+      ...Object.entries(categoryCount).map(([name, count]) => ({ name, count })),
+    ]);
   };
 
   const chartTitles = [
-    "Languages",
-    "Frameworks",
-    "Platforms",
-    "Certifications",
-    "Tools",
-    "Protocols",
-    "Databases",
-    "Methodologies",
+    { name: "Languages", keyIndex: 0 },
+    { name: "Frameworks", keyIndex: 1 },
+    { name: "Platforms", keyIndex: 2 },
+    { name: "Certifications", keyIndex: 3 },
+    { name: "Tools", keyIndex: 4 },
+    { name: "Protocols", keyIndex: 5 },
+    { name: "Databases", keyIndex: 6 },
+    { name: "Methodologies", keyIndex: 7 },
   ];
 
   return (
@@ -139,31 +120,33 @@ const Home = () => {
         </div>
       </nav>
       <>
-        {isLoading ? (
+      {isLoading ? (
           <h1 className="text-center text-2xl font-bold p-4">Loading...</h1>
         ) : (
           <div>
             <div className="flex justify-between p-4">
-              <div>
-                <CategoryDropdown categories={categories} setSelectedCategory={setSelectedCategory}/>
-              </div>
+              <CategoryDropdown categories={categories} setSelectedCategory={setSelectedCategory} />
               <div className="text-right">
                 Data collected: {fetchedData[0]?.date || "Unknown Date"}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 p-4">
-              {chartTitles.map((title, index) => (
-                <BarChartHorizontal
-                  key={index}
-                  dataKeyIndex={index}
-                  title={title}
-                  data={fetchedData.length > 0 ? fetchedData : []}
-                  selectedCategory={selectedCategory}      
-                />
-              ))}
+              {chartTitles
+                .filter(({ keyIndex }) => 
+                  fetchedData.some((job) => job.skills[keyIndex])
+                ) // Only include charts with data
+                .map(({ name, keyIndex }) => (
+                  <BarChartHorizontal
+                    key={keyIndex}
+                    dataKeyIndex={keyIndex}
+                    title={name}
+                    data={fetchedData}
+                    selectedCategory={selectedCategory}
+                  />
+                ))}
             </div>
-            <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
+            <TreeMaps name="soft skills" data={fetchedData} selectedCategory={selectedCategory} />
           </div>
         )}
       </>

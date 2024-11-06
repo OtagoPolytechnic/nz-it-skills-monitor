@@ -31,7 +31,7 @@ const CustomTreemapContent = (props) => {
   );
 };
 
-const TreeMaps = ({ data, selectedCategory }) => {
+const TreeMaps = ({ name, data, selectedCategory }) => {
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
   const dataForTreemap = skills.length > 0 ? skills[8] : [];
@@ -68,7 +68,7 @@ const TreeMaps = ({ data, selectedCategory }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle style={{ color: 'black' }}>Treemap Chart</CardTitle>
+        <CardTitle style={{ color: 'black' }}>{name}</CardTitle>
         <CardDescription style={{ color: 'black' }}>Data Distribution</CardDescription>
       </CardHeader>
 
