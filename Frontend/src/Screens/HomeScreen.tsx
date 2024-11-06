@@ -127,7 +127,7 @@ const Home = () => {
             <div className="flex justify-between p-4">
               <CategoryDropdown categories={categories} setSelectedCategory={setSelectedCategory} />
               <div className="text-right">
-                Data collected: {fetchedData[0]?.date || "Unknown Date"}
+                Data collected: {fetchedData[0]?.date || "Unknown Date"} from {fetchedData.length} jobs
               </div>
             </div>
 
