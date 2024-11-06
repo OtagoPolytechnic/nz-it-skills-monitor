@@ -13,7 +13,6 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({ categories, setSele
         className="border border-gray-300 rounded p-2"
         onChange={(e) => setSelectedCategory(e.target.value)} // Call the function on change
       >
-        <option value="">--Choose a category--</option>
         {categories.map((category, index) => (
           <option key={index} value={category.name}>
             {category.name} ({category.count}) {/* Display name and count */}
