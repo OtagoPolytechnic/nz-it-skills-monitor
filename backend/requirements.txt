@@ -1,7 +1,6 @@
 alembic==1.13.2
 annotated-types==0.7.0
 anyio==4.6.2.post1
-APScheduler==3.10.4
 asttokens==2.4.1
 attrs==24.2.0
 Automat==24.8.1
@@ -13,10 +12,7 @@ cffi==1.17.1
 charset-normalizer==3.4.0
 click==8.1.7
 colorama==0.4.6
-colorhash==2.0.0
-configparser==7.1.0
 constantly==23.10.4
-crochet==2.1.1
 cryptography==43.0.3
 cssselect==1.2.0
 decorator==5.1.1
@@ -29,6 +25,7 @@ Flask==3.0.3
 Flask-Bcrypt==1.0.1
 Flask-Cors==5.0.0
 Flask-Migrate==4.0.7
+flask-sock==0.7.0
 Flask-SocketIO==5.4.1
 Flask-SQLAlchemy==3.1.1
 gevent==24.10.3
@@ -54,7 +51,6 @@ MarkupSafe==2.1.5
 marshmallow==3.22.0
 marshmallow-sqlalchemy==1.1.0
 matplotlib-inline==0.1.7
-numpy==2.1.1
 openai==1.53.0
 packaging==24.1
 parsel==1.9.1
@@ -63,7 +59,6 @@ pipenv==2024.0.1
 platformdirs==4.2.2
 prompt_toolkit==3.0.48
 Protego==0.3.1
-psutil==6.0.0
 psycopg2==2.9.9
 psycopg2-binary==2.9.10
 pure_eval==0.2.3
@@ -79,11 +74,9 @@ pyOpenSSL==24.2.1
 python-dotenv==1.0.1
 python-engineio==4.10.1
 python-socketio==5.11.4
-pytz==2024.2
 queuelib==1.7.0
 requests==2.32.3
 requests-file==2.1.0
-scipy==1.14.1
 Scrapy==2.11.2
 service-identity==24.2.0
 setuptools==74.1.1
@@ -97,13 +90,12 @@ tqdm==4.66.6
 traitlets==5.14.3
 Twisted==24.10.0
 typing_extensions==4.12.2
-tzlocal==2.0.0
 urllib3==2.2.3
+uvicorn==0.32.0
 virtualenv==20.26.3
 w3lib==2.2.1
 wcwidth==0.2.13
 Werkzeug==3.0.4
-wrapt==1.16.0
 wsproto==1.2.0
 zope.event==5.0
 zope.interface==7.1.1
