@@ -7,6 +7,7 @@ const Admin: React.FC = () => {
   const navigate = useNavigate();
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +56,39 @@ const Admin: React.FC = () => {
     navigate('/'); // Redirect to the home page after token has been removed
   };
 
+  const startScraper = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://127.0.0.1:5000/run-spiders', {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      console.log(response.data);  
+      setStatusMessage("");    
+    } catch (error) {
+      console.error('Error starting spiders:', error);
+      setErrorMessage(error.response?.data?.error);
+    }
+  };
+
+  const stopScraper = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://127.0.0.1:5000/stop-spiders', {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      console.log(response.data);
+      setStatusMessage(response.data.message);
+
+    } catch (error) {
+      console.error('Error stopping spiders:', error);
+      setErrorMessage(error.response?.data?.error);
+    }
+  };
+
   return (
     <>
       <nav className="bg-white border-gray-200 dark:bg-gray-900">
@@ -84,11 +118,14 @@ const Admin: React.FC = () => {
             </ul>
           </div>
         </div>
+        <button onClick={startScraper}>Run Spiders</button>
+        <button onClick={stopScraper}>Stop Spiders</button>
       </nav>
       <pre>{output}</pre>
       <p>{errorMessage}</p>
+      <p>{statusMessage}</p>
     </>
   );
-}
+};
 
 export default Admin;
