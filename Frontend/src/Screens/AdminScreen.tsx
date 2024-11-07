@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const AdminScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -11,11 +12,12 @@ const AdminScreen: React.FC = () => {
         const token = localStorage.getItem('token');
         await axios.get('/admin', {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
           },
         });
       } catch (error) {
         console.error('Error fetching admin data:', error);
+        setErrorMessage(error.response?.data?.error);
       }
     };
 
@@ -57,8 +59,7 @@ const AdminScreen: React.FC = () => {
           </div>
         </div>
       </nav>
-
-      <div>successful admin login hello sir</div>
+      <p>{errorMessage}</p>
     </>
   );
 }
