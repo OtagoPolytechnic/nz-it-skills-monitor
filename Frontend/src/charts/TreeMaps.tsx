@@ -36,6 +36,11 @@ const TreeMaps = ({ name, data, selectedCategory }) => {
   let skills = Object.values(filter);
   const dataForTreemap = skills.length > 0 ? skills[8] : [];
 
+  // Only render the TreeMap if dataForTreemap has data
+  if (dataForTreemap.length === 0) {
+    return <div>No data available for the selected category.</div>; // Optionally display a message
+  }
+
   const COLORS = [
     "#8884d8", "#83a6ed", "#8dd1e1", "#82ca9d",
     "#a4de6c", "#d0ed57", "#ffc658", "#ff8042",

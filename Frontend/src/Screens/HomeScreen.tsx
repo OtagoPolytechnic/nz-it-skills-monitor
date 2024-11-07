@@ -51,7 +51,7 @@ const Home = () => {
     jobs.forEach((job) => {
       categoryCount[job.category] = (categoryCount[job.category] || 0) + 1;
     });
-
+  
     setCategories([
       { name: "all", count: jobs.length },
       ...Object.entries(categoryCount).map(([name, count]) => ({ name, count })),
