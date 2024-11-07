@@ -41,7 +41,6 @@ const FullGraphScreen = () => {
       <Card>
         <CardHeader>
           <CardTitle>Bar Chart - {title}</CardTitle>
-          <CardDescription>Top 15 Items</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer height={1200}>
