@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const AdminScreen: React.FC = () => {
+const Admin: React.FC = () => {
+  const [output, setOutput] = useState<string>('');
   const navigate = useNavigate();
+  const [ws, setWs] = useState<WebSocket | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -22,10 +24,34 @@ const AdminScreen: React.FC = () => {
     };
 
     fetchData();
+
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const socketUrl = `${protocol}://${window.location.hostname}:5000/scrape-status`;
+    const socket = new WebSocket(socketUrl);
+    setWs(socket);
+
+    socket.onopen = () => {
+      console.log('WebSocket connection established to', socketUrl);
+    };
+
+    socket.onmessage = (event) => {
+      setOutput((prevOutput) => prevOutput + event.data + '\n');
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    return () => {
+      socket.close();
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    if (ws) {
+      ws.close();
+    }
     navigate('/'); // Redirect to the home page after token has been removed
   };
 
@@ -59,6 +85,7 @@ const AdminScreen: React.FC = () => {
           </div>
         </div>
       </nav>
+      <pre>{output}</pre>
       <p>{errorMessage}</p>
     </>
   );
