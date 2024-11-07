@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-const Admin = () => {
+const AdminScreen: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
