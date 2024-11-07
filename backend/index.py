@@ -52,12 +52,36 @@ def generate_jwt_token(username):
 def verify_jwt_token(token):
     try:
         payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        # logging.debug(f"Token payload: {payload}")
         return payload
     except jwt.ExpiredSignatureError:
+        logging.warning("Token has expired")
         return None
     except jwt.InvalidTokenError:
+        logging.warning("Invalid token")
         return None
 
+def token_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            # logging.warning("Token is missing in the request headers")
+            return jsonify({"error": "Token is missing!"}), 403
+        try:
+            # logging.debug(f"Raw token received: {token}")
+            token = token.split()[1]
+            # logging.debug(f"Token after split: {token}")
+            decoded_token = verify_jwt_token(token)
+            if not decoded_token:
+                logging.warning("Invalid or expired token")
+                return jsonify({"error": "Invalid or expired token"}), 403
+            g.user = decoded_token  # Store the decoded token in the global context
+            return f(*args, **kwargs)
+        except Exception as e:
+            logging.error(f"Exception occurred in token verification: {e}", exc_info=True)
+            return jsonify({"error": "Invalid token format"}), 400
+    return decorated_function
 
 @app.route("/")
 def hello_world():
@@ -88,41 +112,10 @@ def login():
         return jsonify({"error": "Invalid username or password"}), 401
 
 @app.route('/admin', methods=['GET'])
+@token_required
 def admin():
-    token = request.headers.get('Authorization')
+    return jsonify({"message": "Welcome to the admin panel!"}), 200
 
-    if not token:
-        return jsonify({"error": "Token is missing!"}), 403
-
-    try:
-        token = token.split()[1]  # Remove 'Bearer ' prefix
-        decoded_token = verify_jwt_token(token)
-
-        if not decoded_token:
-            return jsonify({"error": "Invalid or expired token"}), 403
-
-        return jsonify({"message": "Welcome to the admin panel!"}), 200
-    except Exception as e:
-        return jsonify({"error": "Invalid token format"}), 400
-
-@app.route('/run-scraper/<spider_name>', methods=['GET'])
-def run_scraper(spider_name):
-    token = request.headers.get('Authorization')
-
-    if not token:
-        return jsonify({"error": "Token is missing!"}), 403
-
-    try:
-        token = token.split()[1]  # Remove 'Bearer ' prefix
-        decoded_token = verify_jwt_token(token)
-
-        if not decoded_token:
-            return jsonify({"error": "Invalid or expired token"}), 403
-        
-        socketio.start_background_task(target=run_spider, spider_name=spider_name)
-        return jsonify({"message": f"{spider_name} scraper started"}), 200
-    except Exception as e:
-        return jsonify({"error": "Invalid token format"}), 400
 
 def run_spider(spider_name):
     cwd = os.path.join(os.path.dirname(__file__), 'itjobscraper', 'itjobscraper')
