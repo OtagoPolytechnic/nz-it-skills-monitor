@@ -1,18 +1,19 @@
 import os
 from flask_cors import CORS
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, g
 from sqlalchemy import text, inspect, select
 from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
-from flask_socketio import SocketIO, emit
 from model import init_app, db
 from model.job import JobSchema, Job
 import jwt
 from flask_bcrypt import Bcrypt
 import datetime
 import subprocess
+import threading
 from flask_sock import Sock
+from functools import wraps
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -116,31 +117,88 @@ def login():
 def admin():
     return jsonify({"message": "Welcome to the admin panel!"}), 200
 
+@app.route('/run-spiders', methods=['GET'])
+@token_required
+def run_spiders():
+    logging.info("Starting spiders...")
+    threading.Thread(target=start_crawlers).start()
+    return jsonify({'message': 'Spiders started'}), 200
+
+def start_crawlers():
+    logging.debug("Entered start_crawlers function")
+    spiders = ['trademespider', 'seekspider']
+    threads = []
+    for spider in spiders:
+        logging.info(f"Starting spider thread for: {spider}")
+        thread = threading.Thread(target=run_spider, args=(spider,))
+        thread.start()
+        threads.append(thread)
+    logging.debug("Waiting for spider threads to complete")
+    for thread in threads:
+        thread.join()
+    logging.info("All spiders have completed")
 
 def run_spider(spider_name):
-    cwd = os.path.join(os.path.dirname(__file__), 'itjobscraper', 'itjobscraper')
-    if not os.path.exists(cwd):
-        socketio.emit('scraper_output', {'error': f"Directory not found: {cwd}"})
+    logging.debug(f"Running spider: {spider_name}")
+    project_dir = os.path.join(os.path.dirname(__file__), 'itjobscraper')
+    if not os.path.exists(project_dir):
+        logging.error(f"Project directory not found: {project_dir}")
         return
-    process = subprocess.Popen(
-        ['scrapy', 'crawl', spider_name],
-        cwd=cwd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
     try:
-        for line in iter(process.stdout.readline, ''):
-            socketio.emit('scraper_output', {'data': line})
+        process = subprocess.Popen(
+            ['scrapy', 'crawl', spider_name],
+            cwd=project_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+        processes[spider_name] = process  # Store the process in the dictionary
+        logging.info(f"Started subprocess for spider: {spider_name}")
+        with process.stdout:
+            for line in iter(process.stdout.readline, ''):
+                message = f"{spider_name}: {line.strip()}"
+                logging.debug(f"Received output from spider {spider_name}: {line.strip()}")
+                with clients_lock:
+                    for ws in clients:
+                        ws.send(message)
         process.wait()
+        logging.info(f"Subprocess for spider {spider_name} completed with exit code {process.returncode}")
+        if spider_name in processes:
+            del processes[spider_name]  # Remove the process from the dictionary when done
     except Exception as e:
-        socketio.emit('scraper_output', {'error': str(e)})
-    finally:
-        process.stdout.close()
+        logging.error(f"Exception occurred while running spider {spider_name}: {e}", exc_info=True)
+        with clients_lock:
+            for ws in clients:
+                ws.send(f"Error running spider {spider_name}: {e}")
 
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
-    
+clients = set()
+clients_lock = threading.Lock()
+processes = {}  # Dictionary to keep track of running processes
+
+@sock.route('/scrape-status')
+def scrape_status(ws):
+    with clients_lock:
+        clients.add(ws)
+    try:
+        while True:
+            data = ws.receive()
+            if data is None:
+                break  # Client disconnected
+    finally:
+        with clients_lock:
+            clients.remove(ws)
+
+@app.route('/stop-spiders', methods=['GET'])
+@token_required
+def stop_spiders():
+    logging.info("Received request to stop spiders")
+    for spider_name, process in processes.items():
+        logging.info(f"Terminating spider: {spider_name}")
+        process.terminate()  # Terminate the process
+    processes.clear()  # Clear the dictionary
+    return jsonify({'message': 'Spiders stopped'}), 200
+
 # @app.route('/tables', methods=['GET'])
 # def list_tables():
 #     # Retrieve the list of tables from the database
@@ -173,3 +231,6 @@ if __name__ == '__main__':
 #         return jsonify({"error": str(e)}), 500
 #     finally:
 #         session.close()
+
+if __name__ == '__main__':
+    app.run(debug=True)
