@@ -12,6 +12,7 @@ import jwt
 from flask_bcrypt import Bcrypt
 import datetime
 import subprocess
+from flask_sock import Sock
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -22,6 +23,7 @@ app = Flask(__name__)
 bcrypt = Bcrypt(app)
 CORS(app)
 
+sock = Sock(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -31,10 +33,9 @@ app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
 init_app(app)
 migrate = Migrate(app, db)
-socketio = SocketIO(app, async_mode='gevent')
 
 # logging to see why query is slow
-# logging.basicConfig()
+# logging.basicConfig(level=logging.DEBUG)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 def generate_jwt_token(username):
