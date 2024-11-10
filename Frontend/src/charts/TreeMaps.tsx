@@ -31,10 +31,15 @@ const CustomTreemapContent = (props) => {
   );
 };
 
-const TreeMaps = ({ data, selectedCategory }) => {
+const TreeMaps = ({ name, data, selectedCategory }) => {
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
   const dataForTreemap = skills.length > 0 ? skills[8] : [];
+
+  // Only render the TreeMap if dataForTreemap has data
+  if (dataForTreemap.length === 0) {
+    return <div>No data available for the selected category.</div>; // Optionally display a message
+  }
 
   const COLORS = [
     "#8884d8", "#83a6ed", "#8dd1e1", "#82ca9d",
@@ -68,7 +73,7 @@ const TreeMaps = ({ data, selectedCategory }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle style={{ color: 'black' }}>Treemap Chart</CardTitle>
+        <CardTitle style={{ color: 'black' }}>{name}</CardTitle>
         <CardDescription style={{ color: 'black' }}>Data Distribution</CardDescription>
       </CardHeader>
 

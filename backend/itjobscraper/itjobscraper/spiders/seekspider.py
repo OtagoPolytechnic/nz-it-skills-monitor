@@ -18,7 +18,7 @@ class SeekspiderSpider(scrapy.Spider):
     
     def parse(self, response):
         # Top level job item response 
-        jobs = response.xpath('//*[@id="app"]/div/div[3]/div/section/div[2]/div/div/div[1]/div/div/div[1]/div/div/div[1]/div[3]/div')
+        jobs = response.xpath('//*[@id="app"]/div/div[3]/div/section/div[2]/div/div/div[1]/div/div/div[1]/div/div[1]/div[3]/div')
 
         #Iterate through each job
         for job in jobs:
@@ -40,11 +40,12 @@ class SeekspiderSpider(scrapy.Spider):
     def parse_job_page(self, response):
         job_item = ItjobscraperItem()
 
-        job_item['title'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[2]/div/div/div/div[1]/h1/text()').get(),
-        job_item['description'] = response.xpath('string(/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[2]/div/div[1]/section/div/div/div/div)').get().strip()
-        job_item['location'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[3]/div/div[1]/div/div[1]/div/div[2]/div/div/div/span/text()').get(),
-        job_item['company'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[2]/div/div/div/div[2]/div/div/div[1]/button/span/text()').get(),
-        job_item['duration'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div/div[1]/div/div[3]/div/div[1]/div/div[3]/div/div[2]/div/div/div/span/text()').get()
+        job_item['title'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[1]/div/div[1]/div/h1/text()').get()
+        job_item['description'] = response.xpath('string(/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div[2]/section[1]/div/div/div)').get().strip()
+        job_item['location'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/div[1]/div[2]/div/span/text()').get()
+        job_item['company'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[1]/div/div[1]/div/div/button/span/text()').get()
+        job_item['duration'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/div[3]/div[2]/div/span/text()').get()
+        job_item['salary'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/div[4]/div[2]/div/span/text()').get()
         job_item['source'] = "seek"
   
         yield job_item

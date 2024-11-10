@@ -26,7 +26,7 @@ const filterSkills = (data: Job[], selectedCategory: string) => {
   // Process each job and its skills from the fetched data
   data.forEach((job: Job) => {
     // Check if the job matches the selected category or if "All" is selected
-    if (selectedCategory === "All" || job.category === selectedCategory) {
+    if (selectedCategory === "all" || job.category === selectedCategory) {
       job.skills.forEach((skill: Skill) => {
         // Get the appropriate map based on skill type
         const skillMap =

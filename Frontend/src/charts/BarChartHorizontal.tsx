@@ -5,12 +5,10 @@ import filterData from "../utils/filterSkills";
 import { ChartTooltip } from "../components/ui/chart";
 import { useNavigate } from "react-router-dom";
 
-// Define seven different shades of blue
 const blueShades = [
   "#2563eb", "#1d4ed8", "#1e40af", "#1e3a8a", "#3b82f6", "#60a5fa", "#93c5fd",
 ];
 
-// Default chart configuration
 interface BarChartProps {
   dataKeyIndex: number;
   title: string;
@@ -21,22 +19,26 @@ interface BarChartProps {
 const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: BarChartProps) => {
   const navigate = useNavigate();
 
-  // Filtering and structuring data
+  // Filter and structure data
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
 
-  // Slice data to show only top 15 items on the HomeScreen
   const processedData = skills[dataKeyIndex]
-    .slice(0, 15) // Show only the top 15 items
+    .slice(0, 15) 
     .map((item, index) => ({
       ...item,
-      fill: blueShades[index % blueShades.length], // Cycle through the blue shades
+      fill: blueShades[index % blueShades.length],
     }));
 
-  // Handle button click to navigate to FullGraphScreen
+  // Handle navigation
   const handleShowFullGraph = () => {
     navigate("/full-graph", { state: { data, dataKeyIndex, selectedCategory, title } });
   };
+
+  // Conditionally render component if there's data
+  if (processedData.length === 0) {
+    return null; // Return null if no data to display
+  }
 
   return (
     <Card>
@@ -63,7 +65,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
               tickFormatter={(value) => value.slice(0, 10)}
             />
             <ChartTooltip cursor={false} trigger="hover" />
-            <Bar dataKey="quantity" strokeWidth={2} radius={8} /> {/* Removed `fill` prop */}
+            <Bar dataKey="quantity" strokeWidth={2} radius={8} /> 
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
