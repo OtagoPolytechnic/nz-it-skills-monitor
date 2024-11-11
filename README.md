@@ -15,3 +15,18 @@
 
 ## Knowen issues
 - currently, seek spider misses some unused data categories, this data will return as "None". 
+Here’s a more polished version of your README instructions:
+
+## Running Locally
+
+1. Open a terminal window.
+2. Navigate to the frontend folder using `cd`.
+3. If this is your first time setting up the project, install the necessary dependencies by running:
+   ```
+   npm install
+   ```
+4. Once the installation is complete, start the application with:
+   ```
+   npm run dev
+   ```
+5. The terminal will display the URL where the application is running (e.g., `http://localhost:5173/`). Open this URL by holding `Ctrl` and clicking on the link.
