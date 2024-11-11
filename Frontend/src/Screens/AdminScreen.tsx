@@ -23,11 +23,9 @@ const Admin: React.FC = () => {
         setErrorMessage(error.response?.data?.error);
       }
     };
-
     fetchData();
 
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const socketUrl = `${protocol}://${window.location.hostname}:5000/scrape-status`;
+    const socketUrl = `${import.meta.env.VITE_API_URL}/scrape-status`;
     const socket = new WebSocket(socketUrl);
     setWs(socket);
 
@@ -59,7 +57,7 @@ const Admin: React.FC = () => {
   const startScraper = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://127.0.0.1:5000/run-spiders', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/run-spiders`, {
         headers: {
           Authorization: `${token}`,
         },
@@ -75,7 +73,7 @@ const Admin: React.FC = () => {
   const stopScraper = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://127.0.0.1:5000/stop-spiders', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/stop-spiders`, {
         headers: {
           Authorization: `${token}`,
         },
