@@ -25,8 +25,6 @@ const FullGraphScreen = () => {
       fill: blueShades[index % blueShades.length], // Cycle through the blue shades
     }));
 
-  console.log("PROCESSED DATA: ", processedData);
-
   return (
     <div style={{ padding: '20px', height: '12000px', overflowY: 'scroll' }}>
       

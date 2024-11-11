@@ -2,7 +2,7 @@ import CategoryDropdown from "../components/categoryFilter";
 import BarChartHorizontal from "../charts/BarChartHorizontal";
 import { useState, useEffect } from "react";
 import TreeMaps from "../charts/TreeMaps"
-
+import PieChart from "../charts/PieChart"
 
 const Home = () => {
   const [fetchedData, setFetchedData] = useState<any[]>([]);
@@ -164,6 +164,7 @@ const Home = () => {
               ))}
             </div>
             <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
+            <PieChart data={fetchedData} />
           </div>
         )}
       </>

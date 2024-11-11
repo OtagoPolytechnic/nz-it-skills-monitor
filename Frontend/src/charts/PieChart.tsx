@@ -1,119 +1,65 @@
-import { TrendingUp } from "lucide-react"
-import { PieChart, Pie } from "recharts";
-import MockData from "../mockdata/mockdata.json"
-import {  Card,  CardContent,  CardDescription,  CardFooter,  CardHeader,  CardTitle,} from "@/components/ui/card"
-import {  ChartConfig,  ChartContainer,  ChartTooltip,  ChartTooltipContent,} from "@/components/ui/chart"
+import React from "react";
+import { PieChart as RechartsPieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import filterByLocation from "../utils/filterCities";
 
+const COLORS = [
+  "#8884d8", "#83a6ed", "#8dd1e1", "#82ca9d",
+  "#a4de6c", "#d0ed57", "#ffc658", "#ff8042",
+  "#ffbb28", "#00C49F", "#FFBB28", "#FF8042"
+];
 
-const chartData = [
-  {
-    "name": "Python",
-    "quantity": 16,
-    "type": "Language"
-  },
-  {
-    "name": "Django",
-    "quantity": 12,
-    "type": "Framework"
-  },
-  {
-    "name": "Flask",
-    "quantity": 7,
-    "type": "Framework"
-  },
-  {
-    "name": "FastAPI",
-    "quantity": 5,
-    "type": "Framework"
-  },
-  {
-    "name": "JavaScript",
-    "quantity": 18,
-    "type": "Language"
-  },
-  {
-    "name": "React",
-    "quantity": 14,
-    "type": "Framework"
-  }
-]
+const PieChart = ({ data }) => {
+  const dataForPieChart = filterByLocation(data);
 
-const chartConfig = {
-} satisfies ChartConfig
+  const coloredData = dataForPieChart.map((item, index) => ({
+    ...item,
+    fill: COLORS[index % COLORS.length],
+  }));
 
-const PieChart1 = () => {  
+  const renderTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const { name, quantity } = payload[0].payload;
+      return (
+        <div style={{
+          backgroundColor: 'white',
+          border: '1px solid #ccc',
+          padding: '5px',
+          borderRadius: '3px'
+        }}>
+          <p><strong>{name}</strong></p>
+          <p>Quantity: {quantity}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <>      
-      <Card className="flex flex-col max-w-lg mx-auto shadow-lg rounded-lg pb-6">
-        <CardHeader className="text-center pb-0">
-          <CardTitle className="text-lg font-semibold">Pie Chart - Technologies</CardTitle>
-          <CardDescription className="text-sm text-gray-600">Asked quantity's</CardDescription>
-        </CardHeader>
+    <Card className="flex flex-col w-full mx-auto shadow-lg rounded-lg pb-6">
+      <CardHeader className="text-center pb-0">
+        <CardTitle className="text-lg font-semibold">Pie Chart - Locations</CardTitle>
+        <CardDescription className="text-sm text-gray-600">Number of Listings by Location</CardDescription>
+      </CardHeader>
 
-        <CardContent className="flex justify-center pb-0">
-          <ChartContainer
-            config={chartConfig}
-            className="w-full"
-          >
-            <PieChart width={700} height={700}>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie 
-                data={MockData.technologies} 
-                fill="#2563eb"
-                dataKey="quantity" 
-                nameKey="name" />
-            </PieChart>
-          </ChartContainer>
-        </CardContent>
-
-        <CardFooter className="flex-col gap-2 text-sm">
-          <div className="flex items-center gap-2 font-medium leading-none">
-            Data from mon 19 aug 2024 <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="leading-none text-muted-foreground">
-            Showing the quantity of asked technologies from 19-8-24
-          </div>
-        </CardFooter>
-      </Card>
-    </>
+      <CardContent className="flex justify-center pb-0">
+        <ResponsiveContainer width="100%" height={750}>
+          <RechartsPieChart>
+            <Pie
+              data={coloredData}
+              dataKey="quantity"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius="80%" // Adjust this value if needed for better fit
+              fill="#2563eb"
+            />
+            <Tooltip content={renderTooltip} />
+          </RechartsPieChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
   );
 };
 
-/* 
-
-      <Card className="flex flex-col">
-        <CardHeader className="items-center pb-0">
-          <CardTitle>Pie Chart - Technologies</CardTitle>
-          <CardDescription>Asked quantity's</CardDescription>
-        </CardHeader>
-        
-        <CardContent className="flex-1 pb-0">
-          <ChartContainer
-            config={chartConfig}
-            className="w-full h-full"
-          >
-            <PieChart width={300} height={300}>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie data={MockData.technologies} dataKey="name"/>
-            </PieChart>
-          </ChartContainer>
-        </CardContent>
-
-        <CardFooter className="flex-col gap-2 text-sm">
-          <div className="flex items-center gap-2 font-medium leading-none">
-            Data from mon 19 aug 2024 <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="leading-none text-muted-foreground">
-            Showing the quantity of asked technologies from 19-8-24
-          </div>
-        </CardFooter>
-      </Card>
-*/
-  
-export default PieChart1;
+export default PieChart;

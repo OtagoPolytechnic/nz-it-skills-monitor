@@ -10,7 +10,6 @@ const TreeMaps = ({ dataKeyIndex, title, data, selectedCategory }) => {
   let skills = Object.values(filter);
   // Use some fallback for data if it's undefined or empty
   const dataForTreemap = skills.length > 0 ? skills[8] : [];
-  console.log(dataForTreemap);
 
   const COLORS = [
     "#8884d8", "#83a6ed", "#8dd1e1", "#82ca9d",
