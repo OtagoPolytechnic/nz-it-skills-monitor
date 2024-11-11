@@ -2,43 +2,14 @@ import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import filterData from '../utils/filterSkills';
 
-// Define the custom content as a functional React component
-const CustomTreemapContent = (props) => {
-  const { x, y, width, height, name, fill } = props;
-  if (width <= 0 || height <= 0) return null;
-
-  return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        fill={fill}
-        stroke="#000000"
-      />
-      <text
-        x={x + width / 2}
-        y={y + height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="#000000"
-        fontSize={Math.min(width, height) / 8}
-      >
-        {name}
-      </text>
-    </g>
-  );
-};
-
 const TreeMaps = ({ name, data, selectedCategory }) => {
+  // Filter and structure data
   let filter = filterData(data, selectedCategory);
   let skills = Object.values(filter);
   const dataForTreemap = skills.length > 0 ? skills[8] : [];
 
-  // Only render the TreeMap if dataForTreemap has data
   if (dataForTreemap.length === 0) {
-    return <div>No data available for the selected category.</div>; // Optionally display a message
+    return <div>No data available for the selected category.</div>;
   }
 
   const COLORS = [
@@ -70,6 +41,19 @@ const TreeMaps = ({ name, data, selectedCategory }) => {
     return null;
   };
 
+  // Custom content renderer
+  const renderCustomContent = (props) => {
+    const { x, y, width, height, name, quantity, fill } = props;
+    return (
+      <g>
+        <rect x={x} y={y} width={width} height={height} fill={fill} stroke="#000000" />
+        <text x={x + width / 2} y={y + height / 2} textAnchor="middle" dominantBaseline="middle" fill="#000000" fontSize={width / 8}>
+          {name}
+        </text>
+      </g>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -78,12 +62,12 @@ const TreeMaps = ({ name, data, selectedCategory }) => {
       </CardHeader>
 
       <CardContent>
-        <ResponsiveContainer width={1170} height={825}>
+        <ResponsiveContainer width="100%" height={500}>
           <Treemap
             data={coloredData}
             dataKey="quantity"
             stroke="#000000"
-            content={<CustomTreemapContent />}
+            content={renderCustomContent} // Use renderCustomContent as the custom content renderer
           >
             <Tooltip content={renderTooltip} />
           </Treemap>
