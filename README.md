@@ -30,3 +30,9 @@ Here’s a more polished version of your README instructions:
    npm run dev
    ```
 5. The terminal will display the URL where the application is running (e.g., `http://localhost:5173/`). Open this URL by holding `Ctrl` and clicking on the link.
+Here’s an improved version of that section:
+
+## Running Live
+
+To view the current live version of the application, visit:  
+[https://nz-it-skills-monitor.netlify.app/](https://nz-it-skills-monitor.netlify.app/)
