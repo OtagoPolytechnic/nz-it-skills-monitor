@@ -3,6 +3,7 @@ import BarChartHorizontal from "../charts/BarChartHorizontal";
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import TreeMaps from "../charts/TreeMaps";
+import PieChart from "../charts/PieChart"
 
 const Home = () => {
   const [fetchedData, setFetchedData] = useState<any[]>([]);
@@ -181,6 +182,7 @@ const Home = () => {
                 ))}
             </div>
             <TreeMaps name="soft skills" data={fetchedData} selectedCategory={selectedCategory} />
+            <PieChart data={fetchedData} />
           </div>
         )}
       </>

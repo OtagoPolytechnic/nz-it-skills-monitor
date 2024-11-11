@@ -34,8 +34,6 @@ const FullGraphScreen = () => {
     fill: blueShades[index % blueShades.length], // Cycle through the blue shades
   }));
 
-  console.log("PROCESSED DATA: ", processedData);
-
   return (
     <div>
       <Card>
