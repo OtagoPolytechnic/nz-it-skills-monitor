@@ -181,7 +181,7 @@ const Home = () => {
                   />
                 ))}
             </div>
-            <TreeMaps name="soft skills" data={fetchedData} selectedCategory={selectedCategory} />
+            <TreeMaps name="Soft skills" data={fetchedData} selectedCategory={selectedCategory} />
             <PieChart data={fetchedData} />
           </div>
         )}
