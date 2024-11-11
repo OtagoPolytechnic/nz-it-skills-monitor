@@ -3,7 +3,7 @@ import BarChartHorizontal from "../charts/BarChartHorizontal";
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import TreeMaps from "../charts/TreeMaps";
-import PieChart from "../charts/PieChart"
+import TreeMapCities from "../charts/TreeMapsCities"; // Import the new TreeMapCities
 
 const Home = () => {
   const [fetchedData, setFetchedData] = useState<any[]>([]);
@@ -54,7 +54,7 @@ const Home = () => {
       categoryCount[job.category] = (categoryCount[job.category] || 0) + 1;
     });
   
-    setCategories([
+    setCategories([ 
       { name: "all", count: jobs.length },
       ...Object.entries(categoryCount).map(([name, count]) => ({ name, count })),
     ]);
@@ -134,7 +134,7 @@ const Home = () => {
                   Admin
                 </a>
               </li>
-              {!isLoggedIn ? ( //show login or logout button depending on 
+              {!isLoggedIn ? (
                 <li>
                   <a href="/login" className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
                     Login
@@ -155,7 +155,7 @@ const Home = () => {
         </div>
       </nav>
       <>
-      {isLoading ? (
+        {isLoading ? (
           <h1 className="text-center text-2xl font-bold p-4">Loading...</h1>
         ) : (
           <div>
@@ -181,8 +181,10 @@ const Home = () => {
                   />
                 ))}
             </div>
+
             <TreeMaps name="Soft skills" data={fetchedData} selectedCategory={selectedCategory} />
-            <PieChart data={fetchedData} />
+            {/* Replaced PieChart with TreeMapCities */}
+            <TreeMapCities name="Locations Distribution" data={fetchedData} />
           </div>
         )}
       </>
