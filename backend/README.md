@@ -1,10 +1,6 @@
 ## Backend setup
 Make .env file in root of backend folder, using the example file
 
-```
-DATABASE_URL=<url>
-FLASK_APP=index.py
-```
 >[!NOTE]
 >You may have to edit the database url to begin with `postgresql` instead of `postgres`
 
@@ -38,12 +34,8 @@ pip freeze > requirements.txt
 
 Run the development server
 ```
-flask --app index run
+python index.py
 ```
-
->[!NOTE]
->Append --debug flag if you want the server to enable hotswap
-
 
 ## Database Migration
 To run a new migration
@@ -58,9 +50,9 @@ To apply migrations
 flask db upgrade
 ```
 
-## Data Scrape Script (testing)
-Inside Command Prompt with the virtual environment activated
+## Run Scrapers Manually
+Navigate to backend/itjobscraper/itjobscraper
 
 ```
-py process_scrape.py
+scrapy crawl <spider> (trademespider/seekspider)
 ```
