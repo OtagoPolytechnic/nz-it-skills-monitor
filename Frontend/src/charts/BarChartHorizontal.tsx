@@ -43,7 +43,7 @@ const BarChartHorizontal = ({ dataKeyIndex, title, data, selectedCategory }: Bar
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bar Chart - {title}</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>Top 15 Items</CardDescription>
       </CardHeader>
       <CardContent>

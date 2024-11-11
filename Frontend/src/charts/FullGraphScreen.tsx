@@ -38,7 +38,7 @@ const FullGraphScreen = () => {
     <div>
       <Card>
         <CardHeader>
-          <CardTitle>Bar Chart - {title}</CardTitle>
+          <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer height={1200}>
