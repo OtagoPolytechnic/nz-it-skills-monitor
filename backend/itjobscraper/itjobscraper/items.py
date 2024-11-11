@@ -17,3 +17,4 @@ class ItjobscraperItem(scrapy.Item):
     salary = scrapy.Field()
     duration = scrapy.Field()
     category = scrapy.Field()
+    source = scrapy.Field()

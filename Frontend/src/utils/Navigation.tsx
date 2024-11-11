@@ -3,6 +3,8 @@ import Home from "../Screens/HomeScreen"
 import Admin from "../Screens/AdminScreen";
 import ProtectedRoute from '../components/ProtectedRoute';
 import Login from '../Screens/LoginScreen';
+import FullGraphScreen from "../charts/FullGraphScreen";
+
 
 const Navigation = () => {
   return (
@@ -18,6 +20,8 @@ const Navigation = () => {
                         </ProtectedRoute>
                     }
                 />
+        <Route path="/Admin" element={<Admin />} />
+        <Route path="/full-graph" element={<FullGraphScreen />} />
       </Routes>
     </Router>
   );
