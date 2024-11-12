@@ -62,7 +62,7 @@ const TreeMaps = ({ name, data, selectedCategory }) => {
       </CardHeader>
 
       <CardContent>
-        <ResponsiveContainer width="100%" height={500}>
+        <ResponsiveContainer width={"100%"} height={750}>
           <Treemap
             data={coloredData}
             dataKey="quantity"

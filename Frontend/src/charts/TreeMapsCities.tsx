@@ -57,11 +57,11 @@ const TreeMapCities = ({ name, data }) => {
     <Card>
       <CardHeader>
         <CardTitle style={{ color: 'black' }}>{name}</CardTitle>
-        <CardDescription style={{ color: 'black' }}>City Distribution by Location</CardDescription>
+        <CardDescription style={{ color: 'black' }}>Jobs Distribution by Location</CardDescription>
       </CardHeader>
 
       <CardContent>
-        <ResponsiveContainer width="100%" height={500}>
+        <ResponsiveContainer width="100%" height={750}>
           <Treemap
             data={coloredData}
             dataKey="quantity"
