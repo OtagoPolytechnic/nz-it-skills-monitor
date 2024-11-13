@@ -131,11 +131,12 @@ class ItjobscraperPipeline:
                      business & systems analysts, systems engineers, testing, programming & development, project management, other, networking & storage, sales & pre-sales, service desk, telecommunications, security, architects, web design, database development & administration, consultant.
 
                 7. Location:
-                    - assign a location for the job, only supply the city name eg: "Dunedin" not dunedin city
+                    - assign a location for the job, only supply the city name do not supply suburbs eg, : "Dunedin" not "Dunedin city" or "Rosedale, auckland" 
                 Output:
                 - Skills: Each skill as name: [skill], type: [category].
                 - Salary: Annual integer value.
                 - Job Category: One of the provided categories.
+                - Location: city name
                 - Format: All text in lowercase.
                 """
                 },
