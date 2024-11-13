@@ -120,6 +120,11 @@ def admin():
 @app.route('/run-spiders', methods=['GET'])
 @token_required
 def run_spiders():
+    try:
+        wipe_data();
+    except Exception as e:
+        logging.error(f"Exception occurred while wiping the database: {e}", exc_info=True)
+        return jsonify({"error": "Error wiping the database"}), 500
     logging.info("Starting spiders...")
     threading.Thread(target=start_crawlers).start()
     return jsonify({'message': 'Spiders started'}), 200
@@ -171,6 +176,14 @@ def run_spider(spider_name):
         with clients_lock:
             for ws in clients:
                 ws.send(f"Error running spider {spider_name}: {e}")
+def wipe_data():
+    logging.info("Wiping the database data")
+    meta = db.metadata
+    for table in reversed(meta.sorted_tables):
+        logging.info(f"Deleting data from table {table.name}")
+        db.session.execute(table.delete())
+    db.session.commit()
+
 
 clients = set()
 clients_lock = threading.Lock()
@@ -198,6 +211,8 @@ def stop_spiders():
         process.terminate()  # Terminate the process
     processes.clear()  # Clear the dictionary
     return jsonify({'message': 'Spiders stopped'}), 200
+
+
 
 # @app.route('/tables', methods=['GET'])
 # def list_tables():
