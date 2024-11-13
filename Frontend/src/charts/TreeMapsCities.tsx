@@ -1,15 +1,14 @@
-import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import React from "react";
+import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import filterData from '../utils/filterSkills';
+import filterByLocation from "../utils/filterCities";
 
-const TreeMaps = ({ name, data, selectedCategory }) => {
-  // Filter and structure data
-  let filter = filterData(data, selectedCategory);
-  let skills = Object.values(filter);
-  const dataForTreemap = skills.length > 0 ? skills[8] : [];
+const TreeMapCities = ({ name, data }) => {
+  // Filter and structure data using filterByLocation
+  const dataForTreemap = filterByLocation(data);
 
   if (dataForTreemap.length === 0) {
-    return <div>No data available for the selected category.</div>;
+    return <div>No data available for the selected locations.</div>;
   }
 
   const COLORS = [
@@ -41,7 +40,7 @@ const TreeMaps = ({ name, data, selectedCategory }) => {
     return null;
   };
 
-  // Custom content renderer
+  // Custom content renderer for Treemap
   const renderCustomContent = (props) => {
     const { x, y, width, height, name, quantity, fill } = props;
     return (
@@ -58,11 +57,11 @@ const TreeMaps = ({ name, data, selectedCategory }) => {
     <Card>
       <CardHeader>
         <CardTitle style={{ color: 'black' }}>{name}</CardTitle>
-        <CardDescription style={{ color: 'black' }}>Data Distribution</CardDescription>
+        <CardDescription style={{ color: 'black' }}>Jobs Distribution by Location</CardDescription>
       </CardHeader>
 
       <CardContent>
-        <ResponsiveContainer width={"100%"} height={750}>
+        <ResponsiveContainer width="100%" height={750}>
           <Treemap
             data={coloredData}
             dataKey="quantity"
@@ -77,4 +76,4 @@ const TreeMaps = ({ name, data, selectedCategory }) => {
   );
 };
 
-export default TreeMaps;
+export default TreeMapCities;

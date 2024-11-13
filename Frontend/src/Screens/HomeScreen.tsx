@@ -1,9 +1,9 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import CategoryDropdown from "../components/categoryFilter";
 import BarChartHorizontal from "../charts/BarChartHorizontal";
-import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from "react";
+import TreeMapCities from "../charts/TreeMapsCities";
 import TreeMaps from "../charts/TreeMaps";
-import PieChart from "../charts/PieChart"
 
 const Home = () => {
   const [fetchedData, setFetchedData] = useState<any[]>([]);
@@ -155,7 +155,7 @@ const Home = () => {
         </div>
       </nav>
       <>
-      {isLoading ? (
+        {isLoading ? (
           <h1 className="text-center text-2xl font-bold p-4">Loading...</h1>
         ) : (
           <div>
@@ -168,7 +168,7 @@ const Home = () => {
 
             <div className="grid grid-cols-2 gap-4 p-4">
               {chartTitles
-                .filter(({ keyIndex }) => 
+                .filter(({ keyIndex }) =>
                   fetchedData.some((job) => job.skills[keyIndex])
                 ) // Only include charts with data
                 .map(({ name, keyIndex }) => (
@@ -181,8 +181,8 @@ const Home = () => {
                   />
                 ))}
             </div>
-            <TreeMaps name="soft skills" data={fetchedData} selectedCategory={selectedCategory} />
-            <PieChart data={fetchedData} />
+            <TreeMaps name="Soft skills" data={fetchedData} selectedCategory={selectedCategory} />
+            <TreeMapCities name="Cities" data={fetchedData} selectedCategory={selectedCategory} />
           </div>
         )}
       </>

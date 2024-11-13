@@ -38,7 +38,7 @@ const PieChart = ({ data }) => {
   return (
     <Card className="flex flex-col w-full mx-auto shadow-lg rounded-lg pb-6">
       <CardHeader className="text-center pb-0">
-        <CardTitle className="text-lg font-semibold">Pie Chart - Locations</CardTitle>
+        <CardTitle className="text-lg font-semibold">Locations</CardTitle>
         <CardDescription className="text-sm text-gray-600">Number of Listings by Location</CardDescription>
       </CardHeader>
 
