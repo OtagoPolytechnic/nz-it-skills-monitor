@@ -14,6 +14,7 @@ import subprocess
 import threading
 from flask_sock import Sock
 from functools import wraps
+from asgiref.wsgi import WsgiToAsgi
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -34,6 +35,9 @@ app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
 init_app(app)
 migrate = Migrate(app, db)
+
+# hopefully make the app run with websockets on render
+app  = WsgiToAsgi(app)
 
 # logging to see why query is slow
 # logging.basicConfig(level=logging.DEBUG)
