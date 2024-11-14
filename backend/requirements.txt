@@ -37,8 +37,12 @@ gevent==24.10.3
 greenlet==3.1.1
 gunicorn==23.0.0
 h11==0.14.0
+h2==4.1.0
+hpack==4.0.0
 httpcore==1.0.6
 httpx==0.27.2
+Hypercorn==0.17.3
+hyperframe==6.0.1
 hyperlink==21.0.0
 idna==3.10
 incremental==24.7.2
@@ -63,6 +67,7 @@ parsel==1.9.1
 parso==0.8.4
 pipenv==2024.0.1
 platformdirs==4.2.2
+priority==2.0.0
 prompt_toolkit==3.0.48
 Protego==0.3.1
 psutil==6.0.0

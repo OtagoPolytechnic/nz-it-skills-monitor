@@ -14,7 +14,6 @@ import subprocess
 import threading
 from flask_sock import Sock
 from functools import wraps
-from asgiref.wsgi import WsgiToAsgi
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -247,8 +246,6 @@ def stop_spiders():
 #         return jsonify({"error": str(e)}), 500
 #     finally:
 #         session.close()
-# hopefully make the app run with websockets on render
-app  = WsgiToAsgi(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
