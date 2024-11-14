@@ -36,9 +36,6 @@ app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 init_app(app)
 migrate = Migrate(app, db)
 
-# hopefully make the app run with websockets on render
-app  = WsgiToAsgi(app)
-
 # logging to see why query is slow
 # logging.basicConfig(level=logging.DEBUG)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -250,6 +247,8 @@ def stop_spiders():
 #         return jsonify({"error": str(e)}), 500
 #     finally:
 #         session.close()
+# hopefully make the app run with websockets on render
+app  = WsgiToAsgi(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
