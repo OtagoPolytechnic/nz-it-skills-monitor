@@ -3,7 +3,6 @@ import filterData from "../utils/filterSkills";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
@@ -34,14 +33,11 @@ const FullGraphScreen = () => {
     fill: blueShades[index % blueShades.length], // Cycle through the blue shades
   }));
 
-  console.log("PROCESSED DATA: ", processedData);
-
   return (
     <div>
       <Card>
         <CardHeader>
-          <CardTitle>Bar Chart - {title}</CardTitle>
-          <CardDescription>Top 15 Items</CardDescription>
+          <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer height={1200}>

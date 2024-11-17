@@ -1,18 +1,19 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import CategoryDropdown from "../components/categoryFilter";
 import BarChartHorizontal from "../charts/BarChartHorizontal";
-import { useState, useEffect } from "react";
-import TreeMaps from "../charts/TreeMaps"
-
+import TreeMapCities from "../charts/TreeMapsCities";
+import TreeMaps from "../charts/TreeMaps";
 
 const Home = () => {
   const [fetchedData, setFetchedData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState<string[]>([]); // Use Record for category count
-  const [selectedCategory, setSelectedCategory] = useState<string>("All")
+  const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   interface Skill {
     name: string;
-    type: string; // type of skill category
+    type: string;
   }
 
   interface Job {
@@ -29,31 +30,19 @@ const Home = () => {
   }
 
   useEffect(() => {
-    console.log("GETTING DATA");
     getData();
   }, []);
 
   const getData = async () => {
     try {
-      const response = await fetch(
-        "https://nz-it-skills-monitor.onrender.com/jobs"
-      );
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      const response = await fetch("https://nz-it-skills-monitor.onrender.com/jobs");
+      if (!response.ok) throw new Error("Network response was not ok");
 
       const data = await response.json();
       setFetchedData(data);
-      console.log("FETCHED DATA: ", data);
-
-      // Call getUniqueCategoriesWithCount after setting fetchedData
       getUniqueCategoriesWithCount(data);
     } catch (error: any) {
-      console.error(
-        "There was a problem with the fetch operation:",
-        error.message
-      );
+      console.error("Fetch error:", error.message);
     } finally {
       setIsLoading(false);
     }
@@ -61,32 +50,43 @@ const Home = () => {
 
   const getUniqueCategoriesWithCount = (jobs: Job[]) => {
     const categoryCount: Record<string, number> = {};
-  
     jobs.forEach((job) => {
-      // Increment the count for each job category
-      if (categoryCount[job.category]) {
-        categoryCount[job.category]++;
-      } else {
-        categoryCount[job.category] = 1;
-      }
+      categoryCount[job.category] = (categoryCount[job.category] || 0) + 1;
     });
   
-    console.log("CATEGORIES: ", categoryCount);
-  
-    // Add "All" category
-    setCategories(["All", ...Object.keys(categoryCount)]);
+    setCategories([
+      { name: "all", count: jobs.length },
+      ...Object.entries(categoryCount).map(([name, count]) => ({ name, count })),
+    ]);
   };
 
   const chartTitles = [
-    "Languages",
-    "Frameworks",
-    "Platforms",
-    "Certifications",
-    "Tools",
-    "Protocols",
-    "Databases",
-    "Methodologies",
+    { name: "Languages", keyIndex: 0 },
+    { name: "Frameworks", keyIndex: 1 },
+    { name: "Platforms", keyIndex: 2 },
+    { name: "Certifications", keyIndex: 3 },
+    { name: "Tools", keyIndex: 4 },
+    { name: "Protocols", keyIndex: 5 },
+    { name: "Databases", keyIndex: 6 },
+    { name: "Methodologies", keyIndex: 7 },
   ];
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if the user is logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    navigate("/"); // Redirect to the home page
+  };
 
   return (
     <div>
@@ -134,6 +134,22 @@ const Home = () => {
                   Admin
                 </a>
               </li>
+              {!isLoggedIn ? ( //show login or logout button depending on 
+                <li>
+                  <a href="/login" className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
+                    Login
+                  </a>
+                </li>
+              ) : (
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className="block py-2 px-3 text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                  >
+                    Logout
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -144,26 +160,29 @@ const Home = () => {
         ) : (
           <div>
             <div className="flex justify-between p-4">
-              <div>
-                <CategoryDropdown categories={categories} setSelectedCategory={setSelectedCategory}/>
-              </div>
+              <CategoryDropdown categories={categories} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
               <div className="text-right">
-                Data collected: {fetchedData[0]?.date || "Unknown Date"}
+                Data collected: {fetchedData[0]?.date || "Unknown Date"} from {fetchedData.length} jobs
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 p-4">
-              {chartTitles.map((title, index) => (
-                <BarChartHorizontal
-                  key={index}
-                  dataKeyIndex={index}
-                  title={title}
-                  data={fetchedData.length > 0 ? fetchedData : []}
-                  selectedCategory={selectedCategory}      
-                />
-              ))}
+              {chartTitles
+                .filter(({ keyIndex }) =>
+                  fetchedData.some((job) => job.skills[keyIndex])
+                ) // Only include charts with data
+                .map(({ name, keyIndex }) => (
+                  <BarChartHorizontal
+                    key={keyIndex}
+                    dataKeyIndex={keyIndex}
+                    title={name}
+                    data={fetchedData}
+                    selectedCategory={selectedCategory}
+                  />
+                ))}
             </div>
-            <TreeMaps data={fetchedData} selectedCategory={selectedCategory}/>
+            <TreeMaps name="Soft skills" data={fetchedData} selectedCategory={selectedCategory} />
+            <TreeMapCities name="Cities" data={fetchedData} />
           </div>
         )}
       </>
