@@ -35,7 +35,7 @@ const Home = () => {
 
   const getData = async () => {
     try {
-      const response = await fetch(import.meta.env.VITE_API_URL + "/jobs");
+      const response = await fetch("https://nz-it-skills-monitor.onrender.com/jobs");
       if (!response.ok) throw new Error("Network response was not ok");
 
       const data = await response.json();
@@ -160,7 +160,7 @@ const Home = () => {
         ) : (
           <div>
             <div className="flex justify-between p-4">
-              <CategoryDropdown categories={categories} setSelectedCategory={setSelectedCategory} />
+              <CategoryDropdown categories={categories} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
               <div className="text-right">
                 Data collected: {fetchedData[0]?.date || "Unknown Date"} from {fetchedData.length} jobs
               </div>
@@ -182,7 +182,7 @@ const Home = () => {
                 ))}
             </div>
             <TreeMaps name="Soft skills" data={fetchedData} selectedCategory={selectedCategory} />
-            <TreeMapCities name="Cities" data={fetchedData} selectedCategory={selectedCategory} />
+            <TreeMapCities name="Cities" data={fetchedData} />
           </div>
         )}
       </>
