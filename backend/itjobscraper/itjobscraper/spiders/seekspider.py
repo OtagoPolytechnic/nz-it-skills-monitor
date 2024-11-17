@@ -40,9 +40,18 @@ class SeekspiderSpider(scrapy.Spider):
     def parse_job_page(self, response):
         job_item = ItjobscraperItem()
 
-        job_item['title'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[1]/div/div[1]/div/h1/text()').get()
+        if response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[1]/div/div[1]/div/h1/text()').get() is None:
+            job_item['title'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/h1/text()').get()
+        else:
+            job_item['title'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[1]/div/div[1]/div/h1/text()').get()
+            
         job_item['description'] = response.xpath('string(/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div[2]/section[1]/div/div/div)').get().strip()
-        job_item['location'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/div[1]/div[2]/div/span/text()').get()
+        
+        if response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/div[1]/div[2]/div/span/text()').get() is None:
+            job_item['location'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[3]/div/div[1]/div[2]/div/span/text()').get()
+        else: 
+            job_item['location'] = response.xpath('//*[@id="app"]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/div[1]/div[2]/div/span/text()').get()
+            
         job_item['company'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[1]/div/div[1]/div/div/button/span/text()').get()
         job_item['duration'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/div[3]/div[2]/div/span/text()').get()
         job_item['salary'] = response.xpath('/html/body/div[1]/div/div[3]/div/div/div[2]/div[2]/div/div/div[1]/div[2]/div/div[4]/div[2]/div/span/text()').get()

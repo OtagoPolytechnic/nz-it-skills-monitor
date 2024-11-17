@@ -64,20 +64,37 @@ class ItjobscraperPipeline:
                 # Remove "city"
                 city_name = split_location_array[0].split(" ")
 
-                if len(city_name) == 2:
+                # Check if the first word is in the list of specific prefixes
+                prefixes = {"North", "South", "East", "West", "New", "Port", "Te", "Upper", "Lower", "Mt", "Mount", "Saint", "St", "Grey", "Palmerston"}
+                if city_name[0] in prefixes and len(city_name) > 1:
+                    adapter['location'] = " ".join(city_name[:2])  # Use the first two words
+                elif len(city_name) == 2:
                     adapter['location'] = city_name[0]
                 else:
                     adapter['location'] = split_location_array[0]
+
+            # Remove trailing comma from the final location value
+            adapter['location'] = adapter['location'].rstrip(",")
         
         #seek
         if source == "seek":
             if isinstance(location_string, tuple):
                 location_string = ", ".join(location_string)  
 
-            # Split by spaces to extract the first word only
-            first_word = location_string.split()[0]
+            # Split the location string into words
+            words = location_string.split()
 
-            adapter['location'] = first_word
+            # Check if the first word is in the list of specific prefixes
+            prefixes = {"North", "South", "East", "West", "New", "Port", "Te", "Upper", "Lower", "Mt", "Mount", "Saint", "St", "Grey", "Palmerston"}
+            if words[0] in prefixes and len(words) > 1:
+                # Set location to the first two words
+                adapter['location'] = " ".join(words[:2])
+            else:
+                # Otherwise, use the first word only
+                adapter['location'] = words[0]
+
+            # Remove trailing comma from the final location value
+            adapter['location'] = adapter['location'].rstrip(",")
         
         # Get skills and salary from description via OpenAI API
         description = adapter.get('description')
