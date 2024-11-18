@@ -25,7 +25,7 @@ const Admin: React.FC = () => {
     };
     fetchData();
 
-    const socketUrl = `${import.meta.env.VITE_API_URL}/scrape-status`;
+    const socketUrl = `https://nz-it-skills-monitor.onrender.com/scrape-status`;
     const socket = new WebSocket(socketUrl);
     setWs(socket);
 
@@ -57,7 +57,7 @@ const Admin: React.FC = () => {
   const startScraper = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/run-spiders`, {
+      const response = await axios.get(`https://nz-it-skills-monitor.onrender.com/run-spiders`, {
         headers: {
           Authorization: `${token}`,
         },
@@ -73,7 +73,7 @@ const Admin: React.FC = () => {
   const stopScraper = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/stop-spiders`, {
+      const response = await axios.get(`$https://nz-it-skills-monitor.onrender.com/stop-spiders`, {
         headers: {
           Authorization: `${token}`,
         },
