@@ -59,7 +59,6 @@ pipenv==2024.0.1
 platformdirs==4.2.2
 prompt_toolkit==3.0.48
 Protego==0.3.1
-psycopg2==2.9.9
 psycopg2-binary==2.9.10
 pure_eval==0.2.3
 pyasn1==0.6.1
