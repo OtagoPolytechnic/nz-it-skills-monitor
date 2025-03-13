@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from itemadapter import ItemAdapter
 from itertools import chain
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 import os
 import psycopg2
 from psycopg2.extras import execute_values
@@ -11,6 +12,7 @@ import json
 
 load_dotenv()
 
+database_url = os.getenv('DATABASE_URL')
 api_key = os.getenv('OPENAI')
 client = OpenAI(api_key=api_key)
 
@@ -149,15 +151,20 @@ class ItjobscraperPipeline:
 # PostgresPipeline for bulk inserting data into PostgreSQL
 class PostgresPipeline:
     def open_spider(self, spider):
+        # Parse the DATABASE_URL using urlparse
+        result = urlparse(database_url)
+ 
         # Connect to the PostgreSQL database using psycopg2
         self.conn = psycopg2.connect(
-            dbname=os.getenv('PGDATABASE'),
-            user=os.getenv('PGUSER'),
-            password=os.getenv('PGPASSWORD'),
-            host=os.getenv('PGHOST'),
-            port=os.getenv('PGPORT')
+            dbname=result.path[1:],  # Remove the leading '/' from the path
+            user=result.username,
+            password=result.password,
+            host=result.hostname,
+            port=result.port
         )
+ 
         self.cur = self.conn.cursor()
+ 
 
     def close_spider(self, spider):
         # Close the cursor and connection when the spider is done
