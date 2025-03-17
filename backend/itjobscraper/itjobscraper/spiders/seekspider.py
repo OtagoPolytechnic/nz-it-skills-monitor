@@ -12,10 +12,10 @@ class SeekSpider(scrapy.Spider):
         for job in response.css("article"):  # Update this selector if needed
             yield {
                 "title": job.css("a[data-automation='jobTitle']::text").get(default="N/A"),  # Job Title
-                "company": job.css("span[data-automation='jobCompany']::text").get(default="N/A"),  # Company Name
-                "location": job.css("span[data-automation='jobLocation']::text").get(default="N/A"),  # Job Location
-                "salary": job.css("span[data-automation='jobSalary']::text").get(default="N/A"),  # Salary
-                "description": job.css("div[data-automation='jobShortDescription']::text").get(default="N/A"),  # Job Description
+                "company": job.css("a[data-automation='jobCompany']::text").get(default="N/A"),  # Company Name
+                "location": job.css("a[data-automation='jobLocation']::text").get(default="N/A"),  # Job Location
+                "salary": job.css("a[data-automation='jobSalary']::text").get(default="N/A"),  # Salary
+                "description": job.css("span[data-automation='jobShortDescription']::text").get(default="N/A"),  # Job Description
                 "link": response.urljoin(job.css("a[data-automation='jobTitle']::attr(href)").get(default="N/A")),  # Job Link
             }
 
