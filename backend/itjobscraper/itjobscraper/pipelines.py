@@ -30,12 +30,12 @@ class SkillsParse(BaseModel):
 class ItjobscraperPipeline:
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
-        
+
         # Default nulls for skills and salary
         adapter['skills'] = 'NULL'
-        adapter['salary'] = 'NULL'
+        adapter['salary'] = adapter.get('salary', 'NULL')
         adapter['date'] = str(date.today())
-        
+
         # Strip whitespace and convert fields to strings
         field_names = adapter.field_names()
         for field_name in field_names:
@@ -43,55 +43,68 @@ class ItjobscraperPipeline:
             if isinstance(value, list):
                 value = ' '.join(str(item).strip() for item in value)
             elif isinstance(value, tuple):
-                if len(value) == 1:
-                    value = str(value[0]).strip()
-                else:
-                    value = ' '.join(str(item).strip() for item in value)
+                value = ' '.join(str(item).strip() for item in value)
             else:
                 value = str(value).strip()
             adapter[field_name] = value
-        
-        ##remove region from location
+
+        ## Remove region from location
         source = adapter.get('source')
         location_string = adapter.get('location')
-        
-        #trademe
+
         if source == "trademe":
             if isinstance(location_string, tuple):
-                location_string = ", ".join(location_string)  
-
+                location_string = ", ".join(location_string)
             split_location_array = location_string.split(',')
-
             if len(split_location_array) == 2:
-                # Remove "city"
                 city_name = split_location_array[0].split(" ")
+                adapter['location'] = city_name[0] if len(city_name) == 2 else split_location_array[0]
 
-                if len(city_name) == 2:
-                    adapter['location'] = city_name[0]
-                else:
-                    adapter['location'] = split_location_array[0]
-        
-        #seek
         if source == "seek":
             if isinstance(location_string, tuple):
-                location_string = ", ".join(location_string)  
-
-            # Split by spaces to extract the first word only
+                location_string = ", ".join(location_string)
             first_word = location_string.split()[0]
-
             adapter['location'] = first_word
-        
-        # Get skills and salary from description via OpenAI API
+
+        # 🔥 Clean salary string using regex (e.g., "$60,000 – $65,000" → 65000)
+        import re
+        salary_text = adapter.get('salary', '0')
+        print("📦 Pipeline received salary:", salary_text)  # Debug
+
+        match = re.findall(r'\$?(\d{1,3}(?:,\d{3})*)', salary_text)
+        highest_salary = 0
+        if match:
+            highest_salary = int(match[-1].replace(',', ''))
+            print("✅ Parsed highest salary from text:", highest_salary)  # Debug
+        else:
+            print("❌ No match found in salary text:", salary_text)  # Debug
+
+    # 🔁 Combine description + raw salary text for OpenAI
         description = adapter.get('description')
-        print(description)
+        enrichment_input = f"{description}\n\nSalary Info: {salary_text}"
+
         if description:
-            openai_response = self.call_openai(description)
+            openai_response = self.call_openai(enrichment_input)
             if openai_response:
+                print("🧠 OpenAI returned salary:", openai_response.salary)  # Debug
+
                 adapter['skills'] = json.dumps([skill.dict() for skill in openai_response.skills])
-                adapter['salary'] = openai_response.salary
                 adapter['category'] = openai_response.category
-        
+                if openai_response.salary > 0:
+                    adapter['salary'] = openai_response.salary
+                elif highest_salary > 0:
+                    adapter['salary'] = highest_salary
+                else:
+                    adapter['salary'] = 0
+            else:
+                print("❌ OpenAI enrichment failed for:", enrichment_input)  # Debug
+                adapter['salary'] = highest_salary  # fallback if OpenAI fails
+        else:
+            adapter['salary'] = highest_salary
+
         return item
+
+
 
     # Function to send description to OpenAI API and parse skills and salary
     def call_openai(self, description):
