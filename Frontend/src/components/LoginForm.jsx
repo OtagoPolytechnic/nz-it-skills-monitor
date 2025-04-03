@@ -1,4 +1,12 @@
 // src/components/LoginForm.jsx
+
+// .env File : 
+// VITE_ADMIN_USERNAME=admin
+// VITE_ADMIN_PASSWORD=verylongadminpassword
+
+
+
+
 import React, { useState } from 'react';
 
 const LoginForm = ({ onLoginSuccess }) => {

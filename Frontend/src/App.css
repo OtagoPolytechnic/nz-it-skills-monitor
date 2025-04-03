@@ -108,6 +108,14 @@ h2 {
   align-items: center;
 }
 
+/* Stacked dashboard layout for multiple skill sections */
+.stacked-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 40px 50px;
+}
+
 /* Card style for both sections */
 .card {
   background-color: white;
