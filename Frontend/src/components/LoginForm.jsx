@@ -6,15 +6,26 @@ const LoginForm = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const adminUsername = import.meta.env.VITE_ADMIN_USERNAME;
-  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (username === adminUsername && password === adminPassword) {
-      onLoginSuccess(); // Show scraping button after login
-    } else {
-      setError('Invalid credentials. Please try again.');
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.token) {
+        localStorage.setItem('token', data.token); // Save the JWT
+        onLoginSuccess(); // Trigger success
+      } else {
+        setError(data.error || 'Login failed.');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
     }
   };
 
