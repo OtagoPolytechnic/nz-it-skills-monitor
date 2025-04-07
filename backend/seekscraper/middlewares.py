@@ -9,7 +9,13 @@ from scrapy import signals
 from itemadapter import is_item, ItemAdapter
 
 
-class ItjobscraperSpiderMiddleware:
+import time
+from scrapy.downloadermiddlewares.retry import RetryMiddleware
+from scrapy.utils.response import response_status_message
+
+
+
+class SeekscraperSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
     # passed objects.
@@ -56,7 +62,7 @@ class ItjobscraperSpiderMiddleware:
         spider.logger.info("Spider opened: %s" % spider.name)
 
 
-class ItjobscraperDownloaderMiddleware:
+class SeekscraperDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
@@ -101,3 +107,15 @@ class ItjobscraperDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
+
+class CustomRetryMiddleware(RetryMiddleware):
+    def process_response(self, request, response, spider):
+        if response.status in [403, 429]:
+            # Add exponential backoff delay
+            retry_times = request.meta.get('retry_times', 0)
+            delay = 2 ** retry_times
+            time.sleep(delay)
+            
+            reason = response_status_message(response.status)
+            return self._retry(request, reason, spider) or response
+        return response
