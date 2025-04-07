@@ -58,3 +58,10 @@ scrapy crawl <spider>
 
 Spiders available:
 `fetch_html`
+
+Settings for `fetch_html`
+```
+-a max_job_ids=<int>
+
+-a max_pages=<int>
+```
