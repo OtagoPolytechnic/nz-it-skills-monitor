@@ -14,6 +14,16 @@ const cityData = [
 ];
 
 const ITJobsByCountryCard = () => {
+
+  const isLoading = false; // Placeholder for future backend integration
+  const error = null;
+
+  if (isLoading) return <div>Loading city job data...</div>;
+  if (error) return <div>Error loading city data.</div>;
+  if (!cityData?.length) return <div>No city job data available.</div>;
+
+
+
   return (
     <div className="card">
       <h3>IT Jobs by Country</h3>
