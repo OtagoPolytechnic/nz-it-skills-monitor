@@ -131,7 +131,7 @@ def run_spiders():
 
 def start_crawlers():
     logging.debug("Entered start_crawlers function")
-    spiders = ['trademespider', 'seekspider']
+    spiders = ['fetch_html']
     threads = []
     for spider in spiders:
         logging.info(f"Starting spider thread for: {spider}")
@@ -145,7 +145,7 @@ def start_crawlers():
 
 def run_spider(spider_name):
     logging.debug(f"Running spider: {spider_name}")
-    project_dir = os.path.join(os.path.dirname(__file__), 'itjobscraper')
+    project_dir = os.path.join(os.path.dirname(__file__), 'fetch_html')
     if not os.path.exists(project_dir):
         logging.error(f"Project directory not found: {project_dir}")
         return
