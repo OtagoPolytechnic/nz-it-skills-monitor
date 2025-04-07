@@ -51,8 +51,10 @@ flask db upgrade
 ```
 
 ## Run Scrapers Manually
-Navigate to backend/itjobscraper/itjobscraper
 
 ```
-scrapy crawl <spider> (trademespider/seekspider)
+scrapy crawl <spider>
 ```
+
+Spiders available:
+`fetch_html`
