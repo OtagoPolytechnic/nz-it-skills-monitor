@@ -17,7 +17,7 @@ class FetchHtmlSpider(scrapy.Spider):
     start_urls = ['https://www.seek.co.nz/jobs-in-information-communication-technology']  # Starting URL for listings
 
     custom_headers = CUSTOM_HEADERS
-    user_agents = USER_AGENTS
+    # user_agents = USER_AGENTS
 
     def __init__(self, max_pages=None, max_job_ids=None, *args, **kwargs):
         super(FetchHtmlSpider, self).__init__(*args, **kwargs)
@@ -30,7 +30,7 @@ class FetchHtmlSpider(scrapy.Spider):
 
     def start_requests(self):
         headers = self.custom_headers.copy()
-        headers['User-Agent'] = random.choice(self.user_agents)
+        headers['User-Agent'] = self.settings.get('USER_AGENT')
         print(f"USING USER AGENT: {headers['User-Agent']}")
         yield scrapy.Request(self.start_urls[0], headers=headers)
 
