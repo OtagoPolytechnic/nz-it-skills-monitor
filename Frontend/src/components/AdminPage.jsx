@@ -8,8 +8,26 @@ const AdminPage = () => {
 
   // Check token on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) setIsAuthenticated(true);
+    const verifyToken = async () => {
+      if (!token) return; 
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/admin`, {
+          method: 'GET',
+          headers: { Authorization: token },
+        });
+
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Token check failed:', error);
+        setIsAuthenticated(false);
+      }
+    };
+    verifyToken();
   }, []);
 
   const handleLoginSuccess = () => {
@@ -19,14 +37,23 @@ const AdminPage = () => {
   const handleScrapeStart = async () => {
     const token = localStorage.getItem('token');
 
-    const response = await fetch('http://127.0.0.1:5000/run-spiders', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/run-spiders`, {
+        method: 'GET',
+        headers: {
+          Authorization: token,
+        },
+      });
 
-    const result = await response.json();
-    alert(result.message || 'Scraping triggered!');
+      if (response.ok) {
+        alert('Scraping Seek.com has started!');
+      } else {
+        alert('Failed to start scraping.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error connecting to backend.');
+    }
   };
 
   return (

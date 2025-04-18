@@ -22,10 +22,11 @@ const LoginForm = ({ onLoginSuccess }) => {
       const data = await response.json();
 
       if (response.ok && data.token) {
-        localStorage.setItem('token', data.token); // Save the JWT
+        localStorage.setItem('token', `Bearer ${data.token}`);
+        localStorage.setItem('userRole', 'admin');
         onLoginSuccess(); // Trigger success
       } else {
-        setError(data.error || 'Login failed.');
+        setError(data.error || 'Invalid credentials.');
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');
