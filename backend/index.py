@@ -90,13 +90,32 @@ def hello_world():
 
 @app.route('/jobs', methods=['GET'])
 def get_jobs():
-    # Query all jobs from the Job table
-    jobs = Job.query.options(subqueryload(Job.skills)).all()
-    # Serialize the data using the JobSchema
+    title = request.args.get('title')
+    location = request.args.get('location')
+    company = request.args.get('company')
+    skill = request.args.get('skill')
+
+    # Start building the query
+    query = Job.query.options(subqueryload(Job.skills))
+
+    # Apply filters only if they are provided
+    if title:
+        query = query.filter(Job.title.ilike(f'%{title}%'))
+    if location:
+        query = query.filter(Job.location.ilike(f'%{location}%'))
+    if company:
+        query = query.filter(Job.company.ilike(f'%{company}%'))
+    if skill:
+        # Search skills in the related Skill model
+        query = query.filter(Job.skills.any(name=skill))
+
+    jobs = query.all()
+
     job_schema = JobSchema(many=True, exclude=["description"])
     jobs_data = job_schema.dump(jobs)
 
     return jsonify(jobs_data)
+
 
 @app.route('/login', methods=['POST'])
 def login():
