@@ -9,6 +9,7 @@ const AdminPage = () => {
   // Check token on mount
   useEffect(() => {
     const verifyToken = async () => {
+      const token = localStorage.getItem("token");
       if (!token) return; 
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/admin`, {
