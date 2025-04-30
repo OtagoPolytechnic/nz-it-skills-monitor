@@ -40,6 +40,9 @@ const ITJobsScreen = () => {
             <p className="card-subtitle">{job.company} — {job.location || 'Location not specified'}</p>
             <p className="card-meta">Category: {job.category} | Type: {job.type} | Duration: {job.duration}</p>
             <p className="card-meta">Salary: {job.salary > 0 ? `$${job.salary}` : 'Not listed'}</p>
+            {job.skills?.length > 0 && (
+            <p><strong>Skills:</strong> {job.skills.map(skill => skill.name).join(', ')}</p>
+            )}      
           </div>
         ))}
       </div>
