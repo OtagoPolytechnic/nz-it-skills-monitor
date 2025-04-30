@@ -34,10 +34,12 @@ const ITJobsScreen = () => {
         {jobs.length === 0 && !loading && (
           <p>No jobs available.</p>
         )}
-
         {jobs.map((job) => (
           <div key={job.id} className="dashboard-card">
-            <h3>{job.title}</h3>
+            <h3 className="card-title">{job.title}</h3>
+            <p className="card-subtitle">{job.company} — {job.location || 'Location not specified'}</p>
+            <p className="card-meta">Category: {job.category} | Type: {job.type} | Duration: {job.duration}</p>
+            <p className="card-meta">Salary: {job.salary > 0 ? `$${job.salary}` : 'Not listed'}</p>
           </div>
         ))}
       </div>
