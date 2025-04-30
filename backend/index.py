@@ -154,7 +154,7 @@ def run_spiders():
 
 def start_crawlers():
     logging.debug("Entered start_crawlers function")
-    spiders = ['trademespider', 'seekspider']
+    spiders = ['seekspider']
     threads = []
     for spider in spiders:
         logging.info(f"Starting spider thread for: {spider}")
