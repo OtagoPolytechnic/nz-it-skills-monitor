@@ -28,8 +28,7 @@ sock = Sock(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_pre_ping': True
-}
+    'pool_pre_ping': True}
 
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -144,13 +143,14 @@ def admin():
 @token_required
 def run_spiders():
     try:
-        wipe_data();
+        # wipe_data()
+        logging.info("Starting spiders...")
+        threading.Thread(target=start_crawlers).start()
+        return jsonify({'message': 'Spiders started'}), 200
     except Exception as e:
-        logging.error(f"Exception occurred while wiping the database: {e}", exc_info=True)
-        return jsonify({"error": "Error wiping the database"}), 500
-    logging.info("Starting spiders...")
-    threading.Thread(target=start_crawlers).start()
-    return jsonify({'message': 'Spiders started'}), 200
+        logging.error(f"Exception occurred while starting spiders: {e}", exc_info=True)
+        return jsonify({"error": "Failed to start spiders"}), 500
+
 
 def start_crawlers():
     logging.debug("Entered start_crawlers function")
