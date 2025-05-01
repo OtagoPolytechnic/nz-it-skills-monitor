@@ -7,7 +7,6 @@ import '../App.css';
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
-    core: [],
     language: [],
     framework: [],
     tool: [],
