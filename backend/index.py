@@ -27,6 +27,9 @@ CORS(app)
 sock = Sock(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True}
+
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['ADMIN_USERNAME'] = os.getenv('ADMIN_USERNAME')
@@ -90,13 +93,32 @@ def hello_world():
 
 @app.route('/jobs', methods=['GET'])
 def get_jobs():
-    # Query all jobs from the Job table
-    jobs = Job.query.options(subqueryload(Job.skills)).all()
-    # Serialize the data using the JobSchema
+    title = request.args.get('title')
+    location = request.args.get('location')
+    company = request.args.get('company')
+    skill = request.args.get('skill')
+
+    # Start building the query
+    query = Job.query.options(subqueryload(Job.skills))
+
+    # Apply filters only if they are provided
+    if title:
+        query = query.filter(Job.title.ilike(f'%{title}%'))
+    if location:
+        query = query.filter(Job.location.ilike(f'%{location}%'))
+    if company:
+        query = query.filter(Job.company.ilike(f'%{company}%'))
+    if skill:
+        # Search skills in the related Skill model
+        query = query.filter(Job.skills.any(name=skill))
+
+    jobs = query.all()
+
     job_schema = JobSchema(many=True, exclude=["description"])
     jobs_data = job_schema.dump(jobs)
 
     return jsonify(jobs_data)
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -121,17 +143,18 @@ def admin():
 @token_required
 def run_spiders():
     try:
-        wipe_data();
+        # wipe_data()
+        logging.info("Starting spiders...")
+        threading.Thread(target=start_crawlers).start()
+        return jsonify({'message': 'Spiders started'}), 200
     except Exception as e:
-        logging.error(f"Exception occurred while wiping the database: {e}", exc_info=True)
-        return jsonify({"error": "Error wiping the database"}), 500
-    logging.info("Starting spiders...")
-    threading.Thread(target=start_crawlers).start()
-    return jsonify({'message': 'Spiders started'}), 200
+        logging.error(f"Exception occurred while starting spiders: {e}", exc_info=True)
+        return jsonify({"error": "Failed to start spiders"}), 500
+
 
 def start_crawlers():
     logging.debug("Entered start_crawlers function")
-    spiders = ['trademespider', 'seekspider']
+    spiders = ['seekspider']
     threads = []
     for spider in spiders:
         logging.info(f"Starting spider thread for: {spider}")
