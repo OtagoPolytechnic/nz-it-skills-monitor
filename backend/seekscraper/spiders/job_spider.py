@@ -9,29 +9,41 @@ class JobSpider(scrapy.Spider):
     custom_headers = CUSTOM_HEADERS
 
     def start_requests(self):
-        # Read job id from job_ids.json
-        with open('job_ids.json', 'r', encoding='utf-8') as f:
-            job_ids = json.load(f)
+        try:
+            # Read job id from job_ids.json
+            with open('job_ids.json', 'r', encoding='utf-8') as f:
+                job_ids = json.load(f)
+        except Exception as e:
+            self.logger.error(f"Error reading job_ids.json: {e}")
+            return
 
         if job_ids:
-            job_entry = job_ids[0]
-            job_id = job_entry['jobId']
+            for job_entry in job_ids:
+                try:
+                    job_id = job_entry['jobId']
 
-            headers = self.custom_headers.copy()
-            headers['User-Agent'] = self.settings.get('USER_AGENT')
-            print(f"USING USER AGENT: {headers['User-Agent']}")
+                    headers = self.custom_headers.copy()
+                    headers['User-Agent'] = self.settings.get('USER_AGENT')
+                    print(f"USING USER AGENT: {headers['User-Agent']}")
 
-            url = f"https://www.seek.co.nz/job/{job_id}?type=standard&ref=search-standalone"
-            self.logger.info(f"Fetching URL: {url}")
-            yield scrapy.Request(url, callback=self.parse, meta={'job_id': job_id}, headers=headers)
+                    url = f"https://www.seek.co.nz/job/{job_id}?type=standard&ref=search-standalone"
+                    self.logger.info(f"Fetching URL: {url}")
+                    yield scrapy.Request(url, callback=self.parse, meta={'job_id': job_id}, headers=headers)
+                except Exception as e:
+                    self.logger.error(f"Error processing job ID {job_entry}: {e}")
         else:
             self.logger.error("No job IDs found in the file.")
 
     def parse(self, response):
-        soup = BeautifulSoup(response.text, 'html.parser')
+        try:
 
-        for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'svg', 'head', 'img']):
-            tag.decompose()
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'svg', 'head', 'img']):
+                tag.decompose()
+        except Exception as e:
+            self.logger.error(f"Error parsing response for job ID {response.meta.get('job_id', 'unknown')}: {e}")
+            return
 
         job_id = response.meta.get('job_id', 'unknown')
         self.logger.info("Page fetched successfully.")
