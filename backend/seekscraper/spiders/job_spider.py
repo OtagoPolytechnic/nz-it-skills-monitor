@@ -55,7 +55,7 @@ class JobSpider(scrapy.Spider):
 
         try:
             res = structured_output(job_text)
-            self.logger.info(f"Structured output for job ID {job_id}")
+            self.logger.info(f"Structured output for job ID {job_id}: {res}")
             yield res
         except Exception as e:
             self.logger.error(f"Error processing structured output for job ID {job_id}: {e}")
