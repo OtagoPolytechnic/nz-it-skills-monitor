@@ -1,6 +1,10 @@
 {
   "dependencies": {
+    "d3-scale": "^4.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-router-dom": "^6.30.0",
+    "react-simple-maps": "^3.0.0",
     "recharts": "^2.15.1"
   }
 }

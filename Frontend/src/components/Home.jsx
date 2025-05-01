@@ -4,6 +4,7 @@ import Navbar from '../Navbar';
 import ITJobsByCountryCard from './ITJobsByCountryCard';
 import SkillsChart from './SkillsChart';
 import '../App.css';
+import Heatmap from './Heatmap';
 
 const Home = () => {
   return (
@@ -11,7 +12,7 @@ const Home = () => {
       <Navbar />
       <div className="stacked-dashboard">
         <ITJobsByCountryCard />
-
+        
         <SkillsChart title="Core Skills" dataKey="skill" barKey="count" data={[
           { skill: 'Communication', count: 80 },
           { skill: 'Problem-solving', count: 70 },
@@ -59,6 +60,8 @@ const Home = () => {
           { skill: 'Mocha', count: 30 },
           { skill: 'JUnit', count: 25 }
         ]} />
+
+          <Heatmap />
       </div>
     </div>
   );
