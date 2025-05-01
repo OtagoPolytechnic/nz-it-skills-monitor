@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
 from model import init_app, db
 from model.job import JobSchema, Job
+from model.job import Skill, SkillSchema
 import jwt
 from flask_bcrypt import Bcrypt
 import datetime
@@ -118,6 +119,20 @@ def get_jobs():
     jobs_data = job_schema.dump(jobs)
 
     return jsonify(jobs_data)
+
+@app.route('/skills', methods=['GET'])
+def get_skills_by_type():
+    skill_type = request.args.get('type')
+    if not skill_type:
+        return jsonify({'error': 'Skill type is required'}), 400
+
+    try:
+        skills = Skill.query.filter_by(type=skill_type).all()
+        skill_schema = SkillSchema(many=True)
+        return jsonify(skill_schema.dump(skills)), 200
+    except Exception as e:
+        logging.error(f"Failed to fetch skills by type: {e}", exc_info=True)
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 
 @app.route('/login', methods=['POST'])

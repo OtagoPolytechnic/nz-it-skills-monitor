@@ -1,10 +1,12 @@
 // src/components/AdminPage.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../Navbar';
 import LoginForm from './LoginForm';
 
 const AdminPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   // Check token on mount
   useEffect(() => {
@@ -48,6 +50,7 @@ const AdminPage = () => {
 
       if (response.ok) {
         alert('Scraping Seek.com has started!');
+        navigate('/');
       } else {
         alert('Failed to start scraping.');
       }

@@ -1,5 +1,6 @@
 // src/components/Navbar.jsx
 import React from 'react';
+const [selectedCategory, setSelectedCategory] = useState('');
 import { Link } from 'react-router-dom';
 import './App.css';
 
