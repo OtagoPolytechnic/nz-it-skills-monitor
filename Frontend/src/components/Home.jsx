@@ -16,68 +16,86 @@ const Home = () => {
     'soft skill': [],
   });
 
-  const [jobData, setJobData] = useState([]);
+  const [allJobs, setAllJobs] = useState([]);
+  const [filteredJobs, setFilteredJobs] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
 
-  // Fetch jobs (for location pie chart)
+  // Fetch all jobs once
   const fetchJobs = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/jobs`);
       const data = await res.json();
-      setJobData(data);
+      setAllJobs(data);
+      setFilteredJobs(data); // default: show everything
     } catch (err) {
       console.error('Error fetching jobs:', err);
     }
   };
 
-  // Fetch skills
-  const fetchSkills = async () => {
-    setIsLoading(true);
-    try {
-      const types = Object.keys(skillsData);
-      const results = await Promise.all(
-        types.map(async (type) => {
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/skills?type=${type}`);
-          const data = await res.json();
-          return { type, data };
-        })
-      );
+  // Filter jobs by selected category
+  const handleCategoryChange = (value) => {
+    setCategoryFilter(value);
+    const filtered = value
+      ? allJobs.filter((job) => job.category.toLowerCase() === value.toLowerCase())
+      : allJobs;
+    setFilteredJobs(filtered);
+  };
 
-      const newSkillsData = {};
-      let dataExists = false;
+  // Recalculate skills every time filteredJobs changes
+  const extractSkills = async (jobs) => {
+    const grouped = {
+      language: [],
+      framework: [],
+      tool: [],
+      platform: [],
+      methodology: [],
+      database: [],
+      'soft skill': [],
+    };
 
-      results.forEach(({ type, data }) => {
-        const countMap = {};
-
-        data.forEach((skill) => {
-          const name = skill.name.toLowerCase();
-          countMap[name] = (countMap[name] || 0) + 1;
+    jobs.forEach((job) => {
+      if (job.skills && Array.isArray(job.skills)) {
+        job.skills.forEach((skill) => {
+          const type = skill.type?.toLowerCase();
+          const name = skill.name?.toLowerCase();
+          if (type && name && grouped[type]) {
+            grouped[type].push(name);
+          }
         });
+      }
+    });
 
-        const sortedArray = Object.entries(countMap)
-          .map(([skill, count]) => ({ skill, count }))
-          .sort((a, b) => b.count - a.count);
+    const result = {};
+    let hasAny = false;
 
-        newSkillsData[type] = sortedArray;
-        if (sortedArray.length > 0) dataExists = true;
+    Object.entries(grouped).forEach(([type, skills]) => {
+      const countMap = {};
+      skills.forEach((skill) => {
+        countMap[skill] = (countMap[skill] || 0) + 1;
       });
 
-      setSkillsData(newSkillsData);
-      setHasData(dataExists);
-    } catch (error) {
-      console.error('Error fetching skills:', error);
-      setHasData(false);
-    } finally {
-      setIsLoading(false);
-    }
+      const sorted = Object.entries(countMap)
+        .map(([skill, count]) => ({ skill, count }))
+        .sort((a, b) => b.count - a.count);
+
+      result[type] = sorted;
+      if (sorted.length > 0) hasAny = true;
+    });
+
+    setSkillsData(result);
+    setHasData(hasAny);
+    setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchSkills();
     fetchJobs();
   }, []);
+
+  useEffect(() => {
+    extractSkills(filteredJobs);
+  }, [filteredJobs]);
 
   return (
     <div>
@@ -88,40 +106,26 @@ const Home = () => {
           <select
             id="categorySelect"
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            onChange={(e) => handleCategoryChange(e.target.value)}
           >
-            <option value="">-- Select a category --</option>
-            <option>Architects</option>
-            <option>Business/Systems Analysts</option>
-            <option>Computer Operators</option>
-            <option>Consultants</option>
-            <option>Database Development & Administration</option>
-            <option>Developers/Programmers</option>
-            <option>Engineering - Hardware</option>
-            <option>Engineering - Network</option>
-            <option>Engineering - Software</option>
-            <option>Help Desk & IT Support</option>
-            <option>Management</option>
-            <option>Networks & Systems Administration</option>
-            <option>Product Management & Development</option>
-            <option>Programme & Project Management</option>
-            <option>Sales - Pre & Post</option>
-            <option>Security</option>
-            <option>Team Leaders</option>
-            <option>Technical Writing</option>
-            <option>Telecommunications</option>
-            <option>Testing & Quality Assurance</option>
-            <option>Web Development & Production</option>
-            <option>Other</option>
+            <option value="">All</option>
+            {[...new Set(allJobs.map((job) => job.category))]
+              .filter(Boolean)
+              .sort()
+              .map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
           </select>
+
         </div>
 
         {!hasData && !isLoading && <p>No job data available.</p>}
 
         {hasData && (
           <>
-            <ITJobsByCountryCard jobData={jobData} />
-
+            <ITJobsByCountryCard jobData={filteredJobs} />
             <SkillsChart title="Soft Skills" dataKey="skill" barKey="count" data={skillsData['soft skill']} />
             <SkillsChart title="Languages" dataKey="skill" barKey="count" data={skillsData.language} />
             <SkillsChart title="Frameworks & Libraries" dataKey="skill" barKey="count" data={skillsData.framework} />

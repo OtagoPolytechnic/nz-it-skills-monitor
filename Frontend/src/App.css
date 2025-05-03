@@ -171,3 +171,16 @@ h2 {
   cursor: pointer;
 }
 
+.chart-card {
+  padding: 1rem;
+  margin-bottom: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s;
+}
+
+.chart-card:hover {
+  transform: scale(1.01);
+}
+

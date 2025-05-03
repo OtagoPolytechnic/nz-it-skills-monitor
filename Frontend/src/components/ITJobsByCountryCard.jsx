@@ -1,4 +1,3 @@
-// src/components/ITJobsByCountryCard.jsx
 import React, { useState } from 'react';
 import {
   PieChart, Pie, Tooltip, Legend, Cell, ResponsiveContainer
@@ -13,26 +12,37 @@ const COLORS = [
 const ITJobsByCountryCard = ({ jobData }) => {
   const [expanded, setExpanded] = useState(false);
 
+  // Count locations
   const locationCounts = jobData.reduce((acc, job) => {
-    const loc = job.location || 'Unknown';
-    acc[loc] = (acc[loc] || 0) + 1;
+    const loc = job.location?.trim();
+    if (loc && loc.toLowerCase() !== 'none') {
+      acc[loc] = (acc[loc] || 0) + 1;
+    } else {
+      acc['__MISSING__'] = (acc['__MISSING__'] || 0) + 1;
+    }
     return acc;
   }, {});
 
-  const sortedLocations = Object.entries(locationCounts)
-    .sort((a, b) => b[1] - a[1]);
+  // Separate real locations and missing
+  const realLocations = Object.entries(locationCounts).filter(([name]) => name !== '__MISSING__');
+  const missing = locationCounts['__MISSING__'];
 
-  const topLocations = sortedLocations.slice(0, 10);
-  const remaining = sortedLocations.slice(10);
+  // Sort real locations by value
+  const sortedReal = realLocations.sort((a, b) => b[1] - a[1]);
+  const top10 = sortedReal.slice(0, 10);
 
+  // Build chart data
   const data = expanded
-    ? sortedLocations.map(([name, value]) => ({ name, value }))
-    : topLocations.map(([name, value]) => ({ name, value }));
+    ? [
+        ...sortedReal.map(([name, value]) => ({ name, value })),
+        ...(missing ? [{ name: 'None', value: missing }] : [])
+      ]
+    : top10.map(([name, value]) => ({ name, value }));
 
   return (
     <div className="card">
-      <h3>IT Jobs by Country</h3>
-      <ResponsiveContainer width="100%" height={400}>
+      <h3>Locations</h3>
+      <ResponsiveContainer width="100%" height={500}>
         <PieChart>
           <Pie
             data={data}
@@ -40,7 +50,7 @@ const ITJobsByCountryCard = ({ jobData }) => {
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius={150}
+            outerRadius={220}
             fill="#8884d8"
             label
           >
@@ -52,9 +62,11 @@ const ITJobsByCountryCard = ({ jobData }) => {
           <Legend layout="vertical" align="right" verticalAlign="middle" />
         </PieChart>
       </ResponsiveContainer>
-      <button onClick={() => setExpanded(!expanded)} style={{ marginTop: '10px' }}>
-        {expanded ? 'Collapse' : 'Expand'}
-      </button>
+      <div className="button-wrapper">
+        <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
+          {expanded ? 'Collapse' : 'Expand'}
+        </button>
+      </div>
     </div>
   );
 };

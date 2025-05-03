@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
+} from 'recharts';
+
+const COLORS = [
+  '#4caf50', '#2196f3', '#ff9800', '#e91e63', '#9c27b0',
+  '#00bcd4', '#8bc34a', '#ffc107', '#f44336', '#3f51b5',
+];
 
 const SkillsChart = ({ title, data, dataKey, barKey }) => {
   const [expanded, setExpanded] = useState(false);
@@ -9,12 +16,23 @@ const SkillsChart = ({ title, data, dataKey, barKey }) => {
   return (
     <div className="chart-card">
       <h3>{title}</h3>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={400}>
         <BarChart layout="vertical" data={displayedData}>
           <XAxis type="number" />
           <YAxis type="category" dataKey={dataKey} width={150} />
           <Tooltip />
-          <Bar dataKey={barKey} fill="#000" />
+          <Bar
+            dataKey={barKey}
+            radius={[0, 10, 10, 0]}
+            isAnimationActive={true}
+            activeShape={null} // 🔥 This disables the hover drawing completely
+          >
+            {displayedData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Bar>
+
+
         </BarChart>
       </ResponsiveContainer>
 
