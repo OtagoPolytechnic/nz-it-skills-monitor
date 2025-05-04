@@ -4,7 +4,8 @@ import Navbar from '../Navbar';
 import ITJobsByCountryCard from './ITJobsByCountryCard';
 import SkillsChart from './SkillsChart';
 import '../App.css';
-import Heatmap from './Heatmap';
+import LeafletHeatmap from './Heatmap';
+
 
 const Home = () => {
   return (
@@ -60,8 +61,7 @@ const Home = () => {
           { skill: 'Mocha', count: 30 },
           { skill: 'JUnit', count: 25 }
         ]} />
-
-          <Heatmap />
+        <LeafletHeatmap />
       </div>
     </div>
   );
