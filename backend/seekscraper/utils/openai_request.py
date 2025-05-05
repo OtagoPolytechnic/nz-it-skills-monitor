@@ -123,9 +123,22 @@ def structured_output(job_text: str) -> dict:
     top_p=1,
     store=True
 )
-        # Extract the answer from the response
+    
+    # # Debug response by dumping to file
+    # try:
+    #     # Try model_dump (Pydantic models in OpenAI SDK >=1.0)
+    #     response_dict = response.model_dump()
+    # except AttributeError:
+    #     # Fallback to __dict__ if model_dump is not available
+    #     response_dict = response.__dict__
+
+    # with open("openai_response_debug.json", "w", encoding="utf-8") as f:
+    #     json.dump(response_dict, f, ensure_ascii=False, indent=2)
+
+
+    # Extract the answer from the response
     try:
-        answer = response.choices[0].message.content
+        answer = response.output[0].content[0].text
         result_json = json.loads(answer)
         return result_json
     except Exception as e:
