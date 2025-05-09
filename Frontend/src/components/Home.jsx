@@ -1,9 +1,19 @@
 // src/components/Home.jsx
 import React, { useEffect, useState } from 'react';
 import Navbar from '../Navbar';
-import ITJobsByCountryCard from './ITJobsByCountryCard';
-import SkillsChart from './SkillsChart';
+import SkillsBarChart from './ChartStyle/SkillsBarChart';
+import SkillsPieChart from './ChartStyle/SkillsPieChart';
+import SkillsWordCloud from './ChartStyle/SkillsWordCloud';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  PieChart, Pie, Legend,
+} from 'recharts';
 import '../App.css';
+
+const COLORS = [
+  '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#8dd1e1',
+  '#a4de6c', '#d0ed57', '#ffbb28', '#d291bc', '#ff9999',
+];
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
@@ -15,26 +25,25 @@ const Home = () => {
     database: [],
     'soft skill': [],
   });
-
   const [allJobs, setAllJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
+  const [chartMode, setChartMode] = useState('bar');
+  const [expanded, setExpanded] = useState(false);
 
-  // Fetch all jobs once
   const fetchJobs = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/jobs`);
       const data = await res.json();
       setAllJobs(data);
-      setFilteredJobs(data); // default: show everything
+      setFilteredJobs(data);
     } catch (err) {
       console.error('Error fetching jobs:', err);
     }
   };
 
-  // Filter jobs by selected category
   const handleCategoryChange = (value) => {
     setCategoryFilter(value);
     const filtered = value
@@ -43,8 +52,7 @@ const Home = () => {
     setFilteredJobs(filtered);
   };
 
-  // Recalculate skills every time filteredJobs changes
-  const extractSkills = async (jobs) => {
+  const extractSkills = (jobs) => {
     const grouped = {
       language: [],
       framework: [],
@@ -97,10 +105,97 @@ const Home = () => {
     extractSkills(filteredJobs);
   }, [filteredJobs]);
 
+  const getLocationData = () => {
+    const locationCounts = filteredJobs.reduce((acc, job) => {
+      const loc = job.location?.trim();
+      if (loc && loc.toLowerCase() !== 'none') {
+        acc[loc] = (acc[loc] || 0) + 1;
+      } else {
+        acc['__MISSING__'] = (acc['__MISSING__'] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    const realLocations = Object.entries(locationCounts).filter(([name]) => name !== '__MISSING__');
+    const missing = locationCounts['__MISSING__'];
+    const sorted = realLocations.sort((a, b) => b[1] - a[1]);
+
+    const data = expanded
+      ? [...sorted.map(([name, value]) => ({ name, value })), ...(missing ? [{ name: 'None', value: missing }] : [])]
+      : sorted.slice(0, 10).map(([name, value]) => ({ name, value }));
+
+    return data;
+  };
+
+  const renderChart = (title, data) => {
+    switch (chartMode) {
+      case 'bar':
+        return <SkillsBarChart title={title} data={data} dataKey="skill" barKey="count" chartMode="bar" currentMode={chartMode} />;
+      case 'pie':
+        return <SkillsPieChart title={title} data={data} dataKey="skill" barKey="count" chartMode="pie" currentMode={chartMode} />;
+      case 'wordcloud':
+        return <SkillsWordCloud title={title} data={data} chartMode="wordcloud" currentMode={chartMode} />;
+      default:
+        return null;
+    }
+  };
+
+  const renderLocationChart = () => {
+    const data = getLocationData();
+
+    if (chartMode === 'pie') {
+      return (
+        <ResponsiveContainer width="100%" height={500}>
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={220}
+              fill="#8884d8"
+              label={({ name }) => name}
+            >
+              {data.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend layout="vertical" align="right" verticalAlign="middle" />
+          </PieChart>
+        </ResponsiveContainer>
+      );
+    } else if (chartMode === 'bar') {
+      return (
+        <ResponsiveContainer width="100%" height={500}>
+          <BarChart layout="vertical" data={data}>
+            <XAxis type="number" />
+            <YAxis type="category" dataKey="name" width={150} />
+            <Tooltip />
+            <Bar dataKey="value" radius={[0, 10, 10, 0]}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    } else {
+      return <p>Location chart is not supported for this mode.</p>;
+    }
+  };
+
   return (
     <div>
       <Navbar />
       <div className="stacked-dashboard">
+        <div className="chart-toggle-buttons">
+          <button onClick={() => setChartMode('bar')}>Bar</button>
+          <button onClick={() => setChartMode('pie')}>Pie</button>
+          <button onClick={() => setChartMode('wordcloud')}>Word Cloud</button>
+        </div>
+
         <div className="category-dropdown">
           <label htmlFor="categorySelect"><strong>Category:</strong></label>
           <select
@@ -113,26 +208,32 @@ const Home = () => {
               .filter(Boolean)
               .sort()
               .map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
+                <option key={cat} value={cat}>{cat}</option>
               ))}
           </select>
-
         </div>
 
         {!hasData && !isLoading && <p>No job data available.</p>}
 
         {hasData && (
           <>
-            <ITJobsByCountryCard jobData={filteredJobs} />
-            <SkillsChart title="Soft Skills" dataKey="skill" barKey="count" data={skillsData['soft skill']} />
-            <SkillsChart title="Languages" dataKey="skill" barKey="count" data={skillsData.language} />
-            <SkillsChart title="Frameworks & Libraries" dataKey="skill" barKey="count" data={skillsData.framework} />
-            <SkillsChart title="DevOps & Tools" dataKey="skill" barKey="count" data={skillsData.tool} />
-            <SkillsChart title="Databases" dataKey="skill" barKey="count" data={skillsData.database} />
-            <SkillsChart title="Methodologies" dataKey="skill" barKey="count" data={skillsData.methodology} />
-            <SkillsChart title="Platforms" dataKey="skill" barKey="count" data={skillsData.platform} />
+            <div className="chart-card">
+              <h3>Locations</h3>
+              {renderLocationChart()}
+              <div className="button-wrapper">
+                <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
+                  {expanded ? 'Collapse' : 'Expand'}
+                </button>
+              </div>
+            </div>
+
+            {renderChart("Soft Skills", skillsData['soft skill'])}
+            {renderChart("Languages", skillsData.language)}
+            {renderChart("Frameworks & Libraries", skillsData.framework)}
+            {renderChart("DevOps & Tools", skillsData.tool)}
+            {renderChart("Databases", skillsData.database)}
+            {renderChart("Methodologies", skillsData.methodology)}
+            {renderChart("Platforms", skillsData.platform)}
           </>
         )}
       </div>
