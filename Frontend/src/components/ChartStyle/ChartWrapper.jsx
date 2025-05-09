@@ -13,7 +13,13 @@ const ChartWrapper = ({ chartType, title, data, dataKey, barKey, expanded, onTog
     );
   } else if (chartType === 'wordcloud') {
     ChartComponent = (
-      <SkillsWordCloud title={title} data={data} />
+        <SkillsWordCloud
+        title={title}
+        data={data}
+        chartMode="wordcloud"
+        currentMode={chartType}
+      />
+      
     );
   } else {
     // Default to bar
@@ -21,6 +27,7 @@ const ChartWrapper = ({ chartType, title, data, dataKey, barKey, expanded, onTog
       <SkillsBarChart title={title} data={data} dataKey={dataKey} barKey={barKey} expanded={expanded} onToggleExpand={onToggleExpand} />
     );
   }
+  console.log("[ChartWrapper] chartType:", chartType, "| title:", title, "| data length:", data?.length);
 
   return <>{ChartComponent}</>;
 };

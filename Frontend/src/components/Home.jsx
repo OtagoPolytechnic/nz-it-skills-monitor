@@ -64,10 +64,10 @@ const Home = () => {
     };
 
     jobs.forEach((job) => {
-      if (job.skills && Array.isArray(job.skills)) {
+      if (Array.isArray(job.skills)) {
         job.skills.forEach((skill) => {
-          const type = skill.type?.toLowerCase();
-          const name = skill.name?.toLowerCase();
+          const type = skill?.type?.toLowerCase();
+          const name = skill?.name?.toLowerCase();
           if (type && name && grouped[type]) {
             grouped[type].push(name);
           }
@@ -78,21 +78,26 @@ const Home = () => {
     const result = {};
     let hasAny = false;
 
-    Object.entries(grouped).forEach(([type, skills]) => {
+    for (const [type, skillList] of Object.entries(grouped)) {
       const countMap = {};
-      skills.forEach((skill) => {
-        countMap[skill] = (countMap[skill] || 0) + 1;
+
+      skillList.forEach((skill) => {
+        if (typeof skill === 'string' && skill.trim()) {
+          countMap[skill] = (countMap[skill] || 0) + 1;
+        }
       });
 
       const sorted = Object.entries(countMap)
         .map(([skill, count]) => ({ skill, count }))
+        .filter(item => typeof item.skill === 'string' && typeof item.count === 'number')
         .sort((a, b) => b.count - a.count);
 
       result[type] = sorted;
       if (sorted.length > 0) hasAny = true;
-    });
+    }
 
     setSkillsData(result);
+    console.log("[extractSkills] result:", result);
     setHasData(hasAny);
     setIsLoading(false);
   };
@@ -128,6 +133,24 @@ const Home = () => {
   };
 
   const renderChart = (title, data) => {
+    const isValid =
+      Array.isArray(data) &&
+      data.length > 0 &&
+      data.every(
+        item => item && typeof item.skill === 'string' && typeof item.count === 'number'
+      );
+
+      console.log("[renderChart]", title + ":", data);
+
+    if (!isValid) {
+      return (
+        <div className="chart-card">
+          <h3>{title}</h3>
+          <p style={{ padding: '1rem' }}>No valid data available.</p>
+        </div>
+      );
+    }
+
     switch (chartMode) {
       case 'bar':
         return <SkillsBarChart title={title} data={data} dataKey="skill" barKey="count" chartMode="bar" currentMode={chartMode} />;
@@ -227,13 +250,14 @@ const Home = () => {
               </div>
             </div>
 
-            {renderChart("Soft Skills", skillsData['soft skill'])}
-            {renderChart("Languages", skillsData.language)}
-            {renderChart("Frameworks & Libraries", skillsData.framework)}
-            {renderChart("DevOps & Tools", skillsData.tool)}
-            {renderChart("Databases", skillsData.database)}
-            {renderChart("Methodologies", skillsData.methodology)}
-            {renderChart("Platforms", skillsData.platform)}
+            {skillsData['soft skill']?.length > 0 && renderChart("Soft Skills", skillsData['soft skill'])}
+            {skillsData.language?.length > 0 && renderChart("Languages", skillsData.language)}
+            {skillsData.framework?.length > 0 && renderChart("Frameworks & Libraries", skillsData.framework)}
+            {skillsData.tool?.length > 0 && renderChart("DevOps & Tools", skillsData.tool)}
+            {skillsData.database?.length > 0 && renderChart("Databases", skillsData.database)}
+            {skillsData.methodology?.length > 0 && renderChart("Methodologies", skillsData.methodology)}
+            {skillsData.platform?.length > 0 && renderChart("Platforms", skillsData.platform)}
+
           </>
         )}
       </div>
