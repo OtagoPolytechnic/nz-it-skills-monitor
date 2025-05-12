@@ -14,108 +14,108 @@ def structured_output(job_text: str) -> dict:
     response = client.responses.create(
     model="gpt-4.1-nano",
     input=[
+    {
+      "role": "system",
+      "content": [
         {
-        "role": "system",
-        "content": [
-            {
-            "type": "input_text",
-            "text": "Extract the job information and skills"
-            }
-        ]
-        },
-        {
-        "role": "user",
-        "content": [
-            {
-            "type": "input_text",
-            "text": job_text
-            }
-        ]
-        },
-    ],
-    text={
-        "format": {
-        "type": "json_schema",
-        "name": "job_posting",
-        "schema": {
-            "type": "object",
-            "required": [
-            "category",
-            "company",
-            "date",
-            "duration",
-            "id",
-            "location",
-            "salary",
-            "skills",
-            "title",
-            "type"
-            ],
-            "properties": {
-            "id": {
-                "type": "number",
-                "description": "Unique identifier for the job posting."
-            },
-            "date": {
-                "type": "string",
-                "description": "Today's date."
-            },
-            "type": {
-                "type": "string",
-                "description": "Type of the position (e.g., Full time, Part time)."
-            },
-            "title": {
-                "type": "string",
-                "description": "Title of the job position."
-            },
-            "salary": {
-                "type": "number",
-                "description": "Salary offered for the position."
-            },
-            "skills": {
-                "type": "array",
-                "items": {
-                "type": "object",
-                "required": [
-                    "name",
-                    "type"
-                ],
-                "properties": {
-                    "name": {
-                    "type": "string",
-                    "description": "Name of the skill."
-                    },
-                    "type": {
-                    "type": "string",
-                    "description": "Type of skill (e.g., soft skill, tool, language, platform)."
-                    }
-                },
-                "additionalProperties": False
-                },
-                "description": "List of skills required for the job position."
-            },
-            "company": {
-                "type": "string",
-                "description": "Name of the company offering the position."
-            },
-            "category": {
-                "type": "string",
-                "description": "The category of the job position."
-            },
-            "duration": {
-                "type": "string",
-                "description": "Duration of the position (e.g., Permanent, Contract)."
-            },
-            "location": {
-                "type": "string",
-                "description": "Location of the job position simplified to the closest region in New Zealand."
-            }
-            },
-            "additionalProperties": False
-        },
-        "strict": True
+          "type": "input_text",
+          "text": "Extract the job information and skills.\nIf the location is not an exact match, select the nearest main city from the list based on your knowledge of New Zealand geography.\nIf the location is ambiguous or very general (e.g. \"Remote\" or \"New Zealand\"), respond with \"Unknown\" or \"Remote\" as appropriate.\nIf the data mentions the job being \"Work From Home, set the location to \"Remote\"."
         }
+      ]
     },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": job_text
+        }
+      ]
+    },
+  ],
+  text={
+    "format": {
+      "type": "json_schema",
+      "name": "job_posting",
+      "schema": {
+        "type": "object",
+        "required": [
+          "category",
+          "company",
+          "date",
+          "duration",
+          "id",
+          "location",
+          "salary",
+          "skills",
+          "title",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier for the job posting."
+          },
+          "date": {
+            "type": "string",
+            "description": "Today's date."
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the position (e.g., Full time, Part time)."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the job position."
+          },
+          "salary": {
+            "type": "number",
+            "description": "Salary offered for the position."
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "type"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the skill."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Type of skill (e.g., soft skill, tool, language, platform)."
+                }
+              },
+              "additionalProperties": False
+            },
+            "description": "List of skills required for the job position."
+          },
+          "company": {
+            "type": "string",
+            "description": "Name of the company offering the position."
+          },
+          "category": {
+            "type": "string",
+            "description": "The category of the job position."
+          },
+          "duration": {
+            "type": "string",
+            "description": "Duration of the position (e.g., Permanent, Contract)."
+          },
+          "location": {
+            "type": "string",
+            "description": "Location of the job position simplified to the closest large city in New Zealand (e.g., Auckland, Wellington, Christchurch, Hamilton, Tauranga, Napier, Hastings, Dunedin, Palmerston North, Nelson, Rotorua, New Plymouth, Whangārei, Invercargill, Whanganui)."
+          }
+        },
+        "additionalProperties": False
+      },
+      "strict": True
+    }
+  },
     reasoning={},
     tools=[],
     temperature=1,
