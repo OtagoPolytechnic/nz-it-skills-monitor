@@ -1,6 +1,7 @@
 from openai import OpenAI
 import os
 import json
+from datetime import date
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -140,6 +141,10 @@ def structured_output(job_text: str) -> dict:
     try:
         answer = response.output[0].content[0].text
         result_json = json.loads(answer)
+        # Clean up odd bits of JSON that OpenAI can't return
+        result_json.pop('id', None)  # Remove the 'id' field if it exists
+        result_json['date'] = str(date.today()) # Update date field to today's date
+
         return result_json
     except Exception as e:
         raise Exception(f"Error parsing OpenAI response: {e}")
