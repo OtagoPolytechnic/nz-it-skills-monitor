@@ -12,7 +12,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 def structured_output(job_text: str) -> dict:
     response = client.responses.create(
-    model="gpt-4o-mini",
+    model="gpt-4.1-nano",
     input=[
         {
         "role": "system",
