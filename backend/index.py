@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, g
 from sqlalchemy import text, inspect, select
 from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
-from model import init_app, db
+from model import db
 from model.job import JobSchema, Job
 import jwt
 from flask_bcrypt import Bcrypt
@@ -32,7 +32,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['ADMIN_USERNAME'] = os.getenv('ADMIN_USERNAME')
 app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
-init_app(app)
+db.init_app(app)
 migrate = Migrate(app, db)
 
 # logging to see why query is slow
