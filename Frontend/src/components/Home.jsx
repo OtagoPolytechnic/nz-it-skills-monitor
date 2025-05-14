@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import Navbar from '../Navbar';
 import SkillsBarChart from './ChartStyle/SkillsBarChart';
 import SkillsPieChart from './ChartStyle/SkillsPieChart';
-import SkillsWordCloud from './ChartStyle/SkillsWordCloud';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend,
@@ -30,8 +29,18 @@ const Home = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
-  const [chartMode, setChartMode] = useState('bar');
   const [expanded, setExpanded] = useState(false);
+  const [locationChartMode, setLocationChartMode] = useState('bar');
+
+  const chartModesPerCategory = {
+    'soft skill': useState('bar'),
+    language: useState('bar'),
+    framework: useState('bar'),
+    tool: useState('bar'),
+    platform: useState('bar'),
+    methodology: useState('bar'),
+    database: useState('bar'),
+  };
 
   const fetchJobs = async () => {
     try {
@@ -97,7 +106,6 @@ const Home = () => {
     }
 
     setSkillsData(result);
-    console.log("[extractSkills] result:", result);
     setHasData(hasAny);
     setIsLoading(false);
   };
@@ -132,15 +140,9 @@ const Home = () => {
     return data;
   };
 
-  const renderChart = (title, data) => {
-    const isValid =
-      Array.isArray(data) &&
-      data.length > 0 &&
-      data.every(
-        item => item && typeof item.skill === 'string' && typeof item.count === 'number'
-      );
-
-      console.log("[renderChart]", title + ":", data);
+  const renderChart = (title, data, chartMode, setChartMode) => {
+    const isValid = Array.isArray(data) && data.length > 0 &&
+      data.every(item => item && typeof item.skill === 'string' && typeof item.count === 'number');
 
     if (!isValid) {
       return (
@@ -151,74 +153,80 @@ const Home = () => {
       );
     }
 
-    switch (chartMode) {
-      case 'bar':
-        return <SkillsBarChart title={title} data={data} dataKey="skill" barKey="count" chartMode="bar" currentMode={chartMode} />;
-      case 'pie':
-        return <SkillsPieChart title={title} data={data} dataKey="skill" barKey="count" chartMode="pie" currentMode={chartMode} />;
-      case 'wordcloud':
-        return <SkillsWordCloud title={title} data={data} chartMode="wordcloud" currentMode={chartMode} />;
-      default:
-        return null;
-    }
+    return (
+      <div className="chart-card">
+        <h3>{title}</h3>
+        <div className="chart-toggle-buttons">
+          <button onClick={() => setChartMode('bar')}>Bar</button>
+          <button onClick={() => setChartMode('pie')}>Pie</button>
+        </div>
+        {chartMode === 'bar' ? (
+          <SkillsBarChart title={title} data={data} dataKey="skill" barKey="count" chartMode="bar" currentMode={chartMode} />
+        ) : (
+          <SkillsPieChart title={title} data={data} dataKey="skill" barKey="count" chartMode="pie" currentMode={chartMode} />
+        )}
+      </div>
+    );
   };
 
   const renderLocationChart = () => {
     const data = getLocationData();
 
-    if (chartMode === 'pie') {
-      return (
-        <ResponsiveContainer width="100%" height={500}>
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={220}
-              fill="#8884d8"
-              label={({ name }) => name}
-            >
-              {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend layout="vertical" align="right" verticalAlign="middle" />
-          </PieChart>
-        </ResponsiveContainer>
-      );
-    } else if (chartMode === 'bar') {
-      return (
-        <ResponsiveContainer width="100%" height={500}>
-          <BarChart layout="vertical" data={data}>
-            <XAxis type="number" />
-            <YAxis type="category" dataKey="name" width={150} />
-            <Tooltip />
-            <Bar dataKey="value" radius={[0, 10, 10, 0]}>
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      );
-    } else {
-      return <p>Location chart is not supported for this mode.</p>;
-    }
+    return (
+      <div className="chart-card">
+        <h3>Locations</h3>
+        <div className="chart-toggle-buttons">
+          <button onClick={() => setLocationChartMode('bar')}>Bar</button>
+          <button onClick={() => setLocationChartMode('pie')}>Pie</button>
+        </div>
+        {locationChartMode === 'pie' ? (
+          <ResponsiveContainer width="100%" height={500}>
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={220}
+                fill="#8884d8"
+                label={({ name }) => name}
+              >
+                {data.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend layout="vertical" align="right" verticalAlign="middle" />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <ResponsiveContainer width="100%" height={500}>
+            <BarChart layout="vertical" data={data}>
+              <XAxis type="number" />
+              <YAxis type="category" dataKey="name" width={150} />
+              <Tooltip />
+              <Bar dataKey="value" radius={[0, 10, 10, 0]}>
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+        <div className="button-wrapper">
+          <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
+            {expanded ? 'Collapse' : 'Expand'}
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div>
       <Navbar />
       <div className="stacked-dashboard">
-        <div className="chart-toggle-buttons">
-          <button onClick={() => setChartMode('bar')}>Bar</button>
-          <button onClick={() => setChartMode('pie')}>Pie</button>
-          <button onClick={() => setChartMode('wordcloud')}>Word Cloud</button>
-        </div>
-
         <div className="category-dropdown">
           <label htmlFor="categorySelect"><strong>Category:</strong></label>
           <select
@@ -227,12 +235,9 @@ const Home = () => {
             onChange={(e) => handleCategoryChange(e.target.value)}
           >
             <option value="">All</option>
-            {[...new Set(allJobs.map((job) => job.category))]
-              .filter(Boolean)
-              .sort()
-              .map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
+            {[...new Set(allJobs.map((job) => job.category))].filter(Boolean).sort().map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
           </select>
         </div>
 
@@ -240,24 +245,11 @@ const Home = () => {
 
         {hasData && (
           <>
-            <div className="chart-card">
-              <h3>Locations</h3>
-              {renderLocationChart()}
-              <div className="button-wrapper">
-                <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
-                  {expanded ? 'Collapse' : 'Expand'}
-                </button>
-              </div>
-            </div>
-
-            {skillsData['soft skill']?.length > 0 && renderChart("Soft Skills", skillsData['soft skill'])}
-            {skillsData.language?.length > 0 && renderChart("Languages", skillsData.language)}
-            {skillsData.framework?.length > 0 && renderChart("Frameworks & Libraries", skillsData.framework)}
-            {skillsData.tool?.length > 0 && renderChart("DevOps & Tools", skillsData.tool)}
-            {skillsData.database?.length > 0 && renderChart("Databases", skillsData.database)}
-            {skillsData.methodology?.length > 0 && renderChart("Methodologies", skillsData.methodology)}
-            {skillsData.platform?.length > 0 && renderChart("Platforms", skillsData.platform)}
-
+            {renderLocationChart()}
+            {Object.entries(skillsData).map(([type, data]) => {
+              const [chartMode, setChartMode] = chartModesPerCategory[type];
+              return renderChart(type.charAt(0).toUpperCase() + type.slice(1), data, chartMode, setChartMode);
+            })}
           </>
         )}
       </div>

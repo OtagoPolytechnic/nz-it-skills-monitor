@@ -15,7 +15,6 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.30.0",
-    "react-wordcloud": "^1.2.7",
     "recharts": "^2.15.3",
     "tippy.js": "^6.3.7"
   },

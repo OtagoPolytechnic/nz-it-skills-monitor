@@ -17,8 +17,7 @@ const SkillsBarChart = ({ title, data, dataKey, barKey, chartMode, currentMode }
   const displayedData = expanded ? sortedData : sortedData.slice(0, 10);
 
   return (
-    <div className="chart-card">
-      <h3>{title}</h3>
+    <div>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart layout="vertical" data={displayedData}>
           <XAxis type="number" />
