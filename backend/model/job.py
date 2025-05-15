@@ -5,8 +5,8 @@ from marshmallow_sqlalchemy.fields import Nested
 from datetime import date
 
 #   jobs table
-#   | id          | title       | salary  | location    | type       | duration   | company     | description | date                 | skills      | category   | sector    | source        |
-#   | primary key | String(255) | Integer | String(255) | String(50) | String(50) | String(255) | Text        | Date (default today) | foreign key | String(50) | String(50)| String(255)   |
+#   | id          | title       | salary  | location    | type       | duration   | company     | description | date                 | skills      | category   | sector    | source        | remote    |
+#   | primary key | String(255) | Integer | String(255) | String(50) | String(50) | String(255) | Text        | Date (default today) | foreign key | String(50) | String(50)| String(255)   | Boolean   |
            
 class Job(db.Model):
     __tablename__ = 'jobs'
@@ -18,6 +18,7 @@ class Job(db.Model):
     salary = db.Column(db.Integer)
     location = db.Column(db.String(255))
     type = db.Column(db.String(50))
+    remote = db.Column(db.Boolean, default=False)
     duration = db.Column(db.String(50))
     company = db.Column(db.String(255))
     source = db.Column(db.String(255))
