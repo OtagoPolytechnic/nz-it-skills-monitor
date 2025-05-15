@@ -56,7 +56,7 @@ const LeafletHeatmap = () => {
           [-33, 180],
         ]}
         maxBoundsViscosity={1.0}
-        style={{ height: "500px", width: "100vw" }}
+        style={{ height: "90vh", width: "100vw" }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
