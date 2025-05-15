@@ -1,8 +1,7 @@
 // src/components/Home.jsx
 import React, { useEffect, useState } from 'react';
 import Navbar from '../Navbar';
-import SkillsBarChart from './ChartStyle/SkillsBarChart';
-import SkillsPieChart from './ChartStyle/SkillsPieChart';
+import ChartWrapper from './ChartStyle/ChartWrapper';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend,
@@ -30,17 +29,15 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [locationChartMode, setLocationChartMode] = useState('bar');
-
-  const chartModesPerCategory = {
-    'soft skill': useState('bar'),
-    language: useState('bar'),
-    framework: useState('bar'),
-    tool: useState('bar'),
-    platform: useState('bar'),
-    methodology: useState('bar'),
-    database: useState('bar'),
-  };
+  const [chartTypes, setChartTypes] = useState({
+    language: 'bar',
+    framework: 'bar',
+    tool: 'bar',
+    platform: 'bar',
+    methodology: 'bar',
+    database: 'bar',
+    'soft skill': 'bar',
+  });
 
   const fetchJobs = async () => {
     try {
@@ -140,85 +137,62 @@ const Home = () => {
     return data;
   };
 
-  const renderChart = (title, data, chartMode, setChartMode) => {
-    const isValid = Array.isArray(data) && data.length > 0 &&
-      data.every(item => item && typeof item.skill === 'string' && typeof item.count === 'number');
-
-    if (!isValid) {
-      return (
-        <div className="chart-card">
-          <h3>{title}</h3>
-          <p style={{ padding: '1rem' }}>No valid data available.</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="chart-card">
-        <h3>{title}</h3>
-        <div className="chart-toggle-buttons">
-          <button onClick={() => setChartMode('bar')}>Bar</button>
-          <button onClick={() => setChartMode('pie')}>Pie</button>
-        </div>
-        {chartMode === 'bar' ? (
-          <SkillsBarChart title={title} data={data} dataKey="skill" barKey="count" chartMode="bar" currentMode={chartMode} />
-        ) : (
-          <SkillsPieChart title={title} data={data} dataKey="skill" barKey="count" chartMode="pie" currentMode={chartMode} />
-        )}
-      </div>
-    );
-  };
-
   const renderLocationChart = () => {
     const data = getLocationData();
 
     return (
       <div className="chart-card">
         <h3>Locations</h3>
-        <div className="chart-toggle-buttons">
-          <button onClick={() => setLocationChartMode('bar')}>Bar</button>
-          <button onClick={() => setLocationChartMode('pie')}>Pie</button>
-        </div>
-        {locationChartMode === 'pie' ? (
-          <ResponsiveContainer width="100%" height={500}>
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={220}
-                fill="#8884d8"
-                label={({ name }) => name}
-              >
-                {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend layout="vertical" align="right" verticalAlign="middle" />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <ResponsiveContainer width="100%" height={500}>
-            <BarChart layout="vertical" data={data}>
-              <XAxis type="number" />
-              <YAxis type="category" dataKey="name" width={150} />
-              <Tooltip />
-              <Bar dataKey="value" radius={[0, 10, 10, 0]}>
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+        <ResponsiveContainer width="100%" height={500}>
+          <BarChart layout="vertical" data={data}>
+            <XAxis type="number" />
+            <YAxis type="category" dataKey="name" width={150} />
+            <Tooltip />
+            <Bar dataKey="value" radius={[0, 10, 10, 0]}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
         <div className="button-wrapper">
           <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
             {expanded ? 'Collapse' : 'Expand'}
           </button>
         </div>
+      </div>
+    );
+  };
+
+  const renderSkillChart = (title, data, typeKey) => {
+    const isValid =
+      Array.isArray(data) &&
+      data.length > 0 &&
+      data.every(item => item && typeof item.skill === 'string' && typeof item.count === 'number');
+
+    if (!isValid) return null;
+
+    const handleChartTypeChange = (mode) => {
+      setChartTypes(prev => ({ ...prev, [typeKey]: mode }));
+    };
+
+    return (
+      <div className="chart-card" key={typeKey}>
+        <h3>{title}</h3>
+        <div style={{ marginBottom: '0.5rem' }}>
+          <button onClick={() => handleChartTypeChange('bar')}>Bar</button>
+          <button onClick={() => handleChartTypeChange('pie')}>Pie</button>
+          <button onClick={() => handleChartTypeChange('wordcloud')}>Word Cloud</button>
+        </div>
+        <ChartWrapper
+          chartType={chartTypes[typeKey]}
+          title={title}
+          data={data}
+          dataKey="skill"
+          barKey="count"
+          expanded={expanded}
+          onToggleExpand={() => setExpanded(!expanded)}
+        />
       </div>
     );
   };
@@ -235,9 +209,12 @@ const Home = () => {
             onChange={(e) => handleCategoryChange(e.target.value)}
           >
             <option value="">All</option>
-            {[...new Set(allJobs.map((job) => job.category))].filter(Boolean).sort().map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
+            {[...new Set(allJobs.map((job) => job.category))]
+              .filter(Boolean)
+              .sort()
+              .map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
           </select>
         </div>
 
@@ -246,10 +223,13 @@ const Home = () => {
         {hasData && (
           <>
             {renderLocationChart()}
-            {Object.entries(skillsData).map(([type, data]) => {
-              const [chartMode, setChartMode] = chartModesPerCategory[type];
-              return renderChart(type.charAt(0).toUpperCase() + type.slice(1), data, chartMode, setChartMode);
-            })}
+            {Object.entries(skillsData).map(([type, list]) =>
+              renderSkillChart(
+                type.charAt(0).toUpperCase() + type.slice(1),
+                list,
+                type
+              )
+            )}
           </>
         )}
       </div>
