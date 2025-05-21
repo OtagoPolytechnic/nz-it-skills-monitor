@@ -25,6 +25,8 @@ const ChartWrapper = ({ chartType, title, data, dataKey, barKey, expanded, onTog
           data={data}
           chartMode="wordcloud"
           currentMode={chartType}
+          expanded={expanded}
+          onToggleExpand={onToggleExpand}
         />
       );
       break;

@@ -29,6 +29,7 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
   const [chartTypes, setChartTypes] = useState({
     language: 'bar',
     framework: 'bar',
@@ -137,32 +138,41 @@ const Home = () => {
     return data;
   };
 
+  const [locationChartType, setLocationChartType] = useState('bar');
+
   const renderLocationChart = () => {
     const data = getLocationData();
+
+    const handleLocationChartChange = (type) => {
+      setLocationChartType(type);
+    };
+
+    const chartData = data.map(item => ({
+      skill: item.name,
+      count: item.value
+    }));
 
     return (
       <div className="chart-card">
         <h3>Locations</h3>
-        <ResponsiveContainer width="100%" height={500}>
-          <BarChart layout="vertical" data={data}>
-            <XAxis type="number" />
-            <YAxis type="category" dataKey="name" width={150} />
-            <Tooltip />
-            <Bar dataKey="value" radius={[0, 10, 10, 0]}>
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-        <div className="button-wrapper">
-          <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
-            {expanded ? 'Collapse' : 'Expand'}
-          </button>
+        <div style={{ marginBottom: '0.5rem' }}>
+          <button onClick={() => handleLocationChartChange('bar')}>Bar</button>
+          <button onClick={() => handleLocationChartChange('pie')}>Pie</button>
+          <button onClick={() => handleLocationChartChange('wordcloud')}>Word Cloud</button>
         </div>
+        <ChartWrapper
+          chartType={locationChartType}
+          title="Locations"
+          data={chartData}
+          dataKey="skill"
+          barKey="count"
+          expanded={expanded}
+          onToggleExpand={() => setExpanded(!expanded)}
+        />
       </div>
     );
   };
+
 
   const renderSkillChart = (title, data, typeKey) => {
     const isValid =
