@@ -159,6 +159,7 @@ const Home = () => {
 
     return (
       <div className="chart-card" key={typeKey}>
+        <h3>{title}</h3>
         <ChartWrapper
           chartType={globalChartType}
           title={title}
