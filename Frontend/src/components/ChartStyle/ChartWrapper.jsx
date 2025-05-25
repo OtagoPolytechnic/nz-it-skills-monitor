@@ -15,6 +15,8 @@ const ChartWrapper = ({ chartType, title, data, dataKey, barKey, expanded, onTog
           data={data}
           chartMode="pie"
           currentMode={chartType}
+          expanded={expanded}
+          onToggleExpand={onToggleExpand}
         />
       );
       break;

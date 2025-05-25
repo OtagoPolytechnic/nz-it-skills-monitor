@@ -1,5 +1,4 @@
-// src/components/ChartStyle/SkillsPieChart.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import {
   PieChart, Pie, Tooltip, Cell, ResponsiveContainer, Legend,
 } from 'recharts';
@@ -9,19 +8,17 @@ const COLORS = [
   '#a4de6c', '#d0ed57', '#ffbb28', '#d291bc', '#ff9999',
 ];
 
-const SkillsPieChart = ({ title, data, chartMode, currentMode }) => {
-  const [expanded, setExpanded] = useState(false);
+const SkillsPieChart = ({ title, data, chartMode, currentMode, expanded, onToggleExpand }) => {
   if (chartMode !== currentMode) return null;
 
   const sortedData = [...data].sort((a, b) => b.count - a.count);
-  const displayedData = expanded ? sortedData : sortedData.slice(0, 10);
 
   return (
     <div>
       <ResponsiveContainer width="100%" height={500}>
         <PieChart>
           <Pie
-            data={displayedData}
+            data={sortedData}
             dataKey="count"
             nameKey="skill"
             cx="50%"
@@ -30,7 +27,7 @@ const SkillsPieChart = ({ title, data, chartMode, currentMode }) => {
             fill="#8884d8"
             label={({ name }) => name}
           >
-            {displayedData.map((entry, index) => (
+            {sortedData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
@@ -38,7 +35,8 @@ const SkillsPieChart = ({ title, data, chartMode, currentMode }) => {
           <Legend layout="vertical" align="right" verticalAlign="middle" />
         </PieChart>
       </ResponsiveContainer>
-      <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
+
+      <button className="expand-btn" onClick={onToggleExpand}>
         {expanded ? 'Collapse' : 'Expand'}
       </button>
     </div>

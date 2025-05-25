@@ -1,5 +1,5 @@
 // src/components/ChartStyle/SkillsBarChart.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
@@ -9,8 +9,7 @@ const COLORS = [
   '#00bcd4', '#8bc34a', '#ffc107', '#f44336', '#3f51b5',
 ];
 
-const SkillsBarChart = ({ title, data, dataKey, barKey, chartMode, currentMode }) => {
-  const [expanded, setExpanded] = useState(false);
+const SkillsBarChart = ({ title, data, dataKey, barKey, chartMode, currentMode, expanded, onToggleExpand  }) => {
   if (chartMode !== currentMode) return null;
 
   const sortedData = [...data].sort((a, b) => b[barKey] - a[barKey]);
@@ -34,7 +33,7 @@ const SkillsBarChart = ({ title, data, dataKey, barKey, chartMode, currentMode }
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
+      <button className="expand-btn" onClick={onToggleExpand}>
         {expanded ? 'Collapse' : 'Expand'}
       </button>
     </div>

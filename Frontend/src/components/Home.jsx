@@ -43,7 +43,6 @@ const Home = () => {
   setLocationChartType(globalChartType); // 🔥 this line syncs location
 }, [globalChartType]);
 
-
   const extractSkills = (jobs) => {
     const grouped = {
       language: [], framework: [], tool: [], platform: [],
@@ -115,29 +114,39 @@ const Home = () => {
   };
 
   const renderLocationChart = () => {
-    const data = getLocationData();
-    const chartData = data.map(item => ({ skill: item.name, count: item.value }));
+  const data = getLocationData();
 
-    return (
-      <div className="chart-card">
-        <h3>Locations</h3>
-        <div style={{ marginBottom: '0.5rem' }}>
-          <button onClick={() => setLocationChartType('bar')}>Bar</button>
-          <button onClick={() => setLocationChartType('pie')}>Pie</button>
-          <button onClick={() => setLocationChartType('wordcloud')}>Word Cloud</button>
-        </div>
-        <ChartWrapper
-          chartType={locationChartType}
-          title="Locations"
-          data={chartData}
-          dataKey="skill"
-          barKey="count"
-          expanded={locationExpanded}
-          onToggleExpand={() => setLocationExpanded(!locationExpanded)}
-        />
-      </div>
-    );
+  const handleLocationChartChange = (type) => {
+    setLocationChartType(type);
   };
+
+  const chartData = data.map(item => ({
+    skill: item.name,
+    count: item.value
+  }));
+
+  return (
+    <div className="chart-card">
+      <h3>Locations</h3>
+      <div style={{ marginBottom: '0.5rem' }}>
+        <button onClick={() => handleLocationChartChange('bar')}>Bar</button>
+        <button onClick={() => handleLocationChartChange('pie')}>Pie</button>
+        <button onClick={() => handleLocationChartChange('wordcloud')}>Word Cloud</button>
+      </div>
+      <ChartWrapper
+        chartType={locationChartType}
+        title="Locations"
+        data={chartData}
+        dataKey="skill"
+        barKey="count"
+        expanded={locationExpanded}
+        onToggleExpand={() => setLocationExpanded(!locationExpanded)}
+      />
+      
+    </div>
+  );
+};
+
 
   const renderSkillChart = (title, data, typeKey) => {
     const isValid = Array.isArray(data) && data.length > 0 &&
