@@ -2,10 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../Navbar';
 import ChartWrapper from './ChartStyle/ChartWrapper';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-  PieChart, Pie, Legend,
-} from 'recharts';
 import '../App.css';
 
 const COLORS = [
@@ -23,22 +19,14 @@ const Home = () => {
     database: [],
     'soft skill': [],
   });
+
   const [allJobs, setAllJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
   const [expanded, setExpanded] = useState(false);
-
-  const [chartTypes, setChartTypes] = useState({
-    language: 'bar',
-    framework: 'bar',
-    tool: 'bar',
-    platform: 'bar',
-    methodology: 'bar',
-    database: 'bar',
-    'soft skill': 'bar',
-  });
+  const [globalChartType, setGlobalChartType] = useState('bar');
 
   const fetchJobs = async () => {
     try {
@@ -138,15 +126,8 @@ const Home = () => {
     return data;
   };
 
-  const [locationChartType, setLocationChartType] = useState('bar');
-
   const renderLocationChart = () => {
     const data = getLocationData();
-
-    const handleLocationChartChange = (type) => {
-      setLocationChartType(type);
-    };
-
     const chartData = data.map(item => ({
       skill: item.name,
       count: item.value
@@ -155,13 +136,8 @@ const Home = () => {
     return (
       <div className="chart-card">
         <h3>Locations</h3>
-        <div style={{ marginBottom: '0.5rem' }}>
-          <button onClick={() => handleLocationChartChange('bar')}>Bar</button>
-          <button onClick={() => handleLocationChartChange('pie')}>Pie</button>
-          <button onClick={() => handleLocationChartChange('wordcloud')}>Word Cloud</button>
-        </div>
         <ChartWrapper
-          chartType={locationChartType}
+          chartType={globalChartType}
           title="Locations"
           data={chartData}
           dataKey="skill"
@@ -173,7 +149,6 @@ const Home = () => {
     );
   };
 
-
   const renderSkillChart = (title, data, typeKey) => {
     const isValid =
       Array.isArray(data) &&
@@ -182,20 +157,10 @@ const Home = () => {
 
     if (!isValid) return null;
 
-    const handleChartTypeChange = (mode) => {
-      setChartTypes(prev => ({ ...prev, [typeKey]: mode }));
-    };
-
     return (
       <div className="chart-card" key={typeKey}>
-        <h3>{title}</h3>
-        <div style={{ marginBottom: '0.5rem' }}>
-          <button onClick={() => handleChartTypeChange('bar')}>Bar</button>
-          <button onClick={() => handleChartTypeChange('pie')}>Pie</button>
-          <button onClick={() => handleChartTypeChange('wordcloud')}>Word Cloud</button>
-        </div>
         <ChartWrapper
-          chartType={chartTypes[typeKey]}
+          chartType={globalChartType}
           title={title}
           data={data}
           dataKey="skill"
@@ -226,6 +191,14 @@ const Home = () => {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
           </select>
+        </div>
+
+        {/* Global chart type buttons */}
+        <div className="global-chart-type-toggle" style={{ margin: '1rem 0' }}>
+          <strong>Global Chart Type: </strong>
+          <button onClick={() => setGlobalChartType('bar')}>Bar</button>
+          <button onClick={() => setGlobalChartType('pie')}>Pie</button>
+          <button onClick={() => setGlobalChartType('wordcloud')}>Word Cloud</button>
         </div>
 
         {!hasData && !isLoading && <p>No job data available.</p>}

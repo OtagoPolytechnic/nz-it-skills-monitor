@@ -49,7 +49,6 @@ const SkillsWordCloud = ({ title = '', data = [], chartMode, currentMode, expand
 
   return (
     <div className="chart-card">
-      <h3>{title}</h3>
       <div ref={containerRef} style={{ width: '100%', height: 400 }}>
         <WordCloud
           data={memoizedWords}
