@@ -2,17 +2,30 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import WordCloud from 'react-d3-cloud';
 
 const SkillsWordCloud = ({ title = '', data = [], chartMode, currentMode, expanded, onToggleExpand }) => {
-  const containerRef = useRef();
+  const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 400 });
 
-  const memoizedWords = useMemo(() => {
+  // 🔒 Keep layout cached by chart title and expanded/collapsed state
+  const layoutCache = useRef({});
+
+  const getCachedLayout = () => {
+    const key = `${title}-${expanded ? 'expanded' : 'collapsed'}`;
+    if (layoutCache.current[key]) {
+      return layoutCache.current[key];
+    }
+
     const sorted = [...data].sort((a, b) => b.count - a.count);
     const displayed = expanded ? sorted : sorted.slice(0, 10);
-    return displayed.map(item => ({
+    const layout = displayed.map(item => ({
       text: item.skill,
       value: item.count,
     }));
-  }, [data, expanded]);
+
+    layoutCache.current[key] = layout;
+    return layout;
+  };
+
+  const memoizedWords = useMemo(() => getCachedLayout(), [expanded, title]);
 
   useEffect(() => {
     const observer = new ResizeObserver(([entry]) => {
@@ -20,14 +33,9 @@ const SkillsWordCloud = ({ title = '', data = [], chartMode, currentMode, expand
       setDimensions({ width, height: height > 0 ? height : 400 });
     });
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
+    if (containerRef.current) observer.observe(containerRef.current);
     return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
+      if (containerRef.current) observer.unobserve(containerRef.current);
     };
   }, []);
 

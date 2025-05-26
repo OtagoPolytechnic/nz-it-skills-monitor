@@ -185,6 +185,7 @@ const Home = () => {
           </button>
         </div>
         <ChartWrapper
+          key={typeKey}
           chartType={currentType}
           title={title}
           data={data}
