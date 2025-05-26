@@ -1,4 +1,3 @@
-// src/components/ChartStyle/SkillsWordCloud.jsx
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import WordCloud from 'react-d3-cloud';
 
@@ -6,7 +5,6 @@ const SkillsWordCloud = ({ title = '', data = [], chartMode, currentMode, expand
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 800, height: 400 });
 
-  // Persist layout so it doesn’t regenerate randomly
   const memoizedWords = useMemo(() => {
     const sorted = [...data].sort((a, b) => b.count - a.count);
     const displayed = expanded ? sorted : sorted.slice(0, 10);
@@ -35,17 +33,8 @@ const SkillsWordCloud = ({ title = '', data = [], chartMode, currentMode, expand
 
   if (chartMode !== currentMode) return null;
 
-  if (!Array.isArray(memoizedWords) || memoizedWords.length === 0) {
-    return (
-      <div className="chart-card">
-        <h3>{title}</h3>
-        <p>No valid data for word cloud.</p>
-      </div>
-    );
-  }
-
   const fontSizeMapper = word => Math.max(14, Math.min(50, word.value * 3));
-  const rotate = () => 0; // fix all text horizontal
+  const rotate = () => 0;
 
   return (
     <div className="chart-card">

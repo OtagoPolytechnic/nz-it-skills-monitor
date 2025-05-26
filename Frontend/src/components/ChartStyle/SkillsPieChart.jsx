@@ -1,41 +1,40 @@
 import React from 'react';
 import {
-  PieChart, Pie, Tooltip, Cell, ResponsiveContainer, Legend,
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 
 const COLORS = [
-  '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#8dd1e1',
-  '#a4de6c', '#d0ed57', '#ffbb28', '#d291bc', '#ff9999',
+  '#8884d8', '#82ca9d', '#ffc658', '#ff7f50', '#a0522d',
+  '#40e0d0', '#ff69b4', '#87cefa', '#da70d6', '#32cd32',
 ];
 
 const SkillsPieChart = ({ title, data, chartMode, currentMode, expanded, onToggleExpand }) => {
   if (chartMode !== currentMode) return null;
 
-  const sortedData = [...data].sort((a, b) => b.count - a.count);
+  const sorted = [...data].sort((a, b) => b.count - a.count);
+  const displayedData = expanded ? sorted : sorted.slice(0, 10);
 
   return (
-    <div>
-      <ResponsiveContainer width="100%" height={500}>
+    <div className="chart-card">
+      <ResponsiveContainer width="100%" height={400}>
         <PieChart>
           <Pie
-            data={sortedData}
+            data={displayedData}
             dataKey="count"
             nameKey="skill"
             cx="50%"
             cy="50%"
-            outerRadius={220}
-            fill="#8884d8"
-            label={({ name }) => name}
+            outerRadius={120}
+            label={({ index }) => `${displayedData[index].skill} (${displayedData[index].count})`}
           >
-            {sortedData.map((entry, index) => (
+            {displayedData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip />
-          <Legend layout="vertical" align="right" verticalAlign="middle" />
+          <Legend />
         </PieChart>
       </ResponsiveContainer>
-
       <button className="expand-btn" onClick={onToggleExpand}>
         {expanded ? 'Collapse' : 'Expand'}
       </button>
