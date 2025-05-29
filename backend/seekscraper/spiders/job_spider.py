@@ -30,7 +30,7 @@ class JobSpider(scrapy.Spider):
 
                     url = f"https://www.seek.co.nz/job/{job_id}?type=standard&ref=search-standalone"
                     self.logger.info(f"Fetching URL: {url}")
-                    yield scrapy.Request(url, callback=self.parse, meta={'job_id': job_id}, headers=headers)
+                    yield scrapy.Request(url, callback=self.parse, meta={'job_id': job_id, 'job_source': url}, headers=headers)
                     
                 except Exception as e:
                     self.logger.error(f"Error processing job ID {job_entry}: {e}")
@@ -49,12 +49,13 @@ class JobSpider(scrapy.Spider):
             return
 
         job_id = response.meta.get('job_id', 'unknown')
+        job_source = response.meta.get('job_source', '')
         self.logger.info("Page fetched successfully.")
 
         job_text = soup.get_text(separator=" ", strip=True)
 
         try:
-            res = structured_output(job_text)
+            res = structured_output(job_text, job_source)
             self.logger.info(f"Structured output for job ID {job_id}: {res}")
             yield res
         except Exception as e:
