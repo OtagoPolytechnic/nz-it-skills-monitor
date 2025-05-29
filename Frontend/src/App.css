@@ -141,3 +141,46 @@ h2 {
 .city-item:last-child {
   border-bottom: none;
 }
+
+.chart-card {
+  padding: 1rem;
+  margin-bottom: 2rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pie-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.button-wrapper {
+  margin-top: 1rem;
+}
+
+.expand-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.chart-card {
+  padding: 1rem;
+  margin-bottom: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s;
+}
+
+.chart-card:hover {
+  transform: scale(1.01);
+}
+

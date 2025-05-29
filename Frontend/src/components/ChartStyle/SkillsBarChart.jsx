@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+// src/components/ChartStyle/SkillsBarChart.jsx
+import React from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 
 const COLORS = [
@@ -8,14 +9,14 @@ const COLORS = [
   '#00bcd4', '#8bc34a', '#ffc107', '#f44336', '#3f51b5',
 ];
 
-const SkillsChart = ({ title, data, dataKey, barKey }) => {
-  const [expanded, setExpanded] = useState(false);
+const SkillsBarChart = ({ title, data, dataKey, barKey, chartMode, currentMode, expanded, onToggleExpand  }) => {
+  if (chartMode !== currentMode) return null;
+
   const sortedData = [...data].sort((a, b) => b[barKey] - a[barKey]);
   const displayedData = expanded ? sortedData : sortedData.slice(0, 10);
 
   return (
-    <div className="chart-card">
-      <h3>{title}</h3>
+    <div>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart layout="vertical" data={displayedData}>
           <XAxis type="number" />
@@ -25,22 +26,18 @@ const SkillsChart = ({ title, data, dataKey, barKey }) => {
             dataKey={barKey}
             radius={[0, 10, 10, 0]}
             isAnimationActive={true}
-            activeShape={null} // 🔥 This disables the hover drawing completely
           >
             {displayedData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Bar>
-
-
         </BarChart>
       </ResponsiveContainer>
-
-      <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
+      <button className="expand-btn" onClick={onToggleExpand}>
         {expanded ? 'Collapse' : 'Expand'}
       </button>
     </div>
   );
 };
 
-export default SkillsChart;
+export default SkillsBarChart;
