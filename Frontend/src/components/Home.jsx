@@ -2,7 +2,11 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../Navbar";
 import ChartWrapper from "./ChartStyle/ChartWrapper";
+import ITJobsByCountryCard from './ITJobsByCountryCard';
+import SkillsChart from './SkillsChart';
+import LeafletHeatmap from './Heatmap';
 import "../App.css";
+
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
@@ -255,6 +259,7 @@ const Home = () => {
             )}
           </>
         )}
+        <ITJobsByCountryCard />
       </div>
     </div>
   );
