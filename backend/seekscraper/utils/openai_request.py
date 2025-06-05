@@ -53,7 +53,7 @@ def structured_output(job_text: str, job_source: str) -> dict:
     responses = []
     for prompt in system_prompts:
       response = client.responses.parse(
-        model="gpt-4.1-nano",
+        model="gpt-4.1-mini",
         input=[
           {
             "role": "system",
