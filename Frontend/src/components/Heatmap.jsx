@@ -35,7 +35,7 @@ const LeafletHeatmap = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/job-locations")
+      axios.get(`${import.meta.env.VITE_API_URL}/job-locations`)
       .then((res) => {
         console.log("Loaded heatmap points:", res.data);
         setPoints(res.data);
