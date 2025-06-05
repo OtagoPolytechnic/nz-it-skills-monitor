@@ -23,9 +23,7 @@ class JobDatabasePipeline:
                 skills = job_data.pop('skills', [])
                 # Check for duplicate job entries and skip if found
                 existing_job = Job.query.filter_by(
-                    title=job_data.get('title'),
-                    company=job_data.get('company'),
-                    location=job_data.get('location')
+                    source=job_data.get['source'],
                 ).first()
                 if existing_job:
                     spider.logger.info(f"Duplicate job found: {job_data['title']} at {job_data['company']} on {job_data['date']}. Skipping.")
