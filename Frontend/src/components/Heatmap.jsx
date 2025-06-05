@@ -35,7 +35,7 @@ const LeafletHeatmap = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/job-locations")
+      axios.get("https://nz-it-skills-monitor-3.onrender.com/job-locations")
       .then((res) => {
         console.log("Loaded heatmap points:", res.data);
         setPoints(res.data);
