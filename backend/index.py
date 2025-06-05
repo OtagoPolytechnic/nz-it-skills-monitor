@@ -151,42 +151,34 @@ def run_spiders():
         return jsonify({"error": "Failed to start spiders"}), 500
 
 def start_crawlers():
-    spiders = ['seekspider']
-    threads = []
-    for spider in spiders:
-        thread = threading.Thread(target=run_spider, args=(spider,))
-        thread.start()
-        threads.append(thread)
-    for thread in threads:
-        thread.join()
+    run_spider()
 
-def run_spider(spider_name):
-    project_dir = os.path.join(os.path.dirname(__file__), 'itjobscraper')
-    if not os.path.exists(project_dir):
-        return
+def run_spider():
+    project_dir = os.path.dirname(__file__)
+    script_path = os.path.join(project_dir, 'seekscraper', 'run_spiders.py')
     try:
         process = subprocess.Popen(
-            ['scrapy', 'crawl', spider_name],
+            ['python', script_path],
             cwd=project_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1
         )
-        processes[spider_name] = process
+        processes['run_spiders'] = process
         with process.stdout:
             for line in iter(process.stdout.readline, ''):
-                message = f"{spider_name}: {line.strip()}"
+                message = f"run_spiders: {line.strip()}"
                 with clients_lock:
                     for ws in clients:
                         ws.send(message)
         process.wait()
-        if spider_name in processes:
-            del processes[spider_name]
+        if 'run_spiders' in processes:
+            del processes['run_spiders']
     except Exception as e:
         with clients_lock:
             for ws in clients:
-                ws.send(f"Error running spider {spider_name}: {e}")
+                ws.send(f"Error running run_spiders.py: {e}")
 
 clients = set()
 clients_lock = threading.Lock()
