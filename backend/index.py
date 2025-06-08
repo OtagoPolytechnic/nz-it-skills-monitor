@@ -14,6 +14,7 @@ import subprocess
 import threading
 from flask_sock import Sock
 from functools import wraps
+import sys
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -121,68 +122,43 @@ def admin():
 @token_required
 def run_spiders():
     try:
-        wipe_data();
+        logging.info("Starting spiders...")
+        threading.Thread(target=start_crawlers).start()
+        return jsonify({'message': 'Spiders started'}), 200
     except Exception as e:
-        logging.error(f"Exception occurred while wiping the database: {e}", exc_info=True)
-        return jsonify({"error": "Error wiping the database"}), 500
-    logging.info("Starting spiders...")
-    threading.Thread(target=start_crawlers).start()
-    return jsonify({'message': 'Spiders started'}), 200
+        logging.error(f"Exception occurred while starting spiders: {e}", exc_info=True)
+        return jsonify({"error": "Failed to start spiders"}), 500
 
 def start_crawlers():
-    logging.debug("Entered start_crawlers function")
-    spiders = ['trademespider', 'seekspider']
-    threads = []
-    for spider in spiders:
-        logging.info(f"Starting spider thread for: {spider}")
-        thread = threading.Thread(target=run_spider, args=(spider,))
-        thread.start()
-        threads.append(thread)
-    logging.debug("Waiting for spider threads to complete")
-    for thread in threads:
-        thread.join()
-    logging.info("All spiders have completed")
+    run_spider()
 
-def run_spider(spider_name):
-    logging.debug(f"Running spider: {spider_name}")
-    project_dir = os.path.join(os.path.dirname(__file__), 'itjobscraper')
-    if not os.path.exists(project_dir):
-        logging.error(f"Project directory not found: {project_dir}")
-        return
+def run_spider():
+    project_dir = os.path.dirname(__file__)
+    script_path = os.path.join(project_dir, 'seekscraper', 'run_spiders.py')
     try:
         process = subprocess.Popen(
-            ['scrapy', 'crawl', spider_name],
+            [sys.executable, script_path],  # Use current Python interpreter
             cwd=project_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1
         )
-        processes[spider_name] = process  # Store the process in the dictionary
-        logging.info(f"Started subprocess for spider: {spider_name}")
+        processes['run_spiders'] = process
         with process.stdout:
             for line in iter(process.stdout.readline, ''):
-                message = f"{spider_name}: {line.strip()}"
-                logging.debug(f"Received output from spider {spider_name}: {line.strip()}")
+                message = f"run_spiders: {line.strip()}"
                 with clients_lock:
                     for ws in clients:
                         ws.send(message)
         process.wait()
-        logging.info(f"Subprocess for spider {spider_name} completed with exit code {process.returncode}")
-        if spider_name in processes:
-            del processes[spider_name]  # Remove the process from the dictionary when done
+        if 'run_spiders' in processes:
+            del processes['run_spiders']
     except Exception as e:
-        logging.error(f"Exception occurred while running spider {spider_name}: {e}", exc_info=True)
         with clients_lock:
             for ws in clients:
-                ws.send(f"Error running spider {spider_name}: {e}")
-def wipe_data():
-    logging.info("Wiping the database data")
-    meta = db.metadata
-    for table in reversed(meta.sorted_tables):
-        logging.info(f"Deleting data from table {table.name}")
-        db.session.execute(table.delete())
-    db.session.commit()
+                ws.send(f"Error running run_spiders.py: {e}")
+
 
 
 clients = set()
