@@ -1,4 +1,5 @@
 import json
+import csv
 import scrapy
 from bs4 import BeautifulSoup
 from ..utils.browser_config import CUSTOM_HEADERS
@@ -55,9 +56,10 @@ class JobSpider(scrapy.Spider):
         job_text = soup.get_text(separator=" ", strip=True)
 
         try:
-            res = structured_output(job_text, job_source)
-            self.logger.info(f"Structured output for job ID {job_id}: {res}")
-            yield res
+            with open ('job_text.csv', 'a', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow([job_source, job_text])
+            self.logger.info(f"Job text for job ID {job_id} written to CSV.")
         except Exception as e:
-            self.logger.error(f"Error processing structured output for job ID {job_id}: {e}")
+            self.logger.error(f"Error writing job text to CSV for job ID {job_id}: {e}")
             
