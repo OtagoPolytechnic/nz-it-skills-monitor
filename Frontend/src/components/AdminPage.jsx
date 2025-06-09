@@ -89,7 +89,8 @@ const AdminPage = () => {
   const stopScraper = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/stop-spiders`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/stop-spiders`, {
+        method: 'GET',
         headers: {
           Authorization: token,
         },
