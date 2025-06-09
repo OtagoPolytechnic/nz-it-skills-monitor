@@ -76,7 +76,6 @@ const AdminPage = () => {
 
       if (response.ok) {
         alert('Scraping Seek.com has started!');
-        navigate('/');
       } else {
         alert('Failed to start scraping.');
       }
@@ -123,7 +122,7 @@ const AdminPage = () => {
           <LoginForm onLoginSuccess={handleLoginSuccess} />
         )}
       </div>
-      <pre>{output}</pre>
+      <pre className="console-box">{output}</pre>
     </div>
   );
 };
