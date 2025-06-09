@@ -11,8 +11,8 @@ class FetchHtmlSpider(scrapy.Spider):
     name = 'fetch_html'
 
     # Default parameters
-    max_pages = 2  # Default: scrape up to 2 pages
-    max_job_ids = 30  # Default: collect up to 30 job IDs per page
+    max_pages = 1  # Default: scrape up to 2 pages
+    max_job_ids = 1  # Default: collect up to 30 job IDs per page
 
     start_urls = ['https://www.seek.co.nz/jobs-in-information-communication-technology']  # Starting URL for listings
 
