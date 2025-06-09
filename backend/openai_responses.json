@@ -1,0 +1,294 @@
+[
+  {
+    "date": "2025-06-09",
+    "type": "Full time",
+    "title": "DevOps Engineer",
+    "salary": 0,
+    "company": "",
+    "category": "DevOps Engineer",
+    "duration": "Permanent",
+    "location": "",
+    "remote": false,
+    "sector": "Information & Communication Technology",
+    "source": "seek.com",
+    "description": "We are hiring a DevOps Engineer to manage our CI/CD pipelines using Docker, Kubernetes, and Jenkins. Experience with AWS is required. Familiarity with Agile practices and strong communication skills preferred.",
+    "skills": [
+      {
+        "name": "Docker",
+        "type": "tool"
+      },
+      {
+        "name": "Kubernetes",
+        "type": "tool"
+      },
+      {
+        "name": "Jenkins",
+        "type": "tool"
+      },
+      {
+        "name": "AWS",
+        "type": "platform"
+      },
+      {
+        "name": "Agile",
+        "type": "methodology"
+      },
+      {
+        "name": "Communication",
+        "type": "soft skill"
+      },
+      {
+        "name": "communication",
+        "type": "soft skill"
+      },
+      {
+        "name": "agile",
+        "type": "soft skill"
+      },
+      {
+        "name": "Kubernetes",
+        "type": "framework"
+      },
+      {
+        "name": "Jenkins",
+        "type": "framework"
+      },
+      {
+        "name": "DevOps",
+        "type": "methodology"
+      }
+    ]
+  },
+  {
+    "date": "2025-06-09",
+    "type": "Full time",
+    "title": "Frontend Developer",
+    "salary": 0,
+    "company": "",
+    "category": "Web & App Development",
+    "duration": "Permanent",
+    "location": "",
+    "remote": false,
+    "sector": "Web & App Development",
+    "source": "seek.com",
+    "description": "Join our team as a Frontend Developer working with React and TypeScript. You will collaborate with designers in an Agile workflow. Good teamwork and time management are essential.",
+    "skills": [
+      {
+        "name": "React",
+        "type": "framework"
+      },
+      {
+        "name": "TypeScript",
+        "type": "programming language"
+      },
+      {
+        "name": "Agile",
+        "type": "methodology"
+      },
+      {
+        "name": "Teamwork",
+        "type": "soft skill"
+      },
+      {
+        "name": "Time management",
+        "type": "soft skill"
+      },
+      {
+        "name": "collaboration",
+        "type": "soft skill"
+      },
+      {
+        "name": "teamwork",
+        "type": "soft skill"
+      },
+      {
+        "name": "time management",
+        "type": "soft skill"
+      },
+      {
+        "name": "React",
+        "type": "tool"
+      },
+      {
+        "name": "TypeScript",
+        "type": "tool"
+      }
+    ]
+  },
+  {
+    "date": "2025-06-09",
+    "type": "Full time",
+    "title": "Database Administrator",
+    "salary": 0,
+    "company": "",
+    "category": "Database Management",
+    "duration": "Permanent",
+    "location": "",
+    "remote": false,
+    "sector": "",
+    "source": "seek.com",
+    "description": "We need a Database Administrator to manage and optimize PostgreSQL and MySQL systems. Experience with backups, security, and scripting is required. Attention to detail and critical thinking are important.",
+    "skills": [
+      {
+        "name": "PostgreSQL",
+        "type": "databases"
+      },
+      {
+        "name": "MySQL",
+        "type": "databases"
+      },
+      {
+        "name": "backups",
+        "type": "methodology"
+      },
+      {
+        "name": "security",
+        "type": "methodology"
+      },
+      {
+        "name": "scripting",
+        "type": "programming language"
+      },
+      {
+        "name": "attention to detail",
+        "type": "soft skill"
+      },
+      {
+        "name": "critical thinking",
+        "type": "soft skill"
+      },
+      {
+        "name": "Python",
+        "type": "programming language"
+      },
+      {
+        "name": "PostgreSQL",
+        "type": "tool"
+      },
+      {
+        "name": "MySQL",
+        "type": "tool"
+      },
+      {
+        "name": "Backups",
+        "type": "tool"
+      },
+      {
+        "name": "Security",
+        "type": "soft skill"
+      },
+      {
+        "name": "Scripting",
+        "type": "programming language"
+      },
+      {
+        "name": "Attention to detail",
+        "type": "soft skill"
+      },
+      {
+        "name": "Critical thinking",
+        "type": "soft skill"
+      }
+    ]
+  },
+  {
+    "date": "2025-06-09",
+    "type": "Full time",
+    "title": "Cybersecurity Analyst",
+    "salary": 0,
+    "company": "",
+    "category": "Information Security",
+    "duration": "Permanent",
+    "location": "",
+    "remote": false,
+    "sector": "Information Security",
+    "source": "seek.com",
+    "description": "Looking for a Cybersecurity Analyst with knowledge of NIST frameworks and tools like Wireshark, Burp Suite, and Splunk. Must be familiar with DevSecOps. Excellent problem-solving skills needed.",
+    "skills": [
+      {
+        "name": "NIST frameworks",
+        "type": "methodology"
+      },
+      {
+        "name": "Wireshark",
+        "type": "tool"
+      },
+      {
+        "name": "Burp Suite",
+        "type": "tool"
+      },
+      {
+        "name": "Splunk",
+        "type": "tool"
+      },
+      {
+        "name": "DevSecOps",
+        "type": "methodology"
+      },
+      {
+        "name": "Problem-solving",
+        "type": "soft skill"
+      },
+      {
+        "name": "problem solving",
+        "type": "soft skill"
+      },
+      {
+        "name": "NIST Cybersecurity Framework",
+        "type": "framework"
+      }
+    ]
+  },
+  {
+    "date": "2025-06-09",
+    "type": "Full time",
+    "title": "Project Manager",
+    "salary": 0,
+    "company": "",
+    "category": "Programme & Project Management",
+    "duration": "Permanent",
+    "location": "",
+    "remote": false,
+    "sector": "",
+    "source": "seek.com",
+    "description": "We're seeking a Project Manager to lead software development projects. Familiarity with Agile, Scrum, and JIRA is important. Strong leadership and verbal communication skills are a must.",
+    "skills": [
+      {
+        "name": "Agile",
+        "type": "methodology"
+      },
+      {
+        "name": "Scrum",
+        "type": "methodology"
+      },
+      {
+        "name": "JIRA",
+        "type": "tool"
+      },
+      {
+        "name": "Leadership",
+        "type": "soft skill"
+      },
+      {
+        "name": "Verbal Communication",
+        "type": "soft skill"
+      },
+      {
+        "name": "leadership",
+        "type": "soft skill"
+      },
+      {
+        "name": "communication",
+        "type": "soft skill"
+      },
+      {
+        "name": "Scrum",
+        "type": "framework"
+      },
+      {
+        "name": "Verbal communication",
+        "type": "soft skill"
+      }
+    ]
+  }
+]
