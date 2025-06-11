@@ -1,6 +1,7 @@
 # Scraper project specific output files
 cleaned_page.html
 job_ids.json
+job_text.csv
 
 
 # Byte-compiled / optimized / DLL files
