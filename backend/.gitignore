@@ -177,3 +177,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# OpenAI processing outputs
+job_text.csv
+openai_responses.json
