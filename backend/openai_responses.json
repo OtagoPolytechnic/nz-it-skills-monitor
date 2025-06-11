@@ -1,0 +1,20 @@
+[
+    {
+  "title": "AI Ethics Consultant",
+  "company": "EthicalTech",
+  "location": "Wellington",
+  "salary": 127000,
+  "category": "AI",
+  "sector": "Legal",
+  "duration": "Contract",
+  "remote": true,
+  "source": "Company Website",
+  "date": "2025-06-11",
+  "description": "Consult on AI ethics and compliance for legal tech solutions.",
+  "skills": [
+    {"name": "Ethics Frameworks", "type": "methodology"},
+    {"name": "Python", "type": "programming language"},
+    {"name": "GDPR", "type": "regulation"}
+  ]
+}
+]
