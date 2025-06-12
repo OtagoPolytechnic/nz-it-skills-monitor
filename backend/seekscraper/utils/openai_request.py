@@ -2,11 +2,17 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 from enum import Enum
 import os
-import json
 from datetime import date
+import logging
 
 from dotenv import load_dotenv
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 OPENAI_API_KEY = os.getenv('OPENAI')
 if not OPENAI_API_KEY:
@@ -88,16 +94,23 @@ def structured_output(job_text: str, job_source: str) -> dict:
     all_skills = []
     seen = set()
     for resp in responses:
+        if resp is None:
+            logger.warning("A response was None and will be skipped.")
+            continue
         for skill in resp.skills:
             key = (skill.name, skill.type)
             if key not in seen:
                 seen.add(key)
                 all_skills.append(skill)
+                logger.info(f"Added skill: {skill}")
 
     # Use the first response as the base, but replace its skills with the merged list
     try:
+      logger.info("Merging OpenAI responses into a single job object.")
       merged_job = responses[0].copy(update={"skills": all_skills, "source": job_source, "date": str(date.today())})
+      logger.info(f"Merged job created with {len(all_skills)} skills, source: {job_source}, date: {str(date.today())}")
       return merged_job.dict()
     
     except Exception as e:
+      logger.error(f"Error parsing OpenAI response: {e}")
       raise Exception(f"Error parsing OpenAI response: {e}")
