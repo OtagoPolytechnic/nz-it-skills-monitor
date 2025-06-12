@@ -448,9 +448,9 @@ const Home = () => {
                 type
               )
             )}
+            <LeafletHeatmap />
           </>
         )}
-        <LeafletHeatmap />
       </div>
     </div>
   );
