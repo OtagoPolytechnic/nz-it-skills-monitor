@@ -150,6 +150,31 @@ def run_spiders():
         logging.error(f"Exception occurred while starting spiders: {e}", exc_info=True)
         return jsonify({"error": "Failed to start spiders"}), 500
 
+@app.route('/process-openai', methods=['GET'])
+@token_required
+def process_openai():
+    try:
+        def run_script():
+            subprocess.run(["python", "seekscraper/utils/process_openai_jobs.py"])
+        threading.Thread(target=run_script).start()
+        return jsonify({'message': 'Started processing OpenAI job descriptions.'}), 200
+    except Exception as e:
+        logging.error(f"Error in seekscraper/utils/process-openai: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to run process_openai_jobs.py'}), 500
+
+@app.route('/commit-openai', methods=['GET'])
+@token_required
+def commit_openai():
+    try:
+        def run_script():
+            subprocess.run(["python", "seekscraper/commit_openai_responses.py"])
+        threading.Thread(target=run_script).start()
+        return jsonify({'message': 'Started committing OpenAI responses to DB.'}), 200
+    except Exception as e:
+        logging.error(f"Error in seekscraper/commit-openai: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to run commit_openai_responses.py'}), 500
+
+
 def start_crawlers():
     spiders = ['seekspider']
     threads = []
