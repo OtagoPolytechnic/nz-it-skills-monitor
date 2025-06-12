@@ -16,7 +16,7 @@ JSON_FILE = 'openai_responses.json'
 pipeline = JobDatabasePipeline()
 
 def load_json():
-    with open(JSON_FILE, 'r') as f:
+    with open(JSON_FILE, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 def process_json_file():
