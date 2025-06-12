@@ -18,11 +18,11 @@ class JobDatabasePipeline:
                 skills = job_data.pop('skills', [])
 
                 existing_job = Job.query.filter_by(
-    title=job_data.get('title'),
-    company=job_data.get('company'),
-    date=job_data.get('date'),
-    location=job_data.get('location')
-).first()
+                    title=job_data.get('title'),
+                    company=job_data.get('company'),
+                    date=job_data.get('date'),
+                    location=job_data.get('location')
+                ).first()
 
 
                 if existing_job:
