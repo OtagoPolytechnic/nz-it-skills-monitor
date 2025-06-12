@@ -2,6 +2,7 @@
 cleaned_page.html
 job_ids.json
 job_text.csv
+openai_responses.json
 
 
 # Byte-compiled / optimized / DLL files
