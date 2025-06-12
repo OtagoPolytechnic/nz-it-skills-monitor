@@ -1,5 +1,6 @@
 import json
 import csv
+import os
 import scrapy
 from bs4 import BeautifulSoup
 from ..utils.browser_config import CUSTOM_HEADERS
@@ -56,10 +57,13 @@ class JobSpider(scrapy.Spider):
         job_text = soup.get_text(separator=" ", strip=True)
 
         try:
-            with open ('job_text.csv', 'a', newline='', encoding='utf-8') as csvfile:
+            file_exists = os.path.isfile('job_text.csv')
+            write_header = not file_exists or os.path.getsize('job_text.csv') == 0
+            with open('job_text.csv', 'a', newline='', encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile)
+                if write_header:
+                    writer.writerow(['source', 'description'])
                 writer.writerow([job_source, job_text])
             self.logger.info(f"Job text for job ID {job_id} written to CSV.")
         except Exception as e:
             self.logger.error(f"Error writing job text to CSV for job ID {job_id}: {e}")
-            
