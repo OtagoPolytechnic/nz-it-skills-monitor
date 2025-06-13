@@ -4,6 +4,7 @@ from enum import Enum
 import os
 from datetime import date
 import logging
+import asyncio
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -55,62 +56,101 @@ system_prompts = [
   "You are an expert at recognizing methodologies.\n\nExtract all of the methodologies in this job description if any exist.\n\nMatch skills in the job descriptions to items in this list.\nAgile\nScrum\nKanban\nWaterfall\nLean\nExtreme Programming\nDevOps\nScaled Agile Framework\nSpiral Model\nRapid Application Development\nFeature-Driven Development\nTest-Driven Development\nBehavior-Driven Development\nDomain-Driven Design\nSix Sigma\nITIL\nPRINCE2\nPMBOK\nRational Unified Process\n\nReturn nothing if no methodologies are mentioned.\n\nEvery type should be \"methodology\"."
 ]
 
-def structured_output(job_text: str, job_source: str) -> dict:
-    responses = []
-    for prompt in system_prompts:
-      response = client.responses.parse(
-        model="gpt-4.1-mini",
-        input=[
-          {
-            "role": "system",
-            "content": [
-              {
-                "type": "input_text",
-                "text": prompt
-              }
-            ]
-          },
-          {
-            "role": "user",
-            "content": [
-              {
-                "type": "input_text",
-                "text": job_text
-              }
-            ]
-          },
-        ],
-        text_format=Job,
-        reasoning={},
-        tools=[],
-        temperature=0,
-        max_output_tokens=4092,
-        top_p=0.8,
-        store=True
-      )
-      responses.append(response.output_parsed)
+async def _async_parse(prompt, job_text):
+    # If OpenAI client supports async, use await client.responses.parse(...)
+    # Otherwise, run in executor
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        None,
+        lambda: client.responses.parse(
+            model="gpt-4.1-mini",
+            input=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": prompt
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": job_text
+                        }
+                    ]
+                },
+            ],
+            text_format=Job,
+            reasoning={},
+            tools=[],
+            temperature=0,
+            max_output_tokens=4092,
+            top_p=0.8,
+            store=True
+        )
+    )
 
-       # Merge all skills into one array, deduplicating by name+type
+async def structured_output(job_text: str, job_source: str) -> dict:
+    def clean_skills(skills):
+        type_priority = {
+            "programming language": 1,
+            "framework": 2,
+            "platform": 3,
+            "tool": 4,
+            "databases": 5,
+            "database": 5,
+            "methodology": 6,
+            "soft skill": 7,
+        }
+        filtered = [
+            s for s in skills
+            if s.type.strip().lower() != "skill"
+        ]
+        deduped = {}
+        for s in filtered:
+            name = s.name.strip().lower()
+            typ = s.type.strip().lower()
+            key = name
+            current_priority = type_priority.get(typ, 100)
+            if key not in deduped or current_priority < type_priority.get(deduped[key].type.lower(), 100):
+                deduped[key] = s
+        return list(deduped.values())
+
+    # Run all prompts concurrently
+    tasks = [
+        _async_parse(prompt, job_text)
+        for prompt in system_prompts
+    ]
+    responses = await asyncio.gather(*tasks)
+
+    # Merge all skills into one array, deduplicating by name+type
     all_skills = []
     seen = set()
     for resp in responses:
-        if resp is None:
-            logger.warning("A response was None and will be skipped.")
+        if resp is None or not hasattr(resp, "output_parsed") or resp.output_parsed is None:
+            logger.warning("A response was None or missing output_parsed and will be skipped.")
             continue
-        for skill in resp.skills:
+        if not hasattr(resp.output_parsed, "skills") or resp.output_parsed.skills is None:
+            logger.warning("output_parsed has no skills attribute or is None, skipping.")
+            continue
+        for skill in resp.output_parsed.skills:
             key = (skill.name, skill.type)
             if key not in seen:
                 seen.add(key)
                 all_skills.append(skill)
                 logger.info(f"Added skill: {skill}")
 
-    # Use the first response as the base, but replace its skills with the merged list
+    all_skills = clean_skills(all_skills)
+
     try:
-      logger.info("Merging OpenAI responses into a single job object.")
-      merged_job = responses[0].copy(update={"skills": all_skills, "source": job_source, "date": str(date.today())})
-      logger.info(f"Merged job created with {len(all_skills)} skills, source: {job_source}, date: {str(date.today())}")
-      return merged_job.dict()
-    
+        logger.info("Merging OpenAI responses into a single job object.")
+        merged_job = responses[0].output_parsed.copy(update={"skills": all_skills, "source": job_source, "date": str(date.today())})
+        logger.info(f"Merged job created with {len(all_skills)} skills, source: {job_source}, date: {str(date.today())}")
+        return merged_job.dict()
     except Exception as e:
-      logger.error(f"Error parsing OpenAI response: {e}")
-      raise Exception(f"Error parsing OpenAI response: {e}")
+        logger.error(f"Error parsing OpenAI response: {e}")
+        raise Exception(f"Error parsing OpenAI response: {e}")
