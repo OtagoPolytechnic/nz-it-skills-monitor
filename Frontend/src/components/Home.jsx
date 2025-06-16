@@ -8,12 +8,12 @@ import "../App.css";
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
-    language: [],
+    "programming language": [],
     framework: [],
     tool: [],
     platform: [],
     methodology: [],
-    database: [],
+    databases: [],
     "soft skill": [],
   });
   const [allJobs, setAllJobs] = useState([]);
@@ -61,12 +61,12 @@ const Home = () => {
 
   const extractSkills = (jobs) => {
     const grouped = {
-      language: [],
+      "programming language": [],
       framework: [],
       tool: [],
       platform: [],
       methodology: [],
-      database: [],
+      databases: [],
       "soft skill": [],
     };
 
