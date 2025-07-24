@@ -27,6 +27,7 @@ const Home = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -319,128 +320,167 @@ const Home = () => {
     <div>
       <Navbar />
       <div className="stacked-dashboard">
-      <div
-  className="category-dropdown"
+        <div
+          className="category-dropdown"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: "1rem", // Add margin to separate it from other elements
+            width: "100%", // Full width to ensure it stays centered
+            position: "relative", // For positioning relative to other elements
+          }}
+        >
+          <div
+            style={{
+              padding: "1rem",
+              borderRadius: "0.375rem",
+              border: "1px solid #e5e7eb",
+              backgroundColor: "#ffffff",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)", // Soft shadow
+              width: "300px", // Fixed width for the dropdown
+              textAlign: "center", // Center text
+            }}
+          >
+            <label
+              style={{
+                fontWeight: "bold",
+                marginBottom: "0.5rem",
+                display: "block",
+              }}
+            >
+              Category:
+            </label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+                setFilteredJobs(
+                  e.target.value
+                    ? allJobs.filter(
+                        (job) =>
+                          job.category?.toLowerCase() ===
+                          e.target.value.toLowerCase()
+                      )
+                    : allJobs
+                );
+              }}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "0.375rem",
+                border: "1px solid #d1d5db",
+                width: "100%",
+                fontSize: "1rem",
+                backgroundColor: "#f9fafb", // Light background
+                color: "#333",
+                cursor: "pointer",
+                transition: "background-color 0.2s ease",
+              }}
+            >
+              <option value="">All</option>
+              {[...new Set(allJobs.map((job) => job.category))]
+                .filter(Boolean)
+                .sort()
+                .map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+
+        <div
   style={{
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: "1rem", // Add margin to separate it from other elements
-    width: "100%", // Full width to ensure it stays centered
-    position: "relative", // For positioning relative to other elements
+    flexWrap: "wrap",
+    gap: "0.5rem",
+    margin: "1rem 0",
   }}
 >
-  <div
+  <span style={{ fontWeight: "bold", marginRight: "1rem" }}>
+    Global Chart Type:
+  </span>
+  <button
+    onClick={() => setGlobalChartType("bar")}
     style={{
-      padding: "1rem",
+      backgroundColor: "#3b82f6",
+      color: "white",
+      padding: "0.5rem 1rem",
+      border: "none",
       borderRadius: "0.375rem",
-      border: "1px solid #e5e7eb",
-      backgroundColor: "#ffffff",
-      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)", // Soft shadow
-      width: "300px", // Fixed width for the dropdown
-      textAlign: "center", // Center text
+      cursor: "pointer",
+      fontWeight: "bold",
+      transition: "background-color 0.2s ease",
     }}
+    onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
+    onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
   >
-    <label style={{ fontWeight: "bold", marginBottom: "0.5rem", display: "block" }}>
-      Category:
-    </label>
-    <select
-      value={categoryFilter}
-      onChange={(e) => {
-        setCategoryFilter(e.target.value);
-        setFilteredJobs(
-          e.target.value
-            ? allJobs.filter(
-                (job) =>
-                  job.category?.toLowerCase() === e.target.value.toLowerCase()
-              )
-            : allJobs
-        );
-      }}
-      style={{
-        padding: "0.5rem 1rem",
-        borderRadius: "0.375rem",
-        border: "1px solid #d1d5db",
-        width: "100%",
-        fontSize: "1rem",
-        backgroundColor: "#f9fafb", // Light background
-        color: "#333",
-        cursor: "pointer",
-        transition: "background-color 0.2s ease",
-      }}
-    >
-      <option value="">All</option>
-      {[...new Set(allJobs.map((job) => job.category))].filter(Boolean).sort().map((cat) => (
-        <option key={cat} value={cat}>
-          {cat}
-        </option>
-      ))}
-    </select>
-  </div>
+    Bar
+  </button>
+  <button
+    onClick={() => setGlobalChartType("pie")}
+    style={{
+      backgroundColor: "#3b82f6",
+      color: "white",
+      padding: "0.5rem 1rem",
+      border: "none",
+      borderRadius: "0.375rem",
+      cursor: "pointer",
+      fontWeight: "bold",
+      transition: "background-color 0.2s ease",
+    }}
+    onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
+    onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
+  >
+    Pie
+  </button>
+  <button
+    onClick={() => setGlobalChartType("wordcloud")}
+    style={{
+      backgroundColor: "#3b82f6",
+      color: "white",
+      padding: "0.5rem 1rem",
+      border: "none",
+      borderRadius: "0.375rem",
+      cursor: "pointer",
+      fontWeight: "bold",
+      transition: "background-color 0.2s ease",
+    }}
+    onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
+    onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
+  >
+    Word Cloud
+  </button>
+  <button
+    onClick={() => setShowHeatmap((prev) => !prev)}
+    style={{
+      backgroundColor: "#10b981",
+      color: "white",
+      padding: "0.5rem 1rem",
+      border: "none",
+      borderRadius: "0.375rem",
+      cursor: "pointer",
+      fontWeight: "bold",
+      transition: "background-color 0.2s ease",
+      marginLeft: "1rem",
+    }}
+    onMouseOver={(e) => (e.target.style.backgroundColor = "#059669")}
+    onMouseOut={(e) => (e.target.style.backgroundColor = "#10b981")}
+  >
+    {showHeatmap ? "Hide Heatmap" : "Show Heatmap"}
+  </button>
 </div>
 
-
-        <div style={{ margin: "1rem 0" }}>
-          <strong style={{ marginRight: "1rem" }}>Global Chart Type: </strong>
-          <button
-            onClick={() => setGlobalChartType("bar")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              marginRight: "0.5rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Bar
-          </button>
-          <button
-            onClick={() => setGlobalChartType("pie")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              marginRight: "0.5rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Pie
-          </button>
-          <button
-            onClick={() => setGlobalChartType("wordcloud")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Word Cloud
-          </button>
-        </div>
 
         {!hasData && !isLoading && <p>No job data available.</p>}
         {hasData && (
           <>
+
             {renderLocationChart()}
+
             {Object.entries(skillsData).map(([type, list]) =>
               renderSkillChart(
                 type.charAt(0).toUpperCase() + type.slice(1),
@@ -448,7 +488,8 @@ const Home = () => {
                 type
               )
             )}
-            <LeafletHeatmap />
+
+            {showHeatmap && <LeafletHeatmap />}
           </>
         )}
       </div>
