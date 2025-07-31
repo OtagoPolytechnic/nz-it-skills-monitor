@@ -319,15 +319,16 @@ const Home = () => {
     <div>
       <Navbar />
       <div className="stacked-dashboard">
+        {/* Category Dropdown */}
         <div
           className="category-dropdown"
           style={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            marginBottom: "1rem", // Add margin to separate it from other elements
-            width: "100%", // Full width to ensure it stays centered
-            position: "relative", // For positioning relative to other elements
+            marginBottom: "1rem",
+            width: "100%",
+            position: "relative",
           }}
         >
           <div
@@ -336,9 +337,9 @@ const Home = () => {
               borderRadius: "0.375rem",
               border: "1px solid #e5e7eb",
               backgroundColor: "#ffffff",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)", // Soft shadow
-              width: "300px", // Fixed width for the dropdown
-              textAlign: "center", // Center text
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+              width: "300px",
+              textAlign: "center",
             }}
           >
             <label
@@ -370,7 +371,7 @@ const Home = () => {
                 border: "1px solid #d1d5db",
                 width: "100%",
                 fontSize: "1rem",
-                backgroundColor: "#f9fafb", // Light background
+                backgroundColor: "#f9fafb",
                 color: "#333",
                 cursor: "pointer",
                 transition: "background-color 0.2s ease",
@@ -389,6 +390,7 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Global Chart Type Toggle */}
         <div
           style={{
             display: "flex",
@@ -402,99 +404,108 @@ const Home = () => {
           <span style={{ fontWeight: "bold", marginRight: "1rem" }}>
             Global Chart Type:
           </span>
-          <button
-            onClick={() => setGlobalChartType("bar")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Bar
-          </button>
-          <button
-            onClick={() => setGlobalChartType("pie")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Pie
-          </button>
-          <button
-            onClick={() => setGlobalChartType("wordcloud")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Word Cloud
-          </button>
+          {["bar", "pie", "wordcloud"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setGlobalChartType(type)}
+              style={{
+                backgroundColor: "#3b82f6",
+                color: "white",
+                padding: "0.5rem 1rem",
+                border: "none",
+                borderRadius: "0.375rem",
+                cursor: "pointer",
+                fontWeight: "bold",
+                transition: "background-color 0.2s ease",
+              }}
+              onMouseOver={(e) =>
+                (e.target.style.backgroundColor = "#2563eb")
+              }
+              onMouseOut={(e) =>
+                (e.target.style.backgroundColor = "#3b82f6")
+              }
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
         </div>
-        <div
-          className="chart-card"
-          style={{
-            display: "flex",
-            gap: "2rem",
-            alignItems: "flex-start",
-            padding: "1rem",
-            borderRadius: "0.375rem",
-            border: "1px solid #e5e7eb",
-            backgroundColor: "#ffffff",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          {/* Left Column: Chart */}
-          <div style={{ flex: 1 }}>
-            <h3 style={{ marginBottom: "1rem", color: "#333" }}>Job Locations</h3>
-            <ChartWrapper
-              chartType={locationChartType}
-              title="Locations"
-              data={getLocationData().map((item) => ({
-                skill: item.name,
-                count: item.value,
-              }))}
-              dataKey="skill"
-              barKey="count"
-              expanded={locationExpanded}
-              onToggleExpand={() => setLocationExpanded(!locationExpanded)}
-            />
-          </div>
 
-          {/* Right Column: Heatmap */}
-          <div style={{ flex: 1 }}>
-            <h3 style={{ marginBottom: "1rem", color: "#333" }}>Job Heatmap</h3>
-            <div style={{ height: "400px", width: "100%", position: "relative", overflow: "hidden", borderRadius: "0.375rem" }}>
-              <LeafletHeatmap />
+        {/* Charts Section */}
+        {hasData && (
+          <div style={{ width: "100%" }}>
+            {/* Location + Heatmap Split */}
+            <div
+              className="chart-card"
+              style={{
+                display: "flex",
+                gap: "2rem",
+                alignItems: "flex-start",
+                padding: "1rem",
+                borderRadius: "0.375rem",
+                border: "1px solid #e5e7eb",
+                backgroundColor: "#ffffff",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              {/* Left Column: Chart */}
+              <div style={{ flex: 1 }}>
+                <h3 style={{ marginBottom: "1rem", color: "#333" }}>
+                  Job Locations
+                </h3>
+                <ChartWrapper
+                  chartType={locationChartType}
+                  title="Locations"
+                  data={getLocationData().map((item) => ({
+                    skill: item.name,
+                    count: item.value,
+                  }))}
+                  dataKey="skill"
+                  barKey="count"
+                  expanded={locationExpanded}
+                  onToggleExpand={() =>
+                    setLocationExpanded(!locationExpanded)
+                  }
+                />
+              </div>
+
+              {/* Right Column: Heatmap */}
+              <div style={{ flex: 1 }}>
+                <h3 style={{ marginBottom: "1rem", color: "#333" }}>
+                  Job Heatmap
+                </h3>
+                <div
+                  style={{
+                    height: "400px",
+                    width: "100%",
+                    position: "relative",
+                    overflow: "hidden",
+                    borderRadius: "0.375rem",
+                  }}
+                >
+                  <LeafletHeatmap />
+                </div>
+              </div>
             </div>
+
+            {/* Skill Charts */}
+            {Object.entries(skillsData).map(([type, list]) =>
+              renderSkillChart(
+                type.charAt(0).toUpperCase() + type.slice(1),
+                list,
+                type
+              )
+            )}
           </div>
-        </div>
+        )}
+
+        {/* No Data Fallback */}
+        {!hasData && !isLoading && (
+          <p style={{ textAlign: "center", marginTop: "2rem" }}>
+            No job data available.
+          </p>
+        )}
       </div>
     </div>
   );
 };
-
-export default Home;
+  export default Home;
