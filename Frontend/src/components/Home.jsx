@@ -27,7 +27,6 @@ const Home = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
-  const [showHeatmap, setShowHeatmap] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -454,27 +453,7 @@ const Home = () => {
   >
     Word Cloud
   </button>
-  <button
-    onClick={() => setShowHeatmap((prev) => !prev)}
-    style={{
-      backgroundColor: "#10b981",
-      color: "white",
-      padding: "0.5rem 1rem",
-      border: "none",
-      borderRadius: "0.375rem",
-      cursor: "pointer",
-      fontWeight: "bold",
-      transition: "background-color 0.2s ease",
-      marginLeft: "1rem",
-    }}
-    onMouseOver={(e) => (e.target.style.backgroundColor = "#059669")}
-    onMouseOut={(e) => (e.target.style.backgroundColor = "#10b981")}
-  >
-    {showHeatmap ? "Hide Heatmap" : "Show Heatmap"}
-  </button>
 </div>
-
-
         {!hasData && !isLoading && <p>No job data available.</p>}
         {hasData && (
           <>
