@@ -487,7 +487,7 @@ const Home = () => {
           {/* Right Column: Heatmap */}
           <div style={{ flex: 1 }}>
             <h3 style={{ marginBottom: "1rem", color: "#333" }}>Job Heatmap</h3>
-            <div style={{ height: "400px", width: "100%" }}>
+            <div style={{ height: "400px", width: "100%", position: "relative", overflow: "hidden", borderRadius: "0.375rem" }}>
               <LeafletHeatmap />
             </div>
           </div>
