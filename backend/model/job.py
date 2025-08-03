@@ -5,8 +5,8 @@ from marshmallow_sqlalchemy.fields import Nested
 from datetime import date
 
 #   jobs table
-#   | id          | title       | salary  | location    | type       | duration   | company     | description | date                 | skills      | category   |
-#   | primary key | String(255) | Integer | String(255) | String(50) | String(50) | String(255) | Text        | Date (default today) | foreign key | String(50) |
+#   | id          | title       | salary  | location    | type       | duration   | company     | description | date                 | skills      | category   | sector    | source        | remote    |
+#   | primary key | String(255) | Integer | String(255) | String(50) | String(50) | String(255) | Text        | Date (default today) | foreign key | String(50) | String(50)| String(255)   | Boolean   |
            
 class Job(db.Model):
     __tablename__ = 'jobs'
@@ -14,11 +14,14 @@ class Job(db.Model):
     title = db.Column(db.String(255))
     description = db.Column(db.Text)
     category = db.Column(db.String(50))
+    sector = db.Column(db.String(50))
     salary = db.Column(db.Integer)
     location = db.Column(db.String(255))
     type = db.Column(db.String(50))
+    remote = db.Column(db.Boolean, default=False)
     duration = db.Column(db.String(50))
     company = db.Column(db.String(255))
+    source = db.Column(db.String(255))
     date = db.Column(db.Date, default=date.today)
     skills = db.relationship('Skill', backref='job', lazy=True, cascade="all, delete-orphan")  # If a job is deleted, all of its skills will also be deleted
 

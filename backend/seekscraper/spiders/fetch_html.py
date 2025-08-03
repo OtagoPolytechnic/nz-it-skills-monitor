@@ -4,20 +4,20 @@ import json
 import random
 import time
 from ..utils.file_io import save_cleaned_html, save_job_ids, wipe_job_ids
-from ..utils.browser_config import CUSTOM_HEADERS, USER_AGENTS
+from ..utils.browser_config import CUSTOM_HEADERS
 from ..utils.url_utils import get_current_page, get_next_page_url
+#from fake_useragent import UserAgent
 
 class FetchHtmlSpider(scrapy.Spider):
     name = 'fetch_html'
 
     # Default parameters
-    max_pages = 2  # Default: scrape up to 2 pages
-    max_job_ids = 30  # Default: collect up to 30 job IDs per page
+    max_pages = 3  # Default: scrape up to 2 pages
+    max_job_ids = 20  # Default: collect up to 30 job IDs per page
 
     start_urls = ['https://www.seek.co.nz/jobs-in-information-communication-technology']  # Starting URL for listings
 
     custom_headers = CUSTOM_HEADERS
-    user_agents = USER_AGENTS
 
     def __init__(self, max_pages=None, max_job_ids=None, *args, **kwargs):
         super(FetchHtmlSpider, self).__init__(*args, **kwargs)
@@ -30,8 +30,9 @@ class FetchHtmlSpider(scrapy.Spider):
 
     def start_requests(self):
         headers = self.custom_headers.copy()
-        headers['User-Agent'] = random.choice(self.user_agents)
-        print(f"USING USER AGENT: {headers['User-Agent']}")
+        #headers['User-Agent'] = UserAgent().random
+        headers["Referer"] = "https://www.seek.co.nz/"
+        #print(f"USING USER AGENT: {headers['User-Agent']}")
         yield scrapy.Request(self.start_urls[0], headers=headers)
 
     def parse(self, response):
@@ -74,7 +75,8 @@ class FetchHtmlSpider(scrapy.Spider):
         next_page_url = get_next_page_url(response.url)
         if next_page_url:
             headers = self.custom_headers.copy()
-            headers['User-Agent'] = random.choice(self.user_agents)
+            #headers['User-Agent'] = UserAgent().random
+            headers["Referer"] = "https://www.seek.co.nz/"
             yield scrapy.Request(
                 next_page_url, 
                 callback=self.parse,

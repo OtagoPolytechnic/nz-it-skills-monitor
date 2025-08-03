@@ -1,13 +1,49 @@
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-
-
-# useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+from index import app
+from model import db
+from model.job import Job, Skill
 
+class JobDatabasePipeline:
+    def process_item(self, item, spider=None):
+        if not item.get('title') or not item.get('company') or not item.get('location'):
+            if spider:
+                spider.logger.info(f"Skipping item due to missing required fields: {item}")
+            else:
+                print(f"Skipping item due to missing required fields: {item}")
+            return None
 
-class SeekscraperPipeline:
-    def process_item(self, item, spider):
-        return item
+        with app.app_context():
+            try:
+                job_data = item.copy()
+                skills = job_data.pop('skills', [])
+
+                existing_job = Job.query.filter_by(source=job_data.get('source')).first()
+
+                if existing_job:
+                    if spider:
+                        spider.logger.info(f"Duplicate job found from source: {job_data['source']}. Skipping.")
+                    else:
+                        print(f"Duplicate job found from source: {job_data['source']}. Skipping.")
+                    return None
+
+                job = Job(**job_data)
+                db.session.add(job)
+                db.session.flush()
+
+                for skill in skills:
+                    db.session.add(Skill(job_id=job.id, **skill))
+                db.session.commit()
+
+                if spider:
+                    spider.logger.info(f"Job {job.id} added to the database.")
+                else:
+                    print(f"Job {job.id} added to the database.")
+
+                return item
+            except Exception as e:
+                db.session.rollback()
+                if spider:
+                    spider.logger.error(f"Error adding job to database: {e}")
+                else:
+                    print(f"Error adding job to database: {e}")
+                return None

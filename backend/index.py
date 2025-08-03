@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, g
 from sqlalchemy import text, inspect, select
 from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
-from model import init_app, db
+from model import db
 from model.job import JobSchema, Job
 from model.job import Skill, SkillSchema
 import jwt
@@ -15,6 +15,7 @@ import subprocess
 import threading
 from flask_sock import Sock
 from functools import wraps
+import sys
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -35,7 +36,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['ADMIN_USERNAME'] = os.getenv('ADMIN_USERNAME')
 app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
-init_app(app)
+db.init_app(app)
 migrate = Migrate(app, db)
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -151,22 +152,15 @@ def run_spiders():
         return jsonify({"error": "Failed to start spiders"}), 500
 
 def start_crawlers():
-    spiders = ['seekspider']
-    threads = []
-    for spider in spiders:
-        thread = threading.Thread(target=run_spider, args=(spider,))
-        thread.start()
-        threads.append(thread)
-    for thread in threads:
-        thread.join()
+    run_spider()
 
-def run_spider(spider_name):
-    project_dir = os.path.join(os.path.dirname(__file__), 'itjobscraper')
-    if not os.path.exists(project_dir):
-        return
+def run_spider():
+    spider_name = "seekspider"
+    project_dir = os.path.dirname(__file__)
+    script_path = os.path.join(project_dir, 'seekscraper', 'run_spiders.py')
     try:
         process = subprocess.Popen(
-            ['scrapy', 'crawl', spider_name],
+            [sys.executable, script_path],  # Use current Python interpreter
             cwd=project_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
