@@ -30,7 +30,7 @@ const LoginForm = ({ onLoginSuccess }) => {
       const data = await response.json();
 
       if (response.ok && data.token) {
-        localStorage.setItem('token', `Bearer ${data.token}`);
+        localStorage.setItem('token', data.token);
         onLoginSuccess(); // Trigger success
       } else {
         setError(data.error || 'Invalid credentials.');

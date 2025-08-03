@@ -16,6 +16,7 @@ import threading
 from flask_sock import Sock
 from functools import wraps
 import sys
+from subprocess import run
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -140,22 +141,28 @@ def login():
 def admin():
     return jsonify({"message": "Welcome to the admin panel!"}), 200
 
-@app.route('/run-spiders', methods=['GET'])
+@app.route('/run-spiders', methods=['POST'])
 @token_required
 def run_spiders():
-    try:
-        logging.info("Starting spiders...")
-        threading.Thread(target=start_crawlers).start()
-        return jsonify({'message': 'Spiders started'}), 200
-    except Exception as e:
-        logging.error(f"Exception occurred while starting spiders: {e}", exc_info=True)
-        return jsonify({"error": "Failed to start spiders"}), 500
+    print("🧠 g.user:", g.user)
+    print("🔐 ADMIN_USERNAME from env:", app.config['ADMIN_USERNAME'])
 
-def start_crawlers():
-    run_spider()
+    if g.user["username"] != app.config['ADMIN_USERNAME']:
+        print("❌ Not authorized!")
+        return jsonify({"message": "Unauthorized"}), 403
+
+    def start():
+        script_path = os.path.join(os.path.dirname(__file__), 'seekscraper', 'run_spiders.py')
+        print("🚀 Running script:", script_path)
+        subprocess.run([sys.executable, script_path])
+
+    thread = threading.Thread(target=start)
+    thread.start()
+
+    return jsonify({"message": "Spiders are running"}), 200
 
 def run_spider():
-    spider_name = "seekspider"
+    spider_name = "job_spider"
     project_dir = os.path.dirname(__file__)
     script_path = os.path.join(project_dir, 'seekscraper', 'run_spiders.py')
     try:

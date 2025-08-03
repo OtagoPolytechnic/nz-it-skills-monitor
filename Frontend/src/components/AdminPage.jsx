@@ -38,27 +38,29 @@ const AdminPage = () => {
   };
 
   const handleScrapeStart = async () => {
-    const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/run-spiders`, {
-        method: 'GET',
-        headers: {
-          Authorization: token,
-        },
-      });
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/run-spiders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // ⬅️ 加 Bearer
+      },
+    });
 
-      if (response.ok) {
-        alert('Scraping Seek.com has started!');
-        navigate('/');
-      } else {
-        alert('Failed to start scraping.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error connecting to backend.');
+    if (response.ok) {
+      alert('Scraping Seek.com has started!');
+      navigate('/');
+    } else {
+      alert('Failed to start scraping.');
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert('Error connecting to backend.');
+  }
+};
+
 
   return (
     <div>
