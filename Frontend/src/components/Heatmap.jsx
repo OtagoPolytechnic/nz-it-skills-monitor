@@ -47,9 +47,9 @@ const LeafletHeatmap = () => {
     <div style={{ width: "100%", height: "100%", position: "relative", borderRadius: "8px", overflow: "hidden" }}>
       <MapContainer
         center={[-41.2865, 174.7762]}
-        zoom={1}
+        zoom={2}
         minZoom={5}
-        maxZoom={10}
+        maxZoom={15}
         maxBounds={[
           [-50, 165],
           [-33, 180],

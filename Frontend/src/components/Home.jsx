@@ -153,61 +153,19 @@ const Home = () => {
         }}
       >
         <h3 style={{ marginBottom: "1rem", color: "#333" }}>Locations</h3>
-        <div style={{ marginBottom: "0.5rem" }}>
-          <button
-            onClick={() => handleLocationChartChange("bar")}
-            style={{
-              backgroundColor: "#3b82f6", // Blue base color
-              color: "white",
-              padding: "0.5rem 1rem",
-              marginRight: "0.5rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")} // Darker blue on hover
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")} // Revert to original color
-          >
-            Bar
-          </button>
-          <button
-            onClick={() => handleLocationChartChange("pie")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              marginRight: "0.5rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Pie
-          </button>
-          <button
-            onClick={() => handleLocationChartChange("wordcloud")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Word Cloud
-          </button>
+        <div className="chart-type-toggle">
+          <span className="chart-type-label">Chart Type:</span>
+          {["bar", "pie", "wordcloud"].map((type) => (
+            <button
+              key={type}
+              onClick={() => handleLocationChartChange(type)}
+              className={`chart-type-btn ${locationChartType === type ? "active" : ""}`}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
         </div>
+
         <ChartWrapper
           chartType={locationChartType}
           title="Locations"
@@ -237,72 +195,25 @@ const Home = () => {
       <div
         className="chart-card"
         key={`${typeKey}-${currentType}`}
-        style={{
-          padding: "1rem",
-          borderRadius: "0.375rem",
-          border: "1px solid #e5e7eb",
-          backgroundColor: "#ffffff",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        }}
       >
         <h3 style={{ marginBottom: "1rem", color: "#333" }}>{title}</h3>
-        <div style={{ marginBottom: "0.5rem" }}>
-          <button
-            onClick={() => setLocalChartType("bar")}
-            style={{
-              backgroundColor: "#3b82f6", // Blue base color
-              color: "white",
-              padding: "0.5rem 1rem",
-              marginRight: "0.5rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Bar
-          </button>
-          <button
-            onClick={() => setLocalChartType("pie")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              marginRight: "0.5rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Pie
-          </button>
-          <button
-            onClick={() => setLocalChartType("wordcloud")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.5rem 1rem",
-              border: "none",
-              borderRadius: "0.375rem",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#3b82f6")}
-          >
-            Word Cloud
-          </button>
+
+        {/* Local chart type toggle for this chart */}
+        <div className="chart-type-toggle">
+          <span className="chart-type-label">Chart Type:</span>
+          {["bar", "pie", "wordcloud"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setLocalChartType(type)}
+              className={`chart-type-btn ${currentType === type ? "active" : ""}`}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
         </div>
+
+        {/* Chart component */}
         <ChartWrapper
-          key={typeKey}
           chartType={currentType}
           title={title}
           data={data}
@@ -391,62 +302,26 @@ const Home = () => {
         </div>
 
         {/* Global Chart Type Toggle */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "0.5rem",
-            margin: "1rem 0",
-          }}
-        >
-          <span style={{ fontWeight: "bold", marginRight: "1rem" }}>
-            Global Chart Type:
-          </span>
+        <div className="chart-type-toggle">
+          <span className="chart-type-label">Global Chart Type:</span>
           {["bar", "pie", "wordcloud"].map((type) => (
             <button
               key={type}
               onClick={() => setGlobalChartType(type)}
-              style={{
-                backgroundColor: "#3b82f6",
-                color: "white",
-                padding: "0.5rem 1rem",
-                border: "none",
-                borderRadius: "0.375rem",
-                cursor: "pointer",
-                fontWeight: "bold",
-                transition: "background-color 0.2s ease",
-              }}
-              onMouseOver={(e) =>
-                (e.target.style.backgroundColor = "#2563eb")
-              }
-              onMouseOut={(e) =>
-                (e.target.style.backgroundColor = "#3b82f6")
-              }
+              className={`chart-type-btn ${globalChartType === type ? "active" : ""}`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
           ))}
         </div>
 
+
         {/* Charts Section */}
         {hasData && (
           <div style={{ width: "100%" }}>
             {/* Location + Heatmap Split */}
-            <div
-              className="chart-card"
-              style={{
-                display: "flex",
-                gap: "2rem",
-                alignItems: "flex-start",
-                padding: "1rem",
-                borderRadius: "0.375rem",
-                border: "1px solid #e5e7eb",
-                backgroundColor: "#ffffff",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-              }}
-            >
+            <div className="chart-card" style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+
               {/* Left Column: Chart */}
               <div style={{ flex: 1 }}>
                 <h3 style={{ marginBottom: "1rem", color: "#333" }}>
@@ -508,4 +383,4 @@ const Home = () => {
     </div>
   );
 };
-  export default Home;
+export default Home;
