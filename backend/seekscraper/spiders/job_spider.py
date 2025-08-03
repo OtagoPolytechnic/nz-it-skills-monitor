@@ -28,7 +28,8 @@ class JobSpider(scrapy.Spider):
 
                     headers = self.custom_headers.copy()
                     headers['User-Agent'] = self.settings.get('USER_AGENT')
-                    print(f"USING USER AGENT: {headers['User-Agent']}")
+                    headers["Referer"] = "https://www.seek.co.nz/"
+                    print(f"🌀 Using UA: {headers['User-Agent']}")
 
                     url = f"https://www.seek.co.nz/job/{job_id}?type=standard&ref=search-standalone"
                     self.logger.info(f"Fetching URL: {url}")
@@ -54,7 +55,9 @@ class JobSpider(scrapy.Spider):
         job_source = response.meta.get('job_source', '')
         self.logger.info("Page fetched successfully.")
 
-        job_text = soup.get_text(separator=" ", strip=True)
+        main = soup.find("main")
+        job_text = main.get_text(separator=" ", strip=True) if main else soup.get_text(separator=" ", strip=True)
+
 
         try:
             file_exists = os.path.isfile('job_text.csv')

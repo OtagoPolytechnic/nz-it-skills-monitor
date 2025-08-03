@@ -17,19 +17,13 @@ class JobDatabasePipeline:
                 job_data = item.copy()
                 skills = job_data.pop('skills', [])
 
-                existing_job = Job.query.filter_by(
-                    title=job_data.get('title'),
-                    company=job_data.get('company'),
-                    date=job_data.get('date'),
-                    location=job_data.get('location')
-                ).first()
-
+                existing_job = Job.query.filter_by(source=job_data.get('source')).first()
 
                 if existing_job:
                     if spider:
-                        spider.logger.info(f"Duplicate job found: {job_data['title']} at {job_data['company']} on {job_data['date']}. Skipping.")
+                        spider.logger.info(f"Duplicate job found from source: {job_data['source']}. Skipping.")
                     else:
-                        print(f"Duplicate job found: {job_data['title']} at {job_data['company']} on {job_data['date']}. Skipping.")
+                        print(f"Duplicate job found from source: {job_data['source']}. Skipping.")
                     return None
 
                 job = Job(**job_data)
