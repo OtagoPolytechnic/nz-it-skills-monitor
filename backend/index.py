@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, g
 from sqlalchemy import text, inspect, select
 from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
-from model import init_app, db
+from model import db
 from model.job import JobSchema, Job
 from model.job import Skill, SkillSchema
 import jwt
@@ -15,6 +15,8 @@ import subprocess
 import threading
 from flask_sock import Sock
 from functools import wraps
+import sys
+from subprocess import run
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
@@ -35,7 +37,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['ADMIN_USERNAME'] = os.getenv('ADMIN_USERNAME')
 app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
-init_app(app)
+db.init_app(app)
 migrate = Migrate(app, db)
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -139,34 +141,33 @@ def login():
 def admin():
     return jsonify({"message": "Welcome to the admin panel!"}), 200
 
-@app.route('/run-spiders', methods=['GET'])
+@app.route('/run-spiders', methods=['POST'])
 @token_required
 def run_spiders():
-    try:
-        logging.info("Starting spiders...")
-        threading.Thread(target=start_crawlers).start()
-        return jsonify({'message': 'Spiders started'}), 200
-    except Exception as e:
-        logging.error(f"Exception occurred while starting spiders: {e}", exc_info=True)
-        return jsonify({"error": "Failed to start spiders"}), 500
+    print("🧠 g.user:", g.user)
+    print("🔐 ADMIN_USERNAME from env:", app.config['ADMIN_USERNAME'])
 
-def start_crawlers():
-    spiders = ['seekspider']
-    threads = []
-    for spider in spiders:
-        thread = threading.Thread(target=run_spider, args=(spider,))
-        thread.start()
-        threads.append(thread)
-    for thread in threads:
-        thread.join()
+    if g.user["username"] != app.config['ADMIN_USERNAME']:
+        print("❌ Not authorized!")
+        return jsonify({"message": "Unauthorized"}), 403
 
-def run_spider(spider_name):
-    project_dir = os.path.join(os.path.dirname(__file__), 'itjobscraper')
-    if not os.path.exists(project_dir):
-        return
+    def start():
+        script_path = os.path.join(os.path.dirname(__file__), 'seekscraper', 'run_spiders.py')
+        print("🚀 Running script:", script_path)
+        subprocess.run([sys.executable, script_path])
+
+    thread = threading.Thread(target=start)
+    thread.start()
+
+    return jsonify({"message": "Spiders are running"}), 200
+
+def run_spider():
+    spider_name = "job_spider"
+    project_dir = os.path.dirname(__file__)
+    script_path = os.path.join(project_dir, 'seekscraper', 'run_spiders.py')
     try:
         process = subprocess.Popen(
-            ['scrapy', 'crawl', spider_name],
+            [sys.executable, script_path],  # Use current Python interpreter
             cwd=project_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,

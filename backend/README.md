@@ -58,6 +58,7 @@ scrapy crawl <spider>
 
 Spiders available:
 `fetch_html`
+`job_spider`
 
 Settings for `fetch_html`
 ```

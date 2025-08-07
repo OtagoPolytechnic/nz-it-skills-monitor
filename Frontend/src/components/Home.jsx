@@ -13,7 +13,7 @@ const Home = () => {
     tool: [],
     platform: [],
     methodology: [],
-    databases: [],
+    database: [],
     "soft skill": [],
   });
   const [allJobs, setAllJobs] = useState([]);
@@ -52,6 +52,12 @@ const Home = () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/jobs`);
       const data = await res.json();
+
+      console.log(`✅ Total jobs fetched: ${data.length}`);
+    if (data.length > 0) {
+      console.log(`🕒 Latest job date: ${data[0].date}`);
+    }
+
       setAllJobs(data);
       setFilteredJobs(data);
     } catch (err) {
@@ -66,7 +72,7 @@ const Home = () => {
       tool: [],
       platform: [],
       methodology: [],
-      databases: [],
+      database: [],
       "soft skill": [],
     };
 

@@ -1,0 +1,156 @@
+from openai import OpenAI
+from pydantic import BaseModel, Field
+from enum import Enum
+import os
+from datetime import date
+import logging
+import asyncio
+
+from dotenv import load_dotenv
+load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+if not OPENAI_API_KEY:
+    raise Exception("OPENAI environment variable is not set. Please set it before running.")
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+class Duration(str, Enum):
+    Permanent = "Permanent"
+    Contract = "Contract"
+
+class Job(BaseModel):
+    date: str = Field(..., description="Leave empty.")
+    type: str = Field(..., description="Type of the position (e.g., Full time, Part time).")
+    title: str = Field(..., description="Title of the job position.")
+    salary: int = Field(..., description="Salary offered for the position.")
+    company: str = Field(..., description="Name of the company offering the position.")
+    category: str = Field(..., description="The category of the job position.")
+    duration: Duration = Field(..., description="Duration of the position (e.g., Permanent, Contract).")
+    location: str = Field(..., description="Location of the job position simplified to the closest large city in New Zealand (e.g., Auckland, Wellington, Christchurch, Hamilton, Tauranga, Napier, Hastings, Dunedin, Palmerston North, Nelson, Rotorua, New Plymouth, Whangārei, Invercargill, Whanganui).")
+    remote: bool = Field(..., description="Whether the job is remote or not.")
+    sector: str = Field(..., description="Sector of the job position, found in brackets ().")
+    source: str = Field(..., description="Leave empty.")
+    description: str = Field(..., description="Entire description of the job position")
+
+    class Skill(BaseModel):
+      name: str = Field(..., description="Name of the skill.")
+      type: str = Field(..., description="Type of skill (e.g., soft skill, tool, programming language, platform, methodology, databases, frameworks).")
+
+    skills: list[Skill] = Field(..., description="List of skills required for the job position.")
+
+
+system_prompts = [
+  "Extract the job information and skills using the provided schema. This job data is being used to power a career planning and curriculum alignment tool for IT educators.\n\n# Steps\n\nTitle:\n- Extract the job title as it is written.\n- Avoid rewording, abbreviating or generalizing the title.\n\nCompany:\n- Extract the name of the company advertising the job.\n\nType:\n- Extract the type of position the job is advertising, matching types from the schema.\n- If the found type does not match the samples, decide the closest match.\n\nDuration:\n- Extract the duration of the job position, matching types from the schema.\n- Avoid listing specific time terms, keep it general.\n\nRemote:\n- Determine if the job position is a remote position (true/false).\n- If the position mentions \"Remote\", \"Work from Home\", \"WFH\", \"Flexible Location\", return true.\n\nSalary:\n- Extract salary details as a plain integer.\n- Avoid including dollar signs and comma/period delimiters in the value.\n- If there is no value listed, or the value is not clear, return 0.\n\nLocation:\n- Extract the location based on the nearest Major New Zealand city if the suburb or area is not included in the list found in the schema.\n- If the location is too general (e.g. New Zealand), or located outside of New Zealand, return nothing.\n\nYou will be given a block of text. In this text, there will be a phrase in the format:\n\nCategory (Sector)\n\nYour task is to find any phrase that follows that format and extract only the relevant information. Specifically:\n\n- The **Category** is everything before the first opening parenthesis.\n- The **Sector** is everything inside the parentheses.\n- Do not repeat the full phrase in both fields.\n- Do not include the parentheses in the output.\n- Trim any leading or trailing whitespace.\n\nFormat your response like this:\nCategory: <only the category>\nSector: <only the sector>\n\nExample:\nInput text:\n\"The role is listed as Programme & Project Management (Information & Communication Technology).\"\n\nOutput:\nCategory: Programme & Project Management\nSector: Information & Communication Technology\n\nDescription:\n- Extract the full body of the job description.\n- Do not summarize the content.",
+  "You are an expert at recognizing soft skills.\n\nExtract all the soft skills in this job description.\n\nTake a moment to read through all of the skills.\nEnsure there are no duplicates in meaning or spelling.\nSimplify the skills to a simpler form.\nOnly collect up to the top 10 most common soft skills.\n\nRules for splitting and formatting skills:\nIf a skill contains \"and\", \"or\", \"/\", or \",\", split it into multiple skills.\nIf you cannot split a skill, do not include the skill.\nDo not include the words \"skill\" or \"skills\" in the skill.\nReplace hyphens with spaces.\n\nEvery type should be \"soft skill\".",
+  "You are an expert at recognizing programming languages.\n\nExtract all of the programming languages in this job description if any exist.\n\nMatch items extracted from the description to items in this list.\nPython\nJavaScript\nJava\nC\nC#\nC++\nTypeScript\nGo\nRust\nPHP\nLua\nSwift\nHaskell\n\nIf an item does not match an item from the list, do not include it.\n\nEvery type should be programming language.",
+  "You are an expert at recognizing frameworks.\n\nExtract all of the frameworks in this job description if any exist.\n\nMatch extracted skills to items in this list.\nITIL\nCOBIT\nTOGAF\nZachman Framework\nNIST Cybersecurity Framework\nMITRE ATT&CK\nCIS Controls\nISO/IEC 27001\nISO/IEC 20000\nMOF\nCMMI\nOpen FAIR\nDODAF\nETOM\nIT4IT\nReact\nAngular\nVue.js\nNode.js\nExpress.js\nDjango\nFlask\nFastAPI\nSpring Boot\nASP.NET Core\n.NET\nLaravel\nRuby on Rails\nNext.js\nNuxt.js\nNestJS\nSvelte\nFlutter\nQt\nElectron\nReact Native\nIonic\nKtor\nPhoenix\nTensorFlow\nPyTorch\nUnity\nUnreal Engine\nGodot\n\nIf an item does not match an item from the list, do not include it.\n\nEvery type should be \"framework\".",
+  "You are an expert at recognizing databases.\n\nExtract all of the databases in this job description if any exist.\n\nReturn nothing if no databases are mentioned.\n\nMatch items extracted from the description to exact items in this list.\nMySQL\nPostgreSQL\nMongoDB\nSQLite\nOracle Database\nMicrosoft SQL Server\nRedis\nMariaDB\nDynamoDB\nElasticsearch\nCassandra\nFirestore\nFirebase Realtime Database\nAmazon Aurora\nAmazon RDS\nAmazon Redshift\nGoogle Cloud SQL\nGoogle BigQuery\nAzure SQL Database\nCosmos DB\nIBM Db2\nNeo4j\nCouchbase\nClickHouse\nInfluxDB\nSnowflake\nTimescaleDB\nTiDB\nMemcached\n\nEvery type should be \"databases\".",
+  "You are an expert at recognizing tools.\n\nExtract all of the tools in this job description if any exist.\n\nMatch extracted skills to exact items in this list.\nHTML\nCSS\nSQL\nBash\nMarkdown\nRegex\nGit\nGitHub\nGitLab\nBitbucket\nDocker\nKubernetes\nJenkins\nCircleCI\nTravis CI\nTerraform\nAnsible\nPuppet\nChef\nPostman\ncURL\nVisual Studio Code\nIntelliJ IDEA\nPyCharm\nEclipse\nAndroid Studio\nXcode\nFigma\nAdobe XD\nJIRA\nTrello\nSlack\nZoom\nNotion\nConfluence\nVS Code Dev Containers\nSentry\nNew Relic\nDatadog\nSplunk\nPrometheus\nGrafana\nElasticsearch\nLogstash\nKibana\nAWS CLI\nAzure CLI\nkubectl\nHelm\nngrok\nWireshark\nBurp Suite\nNmap\nZAP (OWASP)\n\nReturn nothing if no tools are mentioned.\n\nEvery type should be \"tool\".",
+  "You are an expert at recognizing platforms.\n\nExtract all of the platforms in this job description if any exist.\n\nReturn nothing if no platforms are mentioned.\n\nRemove items that do not match the list below.\n\nMatch extracted skills to items in this list.\nAWS\nMicrosoft Azure\nGoogle Cloud Platform (GCP)\nHeroku\nNetlify\nVercel\nFirebase\nRender\nDigitalOcean\nCloudflare\nSalesforce\nWordPress\nShopify\nOpenShift\nPlatform.sh\nIBM Cloud\nOracle Cloud\nContentful\nStrapi\nAuth0\nSupabase\n\nEvery type should be \"platform\".",
+  "You are an expert at recognizing methodologies.\n\nExtract all of the methodologies in this job description if any exist.\n\nMatch skills in the job descriptions to items in this list.\nAgile\nScrum\nKanban\nWaterfall\nLean\nExtreme Programming\nDevOps\nScaled Agile Framework\nSpiral Model\nRapid Application Development\nFeature-Driven Development\nTest-Driven Development\nBehavior-Driven Development\nDomain-Driven Design\nSix Sigma\nITIL\nPRINCE2\nPMBOK\nRational Unified Process\n\nReturn nothing if no methodologies are mentioned.\n\nEvery type should be \"methodology\"."
+]
+
+async def _async_parse(prompt, job_text):
+    # If OpenAI client supports async, use await client.responses.parse(...)
+    # Otherwise, run in executor
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        None,
+        lambda: client.responses.parse(
+            model="gpt-4.1-mini",
+            input=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": prompt
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": job_text
+                        }
+                    ]
+                },
+            ],
+            text_format=Job,
+            reasoning={},
+            tools=[],
+            temperature=0,
+            max_output_tokens=4092,
+            top_p=0.8,
+            store=True
+        )
+    )
+
+async def structured_output(job_text: str, job_source: str) -> dict:
+    def clean_skills(skills):
+        type_priority = {
+            "programming language": 1,
+            "framework": 2,
+            "platform": 3,
+            "tool": 4,
+            "databases": 5,
+            "database": 5,
+            "methodology": 6,
+            "soft skill": 7,
+        }
+        filtered = [
+            s for s in skills
+            if s.type.strip().lower() != "skill"
+        ]
+        deduped = {}
+        for s in filtered:
+            name = s.name.strip().lower()
+            typ = s.type.strip().lower()
+            key = name
+            current_priority = type_priority.get(typ, 100)
+            if key not in deduped or current_priority < type_priority.get(deduped[key].type.lower(), 100):
+                deduped[key] = s
+        return list(deduped.values())
+
+    # Run all prompts concurrently
+    tasks = [
+        _async_parse(prompt, job_text)
+        for prompt in system_prompts
+    ]
+    responses = await asyncio.gather(*tasks)
+
+    # Merge all skills into one array, deduplicating by name+type
+    all_skills = []
+    seen = set()
+    for resp in responses:
+        if resp is None or not hasattr(resp, "output_parsed") or resp.output_parsed is None:
+            logger.warning("A response was None or missing output_parsed and will be skipped.")
+            continue
+        if not hasattr(resp.output_parsed, "skills") or resp.output_parsed.skills is None:
+            logger.warning("output_parsed has no skills attribute or is None, skipping.")
+            continue
+        for skill in resp.output_parsed.skills:
+            key = (skill.name, skill.type)
+            if key not in seen:
+                seen.add(key)
+                all_skills.append(skill)
+                logger.info(f"Added skill: {skill}")
+
+    all_skills = clean_skills(all_skills)
+
+    try:
+        logger.info("Merging OpenAI responses into a single job object.")
+        merged_job = responses[0].output_parsed.copy(update={"skills": all_skills, "source": job_source, "date": str(date.today())})
+        logger.info(f"Merged job created with {len(all_skills)} skills, source: {job_source}, date: {str(date.today())}")
+        return merged_job.dict()
+    except Exception as e:
+        logger.error(f"Error parsing OpenAI response: {e}")
+        raise Exception(f"Error parsing OpenAI response: {e}")

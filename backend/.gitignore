@@ -1,6 +1,8 @@
 # Scraper project specific output files
 cleaned_page.html
 job_ids.json
+job_text.csv
+openai_responses.json
 
 
 # Byte-compiled / optimized / DLL files
@@ -177,3 +179,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# OpenAI processing outputs
+job_text.csv
+openai_responses.json
