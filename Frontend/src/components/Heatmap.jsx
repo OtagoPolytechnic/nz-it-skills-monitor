@@ -44,11 +44,10 @@ const LeafletHeatmap = () => {
   }, []);
 
   return (
-    <div style={{ width: "100vw", height: "90vh", margin: 0, padding: 0 }}>
-      <h2 style={{ textAlign: "center", marginTop: "1rem" }}>NZ Job Heatmap</h2>
+    <div style={{ width: "100%", height: "100%", position: "relative", borderRadius: "8px", overflow: "hidden" }}>
       <MapContainer
         center={[-41.2865, 174.7762]}
-        zoom={6}
+        zoom={2}
         minZoom={5}
         maxZoom={15}
         maxBounds={[
@@ -56,7 +55,7 @@ const LeafletHeatmap = () => {
           [-33, 180],
         ]}
         maxBoundsViscosity={1.0}
-        style={{ height: "90vh", width: "100vw" }}
+         style={{ width: "100%", height: "100%" }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
