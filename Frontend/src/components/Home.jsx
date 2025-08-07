@@ -13,7 +13,7 @@ const Home = () => {
     tool: [],
     platform: [],
     methodology: [],
-    databases: [],
+    database: [],
     "soft skill": [],
   });
   const [allJobs, setAllJobs] = useState([]);
@@ -72,7 +72,7 @@ const Home = () => {
       tool: [],
       platform: [],
       methodology: [],
-      databases: [],
+      database: [],
       "soft skill": [],
     };
 
