@@ -1,24 +1,32 @@
-// src/components/Navbar.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './App.css';
 
 const Navbar = () => {
-  return (
-<nav className="navbar">
-  <div className="navbar-container">
-    <div className="logo">IT Monitor</div>
-    <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-      ☰
-    </button>
-    <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
-      <Link to="/" className="nav-link">Home</Link>
-      <Link to="/it-jobs" className="nav-link">IT Jobs Screen</Link>
-      <Link to="/admin" className="nav-link">Admin</Link>
-    </div>
-  </div>
-</nav>
+  const [menuOpen, setMenuOpen] = useState(false);
 
+  return (
+    <nav className="navbar">
+      <div className="navbar-container">
+        <div className="navbar-brand">IT Monitor</div>
+
+        <button
+          className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+        >
+          <div className="bar" />
+          <div className="bar" />
+          <div className="bar" />
+        </button>
+
+        <div className={`navbar-links ${menuOpen ? 'show' : ''}`}>
+          <Link to="/" className="nav-link" onClick={() => setMenuOpen(false)}>Home</Link>
+          <Link to="/it-jobs" className="nav-link" onClick={() => setMenuOpen(false)}>IT Jobs</Link>
+          <Link to="/admin" className="nav-link" onClick={() => setMenuOpen(false)}>Admin</Link>
+        </div>
+      </div>
+    </nav>
   );
 };
 

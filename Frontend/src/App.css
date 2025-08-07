@@ -8,21 +8,106 @@ body {
 
 /* Navbar styles */
 .navbar {
-  background-color: #333;
-  padding: 10px 20px;
-  text-align: center;
+  background-color: #111827;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .nav-link {
-  color: white;
   text-decoration: none;
-  margin: 0 10px;
-  font-size: 18px;
+  color: #f9fafb;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .nav-link:hover {
-  text-decoration: underline;
+  color: #3b82f6;
 }
+
+/* --- Hamburger --- */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.hamburger-btn .bar {
+  height: 3px;
+  width: 100%;
+  background-color: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-btn.open .bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger-btn.open .bar:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-btn.open .bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .navbar-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
+    background-color: #1f2937;
+    padding: 1rem 0;
+    gap: 1rem;
+    border-top: 1px solid #374151;
+  }
+
+  .navbar-links.show {
+    display: flex;
+  }
+
+  .nav-link {
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+  }
+}
+
 
 /* Content container - Centers everything properly */
 .content-container {
