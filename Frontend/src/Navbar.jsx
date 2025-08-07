@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import './App.css';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import "./App.css";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -8,10 +8,12 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <div className="navbar-brand">IT Monitor</div>
+        <div className="navbar-brand">
+          <span style={{ color: "#3b82f6" }}>IT</span> Monitor
+        </div>
 
         <button
-          className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
+          className={`hamburger-btn ${menuOpen ? "open" : ""}`}
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -20,10 +22,24 @@ const Navbar = () => {
           <div className="bar" />
         </button>
 
-        <div className={`navbar-links ${menuOpen ? 'show' : ''}`}>
-          <Link to="/" className="nav-link" onClick={() => setMenuOpen(false)}>Home</Link>
-          <Link to="/it-jobs" className="nav-link" onClick={() => setMenuOpen(false)}>IT Jobs</Link>
-          <Link to="/admin" className="nav-link" onClick={() => setMenuOpen(false)}>Admin</Link>
+        <div className={`navbar-links ${menuOpen ? "show" : ""}`}>
+          <Link to="/" className="nav-link" onClick={() => setMenuOpen(false)}>
+            Home
+          </Link>
+          <Link
+            to="/it-jobs"
+            className="nav-link"
+            onClick={() => setMenuOpen(false)}
+          >
+            IT Jobs
+          </Link>
+          <Link
+            to="/admin"
+            className="nav-link"
+            onClick={() => setMenuOpen(false)}
+          >
+            Admin
+          </Link>
         </div>
       </div>
     </nav>
