@@ -1,42 +1,33 @@
-// src/components/LoginForm.jsx
-
-// .env File : 
-// VITE_ADMIN_USERNAME=admin
-// VITE_ADMIN_PASSWORD=verylongadminpassword
-
-
-
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const LoginForm = ({ onLoginSuccess }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
   const apiUrl = import.meta.env.VITE_API_URL;
-
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.token) {
-        localStorage.setItem('token', data.token);
+        localStorage.setItem("token", data.token);
         onLoginSuccess(); // Trigger success
       } else {
-        setError(data.error || 'Invalid credentials.');
+        setError(data.error || "Invalid credentials.");
       }
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      setError("Something went wrong. Please try again.");
     }
   };
 
@@ -52,13 +43,41 @@ const LoginForm = ({ onLoginSuccess }) => {
         required
       />
       <input
-        type="password"
+        type={showPassword ? "text" : "password"}
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
       />
-      <button type="submit" className="btn">Login</button>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "flex-start",
+          marginTop: "0.5rem",
+        }}
+      >
+        <label
+          style={{
+            fontSize: "0.9rem",
+            display: "flex",
+            alignItems: "center",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={showPassword}
+            onChange={() => setShowPassword(!showPassword)}
+            style={{ marginRight: "0.5rem" }}
+          />
+          Show password
+        </label>
+      </div>
+
+      <button type="submit" className="btn">
+        Login
+      </button>
     </form>
   );
 };
