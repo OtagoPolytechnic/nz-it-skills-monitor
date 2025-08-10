@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../Navbar";
 import ChartWrapper from "./ChartStyle/ChartWrapper";
-import SkillsChart from "./SkillsChart";
 import LeafletHeatmap from "./Heatmap";
 import "../App.css";
 
@@ -54,9 +53,9 @@ const Home = () => {
       const data = await res.json();
 
       console.log(`✅ Total jobs fetched: ${data.length}`);
-    if (data.length > 0) {
-      console.log(`🕒 Latest job date: ${data[0].date}`);
-    }
+      if (data.length > 0) {
+        console.log(`🕒 Latest job date: ${data[0].date}`);
+      }
 
       setAllJobs(data);
       setFilteredJobs(data);
@@ -64,6 +63,20 @@ const Home = () => {
       console.error("Error fetching jobs:", err);
     }
   };
+
+  const handleCategoryChange = (value) => {
+    setCategoryFilter(value);
+    const filtered = value
+      ? allJobs.filter(
+        (job) => job.category?.toLowerCase() === value.toLowerCase()
+      )
+      : allJobs;
+    setFilteredJobs(filtered);
+  };
+
+  const categories = [...new Set(allJobs.map((j) => j.category))]
+    .filter(Boolean)
+    .sort();
 
   const extractSkills = (jobs) => {
     const grouped = {
@@ -234,78 +247,13 @@ const Home = () => {
 
   return (
     <div>
-      <Navbar />
+      <Navbar
+        categories={categories}
+        categoryFilter={categoryFilter}
+        onCategoryChange={handleCategoryChange}
+      />
+
       <div className="stacked-dashboard">
-        {/* Category Dropdown */}
-        <div
-          className="category-dropdown"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginBottom: "1rem",
-            width: "100%",
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              padding: "1rem",
-              borderRadius: "0.375rem",
-              border: "1px solid #e5e7eb",
-              backgroundColor: "#ffffff",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-              width: "300px",
-              textAlign: "center",
-            }}
-          >
-            <label
-              style={{
-                fontWeight: "bold",
-                marginBottom: "0.5rem",
-                display: "block",
-              }}
-            >
-              Category:
-            </label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => {
-                setCategoryFilter(e.target.value);
-                setFilteredJobs(
-                  e.target.value
-                    ? allJobs.filter(
-                      (job) =>
-                        job.category?.toLowerCase() ===
-                        e.target.value.toLowerCase()
-                    )
-                    : allJobs
-                );
-              }}
-              style={{
-                padding: "0.5rem 1rem",
-                borderRadius: "0.375rem",
-                border: "1px solid #d1d5db",
-                width: "100%",
-                fontSize: "1rem",
-                backgroundColor: "#f9fafb",
-                color: "#333",
-                cursor: "pointer",
-                transition: "background-color 0.2s ease",
-              }}
-            >
-              <option value="">All</option>
-              {[...new Set(allJobs.map((job) => job.category))]
-                .filter(Boolean)
-                .sort()
-                .map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-            </select>
-          </div>
-        </div>
 
         {/* Global Chart Type Toggle */}
         <div className="chart-type-toggle">
