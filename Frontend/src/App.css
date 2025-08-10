@@ -109,6 +109,7 @@ body {
 }
 
 
+
 /* Content container - Centers everything properly */
 .content-container {
   display: flex;
@@ -198,7 +199,7 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 40px 50px;
+  padding: 40px 100px;
 }
 
 /* Card style for both sections */
@@ -267,5 +268,44 @@ h2 {
 
 .chart-card:hover {
   transform: scale(1.01);
+}
+
+.chart-type-toggle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.chart-type-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  padding-left: 2rem; 
+}
+
+.chart-type-label {
+  font-weight: 500;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.chart-type-btn {
+  background-color: #1f2937;    
+  color: #e5e7eb;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.chart-type-btn:hover {
+  background-color: #111827;    
 }
 
