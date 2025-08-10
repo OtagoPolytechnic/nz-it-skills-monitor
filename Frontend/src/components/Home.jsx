@@ -251,25 +251,11 @@ const Home = () => {
         categories={categories}
         categoryFilter={categoryFilter}
         onCategoryChange={handleCategoryChange}
+        chartType={globalChartType}
+        onChartTypeChange={setGlobalChartType}
       />
 
       <div className="stacked-dashboard">
-
-        {/* Global Chart Type Toggle */}
-        <div className="chart-type-toggle">
-          <span className="chart-type-label">Global Chart Type:</span>
-          {["bar", "pie", "wordcloud"].map((type) => (
-            <button
-              key={type}
-              onClick={() => setGlobalChartType(type)}
-              className={`chart-type-btn ${globalChartType === type ? "active" : ""}`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
-          ))}
-        </div>
-
-
         {/* Charts Section */}
         {hasData && (
           <div style={{ width: "100%" }}>

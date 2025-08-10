@@ -2,10 +2,19 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "./App.css";
 
-const Navbar = ({ categories = [], categoryFilter = "", onCategoryChange }) => {
+const Navbar = ({
+  categories = [],
+  categoryFilter = "",
+  onCategoryChange,
+  chartType = "bar",
+  onChartTypeChange
+}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [chartOpen, setChartOpen] = useState(false);
+
+  const catRef = useRef(null);
+  const chartRef = useRef(null);
 
   const selectCategory = (value) => {
     if (onCategoryChange) onCategoryChange(value);
@@ -13,15 +22,22 @@ const Navbar = ({ categories = [], categoryFilter = "", onCategoryChange }) => {
     setMenuOpen(false);
   };
 
+  const selectChartType = (value) => {
+    if (onChartTypeChange) onChartTypeChange(value);
+    setChartOpen(false);
+    setMenuOpen(false);
+  };
+
   useEffect(() => {
     const handleClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setCatOpen(false);
-      }
+      if (catRef.current && !catRef.current.contains(e.target)) setCatOpen(false);
+      if (chartRef.current && !chartRef.current.contains(e.target)) setChartOpen(false);
     };
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, []);
+
+  const labelize = (v) => v.charAt(0).toUpperCase() + v.slice(1);
 
   return (
     <nav className="navbar">
@@ -45,11 +61,15 @@ const Navbar = ({ categories = [], categoryFilter = "", onCategoryChange }) => {
             Home
           </Link>
 
-          <div className="nav-dropdown" ref={dropdownRef}>
+          {/* Category dropdown */}
+          <div className="nav-dropdown" ref={catRef}>
             <button
               type="button"
               className="nav-link dropdown-trigger"
-              onClick={() => setCatOpen((o) => !o)}
+              onClick={() => {
+                setCatOpen((o) => !o);
+                setChartOpen(false);
+              }}
             >
               {categoryFilter || "Category"}
               <span className="caret" />
@@ -67,6 +87,35 @@ const Navbar = ({ categories = [], categoryFilter = "", onCategoryChange }) => {
                     onClick={() => selectCategory(cat)}
                   >
                     {cat}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Chart Type dropdown */}
+          <div className="nav-dropdown" ref={chartRef}>
+            <button
+              type="button"
+              className="nav-link dropdown-trigger"
+              onClick={() => {
+                setChartOpen((o) => !o);
+                setCatOpen(false);
+              }}
+            >
+              {`Chart Type: ${labelize(chartType)}`}
+              <span className="caret" />
+            </button>
+
+            {chartOpen && (
+              <div className="dropdown-menu">
+                {["bar", "pie", "wordcloud"].map((t) => (
+                  <button
+                    key={t}
+                    className={`dropdown-item${chartType === t ? " active" : ""}`}
+                    onClick={() => selectChartType(t)}
+                  >
+                    {labelize(t)}
                   </button>
                 ))}
               </div>
