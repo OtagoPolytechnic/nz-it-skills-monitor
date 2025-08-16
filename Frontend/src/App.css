@@ -379,3 +379,61 @@ h2 {
 
 .dropdown-item:hover { background: #f3f4f6; }
 .dropdown-item.active { background: #e5efff; font-weight: 600; }
+
+
+/* --- Summary KPI Section --- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.summary-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb; /* light gray border */
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.summary-title {
+  font-size: 14px;
+  color: #6b7280; /* gray-500 */
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.summary-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827; /* gray-900 */
+  line-height: 1.2;
+}
+
+.summary-helper {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9ca3af; /* gray-400 */
+}
+
+@media (max-width: 640px) {
+  .summary-grid {
+    gap: 12px;
+  }
+  .summary-value {
+    font-size: 22px;
+  }
+}
+
