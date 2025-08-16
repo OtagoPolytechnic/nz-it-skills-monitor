@@ -124,6 +124,29 @@ def get_skills_by_type():
     except Exception as e:
         logging.error(f"Failed to fetch skills by type: {e}", exc_info=True)
         return jsonify({'error': 'Internal Server Error'}), 500
+    
+@app.route('/skills-summary', methods=['GET'])
+def get_skills_summary():
+    try:
+        results = (
+            db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
+            .group_by(Skill.type, Skill.name)
+            .order_by(Skill.type, db.func.count().desc())
+            .all()
+        )
+
+        summary = []
+        for skill_type, skill_name, count in results:
+            summary.append({
+                "type": skill_type,
+                "skill": skill_name,
+                "count": count
+            })
+
+        return jsonify(summary), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -245,6 +268,29 @@ def job_locations():
         heatmap_points.append([lat, lng, count])
 
     return jsonify(heatmap_points)
+
+@app.route('/location-summary', methods=['GET'])
+def get_location_summary():
+    try:
+        results = (
+            db.session.query(Job.location, db.func.count().label("count"))
+            .group_by(Job.location)
+            .order_by(db.func.count().desc())
+            .all()
+        )
+
+        summary = []
+        for location, count in results:
+            if location and location.lower() != 'none':
+                summary.append({
+                    "location": location,
+                    "count": count
+                })
+
+        return jsonify(summary), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
