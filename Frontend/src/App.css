@@ -1,19 +1,29 @@
-/* Global styles */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f4f4;
+/* ================== GLOBAL STYLES ================== */
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --brand: #3b82f6;
+  --ring: #e5e7eb;
+  --shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+  --radius: 14px;
 }
 
-/* Navbar styles */
+body {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+/* ================== NAVBAR ================== */
 .navbar {
   background-color: #111827;
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: 2.8rem 2rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
   z-index: 999;
 }
 
@@ -27,7 +37,7 @@ body {
 }
 
 .navbar-brand {
-  font-size: 1.5rem;
+  font-size: 2.1rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   color: white;
@@ -42,16 +52,69 @@ body {
 .nav-link {
   text-decoration: none;
   color: #f9fafb;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .nav-link:hover {
-  color: #3b82f6;
+  color: var(--brand);
 }
 
-/* --- Hamburger --- */
+/* Dropdown wrapper */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-link.dropdown-trigger {
+  background-color: #374151;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 1rem;
+}
+
+/* Actual dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem 0;
+  z-index: 999;
+  min-width: 180px;
+  max-height: 300px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 #1f2937;
+}
+
+/* Each dropdown item */
+.dropdown-item {
+  padding: 10px 16px;
+  background-color: transparent;
+  color: white;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #374151;
+}
+
+.dropdown-item.active {
+  font-weight: bold;
+  background-color: #4b5563;
+}
+
+/* Hamburger */
 .hamburger-btn {
   display: none;
   flex-direction: column;
@@ -81,12 +144,11 @@ body {
   transform: translateY(-7px) rotate(-45deg);
 }
 
-/* --- Responsive --- */
+/* Responsive Navbar */
 @media (max-width: 768px) {
   .hamburger-btn {
     display: flex;
   }
-
   .navbar-links {
     display: none;
     flex-direction: column;
@@ -97,222 +159,101 @@ body {
     gap: 1rem;
     border-top: 1px solid #374151;
   }
-
   .navbar-links.show {
     display: flex;
   }
-
   .nav-link {
     font-size: 1.1rem;
     padding: 0.5rem 0;
   }
 }
 
-
-
-/* Content container - Centers everything properly */
-.content-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 80vh; /* Centers vertically and takes 80% of the viewport height */
+/* ================== LAYOUT CONTAINERS ================== */
+.page-container {
+  padding-left: 50px;
+  padding-right: 50px;
+  box-sizing: border-box;
+  margin-bottom: 2rem;
 }
 
-/* Admin and login container */
-.login-form {
-  width: 300px;
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column; /* Stack inputs and buttons vertically */
-  justify-content: center;
-  align-items: center;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 240px;
 }
 
-/* Admin Dashboard or Content Box */
-.admin-container {
-  background: white;
-  padding: 20px;
-  margin-top: 20px;
-  width: 300px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.section {
+  margin: 28px 0;
 }
 
-/* Form input fields */
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  box-sizing: border-box; /* Prevents padding from breaking layout */
-  border: 1px solid #ccc;
-  border-radius: 4px;
+/* ================== CHART & CARD STYLES ================== */
+.chart-card,
+.card {
+  background: var(--card);
+  border: 1px solid var(--ring);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  margin-bottom: 2rem;
+  transition: transform 0.3s;
+  overflow: hidden;
+}
+.chart-card:hover {
+  transform: scale(1.01);
 }
 
-/* Button styles */
-.btn {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.chart-400 {
+  height: 400px;
+}
+.chart-420 {
+  height: 420px;
 }
 
-.btn:hover {
-  background-color: #0056b3;
-}
-
-/* Error message styles */
-.error {
-  color: red;
-  margin-bottom: 10px;
-}
-
-/* Heading styles */
-h2 {
-  margin-bottom: 20px;
-  font-size: 24px;
-}
-
-/* Utility spacing */
-.mt-20 {
-  margin-top: 20px;
-}
-
-/* Dashboard layout for Home page */
-.dashboard-container {
+/* Two-column layout */
+.two-col {
   display: grid;
-  grid-template-columns: 1fr 2fr; /* Left: IT Jobs by Country | Right: Skills Chart */
-  gap: 20px;
-  padding: 200px 50px;
-  align-items: center;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
-/* Stacked dashboard layout for multiple skill sections */
+.full-width {
+  padding-left: 20px;
+  padding-right: 20px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 960px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================== DASHBOARD & TOGGLES ================== */
 .stacked-dashboard {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   padding: 2rem 1rem;
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-/* Chart container */
-.chart-card {
-  width: 100%;
-  background-color: white;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  transition: transform 0.3s;
-  overflow: hidden;
-}
-
-.chart-card:hover {
-  transform: scale(1.01);
-}
-
-/* Card style for both sections */
-.card {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* IT Jobs by Country list */
-.city-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.city-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.city-item:last-child {
-  border-bottom: none;
-}
-
-.chart-card {
-  padding: 1rem;
-  margin-bottom: 2rem;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.pie-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.button-wrapper {
-  margin-top: 1rem;
-}
-
-.expand-btn {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.chart-card {
-  padding: 1rem;
-  margin-bottom: 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  transition: transform 0.3s;
-}
-
-.chart-card:hover {
-  transform: scale(1.01);
-}
-
-.chart-type-toggle {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin: 1.5rem 0;
-}
-
 .chart-type-toggle {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin: 1.5rem 0;
-  padding-left: 2rem; 
+  padding-left: 2rem;
 }
-
 .chart-type-label {
   font-weight: 500;
   font-size: 16px;
   color: #1f2937;
 }
-
 .chart-type-btn {
-  background-color: #1f2937;    
+  background-color: #1f2937;
   color: #e5e7eb;
   padding: 0.5rem 1.2rem;
   border: none;
@@ -322,118 +263,106 @@ h2 {
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
-
 .chart-type-btn:hover {
-  background-color: #111827;    
+  background-color: #111827;
 }
 
-.nav-dropdown { position: relative; }
-
-.dropdown-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
+/* Expand button */
+.expand-btn {
+  background: var(--brand);
   border: none;
-  color: #f9fafb;
-  font-size: 1rem;
-  font-weight: 500;
+  padding: 8px 14px;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-top: 8px;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+.expand-btn:hover {
+  filter: brightness(0.95);
 }
 
-.dropdown-trigger:hover { color: #3b82f6; }
-
-.caret {
-  width: 0; height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid currentColor;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 110%;
-  left: 0;
-  min-width: 220px;
-  max-height: 60vh;
-  overflow: auto;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.12);
-  z-index: 1000;
-  padding: 6px;
-}
-
-.dropdown-item {
-  width: 100%;
-  text-align: left;
-  padding: 8px 10px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 6px;
-  color: #111827;
-  font-size: 0.95rem;
-}
-
-.dropdown-item:hover { background: #f3f4f6; }
-.dropdown-item.active { background: #e5efff; font-weight: 600; }
-
-
-/* --- Summary KPI Section --- */
+/* ================== SUMMARY STATS ================== */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin: 20px 0;
 }
-
 .summary-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb; /* light gray border */
-  border-radius: 12px;
+  background-color: var(--card);
+  border: 1px solid var(--ring);
+  border-radius: var(--radius);
   padding: 16px 18px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   justify-content: center;
   min-height: 100px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .summary-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
-
 .summary-title {
   font-size: 14px;
-  color: #6b7280; /* gray-500 */
+  color: var(--muted);
   margin-bottom: 6px;
-  letter-spacing: 0.3px;
   text-transform: uppercase;
 }
-
 .summary-value {
   font-size: 26px;
   font-weight: 700;
-  color: #111827; /* gray-900 */
+  color: var(--text);
   line-height: 1.2;
 }
-
 .summary-helper {
   margin-top: 4px;
   font-size: 12px;
-  color: #9ca3af; /* gray-400 */
+  color: #9ca3af;
 }
-
 @media (max-width: 640px) {
   .summary-grid {
     gap: 12px;
   }
   .summary-value {
     font-size: 22px;
+  }
+}
+
+/* ================== HEATMAP ================== */
+.heatmap-container {
+  height: 460px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 0 14px 14px; /* optional for matching top card curve */
+}
+
+
+/* ================== RESPONSIVE GRID: Location + Heatmap ================== */
+.location-heatmap-grid {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 960px) {
+  .location-heatmap-grid {
+    flex-direction: column;
+  }
+  .two-col {
+    grid-template-columns: 1fr;
   }
 }
 

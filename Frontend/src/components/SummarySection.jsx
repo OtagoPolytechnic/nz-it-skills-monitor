@@ -1,18 +1,20 @@
 import React, { useMemo } from "react";
 import SummaryCard from "./SummaryCard";
 
-// Try to get a single numeric salary from various shapes
+// ----- helpers -----
 function pickSalary(job) {
   const m = Number(job?.salary_min);
   const x = Number(job?.salary_max);
   const s = Number(job?.salary);
-
   if (!Number.isNaN(m) && !Number.isNaN(x) && x > 0) return (m + x) / 2;
   if (!Number.isNaN(s) && s > 0) return s;
 
-  // Parse something like "90k–120k" or "110000"
-  const text = String(job?.compensation || job?.salary_text || job?.salaryRange || job?.salaryStr || "");
-  const nums = (text.match(/\d+(?:[.,]?\d+)?/g) || []).map(n => Number(n.replace(/,/g, "")));
+  const text = String(
+    job?.compensation || job?.salary_text || job?.salaryRange || job?.salaryStr || ""
+  );
+  const nums = (text.match(/\d+(?:[.,]?\d+)?/g) || []).map(n =>
+    Number(n.replace(/,/g, ""))
+  );
   if (nums.length === 2) return (nums[0] + nums[1]) / 2;
   if (nums.length === 1) return nums[0];
   return null;
@@ -26,8 +28,14 @@ function mostCommon(list) {
     if (!key || key === "none") continue;
     map.set(key, (map.get(key) || 0) + 1);
   }
-  let best = null, max = 0;
-  map.forEach((v, k) => { if (v > max) { max = v; best = k; }});
+  let best = null,
+    max = 0;
+  map.forEach((v, k) => {
+    if (v > max) {
+      max = v;
+      best = k;
+    }
+  });
   return best ? { value: best, count: max } : null;
 }
 
@@ -41,11 +49,20 @@ function topSkillFromJobs(jobs) {
       bag.set(nm, (bag.get(nm) || 0) + 1);
     }
   }
-  let best = null, max = 0;
-  bag.forEach((v, k) => { if (v > max) { max = v; best = k; }});
+  let best = null,
+    max = 0;
+  bag.forEach((v, k) => {
+    if (v > max) {
+      max = v;
+      best = k;
+    }
+  });
   return best ? { value: best, count: max } : null;
 }
 
+const titleCase = (s) => (s ? s.replace(/\b\w/g, (c) => c.toUpperCase()) : s);
+
+// ----- component -----
 const SummarySection = ({ jobs = [] }) => {
   const stats = useMemo(() => {
     const total = jobs.length;
@@ -61,8 +78,8 @@ const SummarySection = ({ jobs = [] }) => {
       : null;
 
     // Other key stats
-    const location = mostCommon(jobs.map(j => j.location));
-    const category = mostCommon(jobs.map(j => j.category));
+    const location = mostCommon(jobs.map((j) => j.location));
+    const category = mostCommon(jobs.map((j) => j.category));
     const topSkill = topSkillFromJobs(jobs);
 
     return { total, avgSalary, location, category, topSkill };
@@ -82,17 +99,17 @@ const SummarySection = ({ jobs = [] }) => {
       />
       <SummaryCard
         title="Most Common Location"
-        value={stats.location ? stats.location.value : "N/A"}
+        value={stats.location ? titleCase(stats.location.value) : "N/A"}
         helper={stats.location ? `${stats.location.count} listings` : "—"}
       />
       <SummaryCard
         title="Top Skill"
-        value={stats.topSkill ? stats.topSkill.value : "N/A"}
+        value={stats.topSkill ? titleCase(stats.topSkill.value) : "N/A"}
         helper={stats.topSkill ? `${stats.topSkill.count} mentions` : "—"}
       />
       <SummaryCard
         title="Top Category"
-        value={stats.category ? stats.category.value : "N/A"}
+        value={stats.category ? titleCase(stats.category.value) : "N/A"}
         helper={stats.category ? `${stats.category.count} listings` : "—"}
       />
     </section>

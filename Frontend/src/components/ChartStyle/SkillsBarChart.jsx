@@ -1,15 +1,38 @@
 // src/components/ChartStyle/SkillsBarChart.jsx
-import React from 'react';
+import React from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-} from 'recharts';
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 
 const COLORS = [
-  '#4caf50', '#2196f3', '#ff9800', '#e91e63', '#9c27b0',
-  '#00bcd4', '#8bc34a', '#ffc107', '#f44336', '#3f51b5',
+  "#4caf50",
+  "#2196f3",
+  "#ff9800",
+  "#e91e63",
+  "#9c27b0",
+  "#00bcd4",
+  "#8bc34a",
+  "#ffc107",
+  "#f44336",
+  "#3f51b5",
 ];
 
-const SkillsBarChart = ({ title, data, dataKey, barKey, chartMode, currentMode, expanded, onToggleExpand  }) => {
+const SkillsBarChart = ({
+  title,
+  data,
+  dataKey,
+  barKey,
+  chartMode,
+  currentMode,
+  expanded,
+  onToggleExpand,
+}) => {
   if (chartMode !== currentMode) return null;
 
   const sortedData = [...data].sort((a, b) => b[barKey] - a[barKey]);
@@ -18,9 +41,9 @@ const SkillsBarChart = ({ title, data, dataKey, barKey, chartMode, currentMode, 
   return (
     <div>
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart layout="vertical" data={displayedData}>
-          <XAxis type="number" />
-          <YAxis type="category" dataKey={dataKey} width={150} />
+        <BarChart layout="horizontal" data={displayedData}>
+          <XAxis type="category" dataKey={dataKey} />
+          <YAxis type="number" />
           <Tooltip />
           <Bar
             dataKey={barKey}
@@ -28,13 +51,17 @@ const SkillsBarChart = ({ title, data, dataKey, barKey, chartMode, currentMode, 
             isAnimationActive={true}
           >
             {displayedData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell
+                key={`cell-${index}`}
+                fill="#4dd0e1"
+                radius={[10, 10, 0, 0]}
+              />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
       <button className="expand-btn" onClick={onToggleExpand}>
-        {expanded ? 'Collapse' : 'Expand'}
+        {expanded ? "Collapse" : "Expand"}
       </button>
     </div>
   );

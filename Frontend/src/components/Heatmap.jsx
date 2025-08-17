@@ -43,6 +43,13 @@ const LeafletHeatmap = () => {
       .catch((err) => console.error("Heatmap load error", err));
   }, []);
 
+  useEffect(() => {
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 100);
+  }, []);
+
+
   return (
     <div style={{ width: "100%", height: "100%", position: "relative", borderRadius: "8px", overflow: "hidden" }}>
       <MapContainer
