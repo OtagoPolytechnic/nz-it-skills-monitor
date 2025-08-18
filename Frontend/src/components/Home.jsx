@@ -18,6 +18,7 @@ const Home = () => {
     "soft skill": [],
   });
   const [allJobs, setAllJobs] = useState([]);
+  const [locationData, setLocationData] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -119,11 +120,10 @@ const Home = () => {
   }, [filteredJobs]);
 
   useEffect(() => {
-    fetchJobs();
-  }, []);
-  useEffect(() => {
-    extractSkills(filteredJobs);
-  }, [filteredJobs]);
+  fetchJobs();
+  fetchSkillsSummary();
+  fetchLocationSummary();
+}, []);
 
   useEffect(() => {
     const updated = {};
@@ -137,6 +137,46 @@ const Home = () => {
     setLocationChartType(globalChartType);
     setLocationExpanded(false);
   }, [globalChartType]);
+
+  const fetchSkillsSummary = async () => {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/skills-summary`);
+    const data = await res.json();
+
+    const grouped = {};
+    data.forEach(item => {
+      const type = item.type?.toLowerCase();
+      if (!grouped[type]) grouped[type] = [];
+      grouped[type].push({ skill: item.skill, count: item.count });
+    });
+
+    setSkillsData(grouped);
+    setHasData(Object.keys(grouped).some(type => grouped[type]?.length > 0));
+  } catch (err) {
+    console.error("Error fetching skills summary:", err);
+    setHasData(false);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+const fetchLocationSummary = async () => {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/location-summary`);
+    const data = await res.json();
+
+    const mapped = data.map(item => ({
+      name: item.location,
+      value: item.count,
+    }));
+
+    setLocationData(mapped);
+  } catch (err) {
+    console.error("Error fetching location summary:", err);
+    setLocationData([]);
+  }
+};
+
 
   const fetchJobs = async () => {
     try {
@@ -169,78 +209,8 @@ const Home = () => {
     .filter(Boolean)
     .sort();
 
-  const extractSkills = (jobs) => {
-    const grouped = {
-      "programming language": [],
-      framework: [],
-      tool: [],
-      platform: [],
-      methodology: [],
-      database: [],
-      "soft skill": [],
-    };
-
-    jobs.forEach((job) => {
-      if (Array.isArray(job.skills)) {
-        job.skills.forEach((skill) => {
-          const type = skill?.type?.toLowerCase();
-          const name = skill?.name?.toLowerCase();
-          if (type && name && grouped[type]) {
-            grouped[type].push(name);
-          }
-        });
-      }
-    });
-
-    const result = {};
-    let hasAny = false;
-    for (const [type, skillList] of Object.entries(grouped)) {
-      const countMap = {};
-      skillList.forEach((skill) => {
-        if (typeof skill === "string" && skill.trim()) {
-          countMap[skill] = (countMap[skill] || 0) + 1;
-        }
-      });
-      const sorted = Object.entries(countMap)
-        .map(([skill, count]) => ({ skill, count }))
-        .sort((a, b) => b.count - a.count);
-      result[type] = sorted;
-      if (sorted.length > 0) hasAny = true;
-    }
-
-    setSkillsData(result);
-    setHasData(hasAny);
-    setIsLoading(false);
-  };
-
-  const getLocationData = () => {
-    const locationCounts = filteredJobs.reduce((acc, job) => {
-      const loc = job.location?.trim();
-      if (loc && loc.toLowerCase() !== "none") {
-        acc[loc] = (acc[loc] || 0) + 1;
-      } else {
-        acc["None"] = (acc["None"] || 0) + 1;
-      }
-      return acc;
-    }, {});
-    const realLocations = Object.entries(locationCounts).filter(
-      ([name]) => name !== "None"
-    );
-    const missing = locationCounts["None"];
-    const sorted = realLocations.sort((a, b) => b[1] - a[1]);
-
-    const data = locationExpanded
-      ? [
-          ...sorted.map(([name, value]) => ({ name, value })),
-          ...(missing ? [{ name: "None", value: missing }] : []),
-        ]
-      : sorted.slice(0, 10).map(([name, value]) => ({ name, value }));
-
-    return data;
-  };
-
   const renderLocationChart = () => {
-    const data = getLocationData();
+    const data = locationData;
 
     const handleLocationChartChange = (type) => {
       setLocationChartType(type);
@@ -379,12 +349,9 @@ const Home = () => {
                 <ChartWrapper
                   chartType={locationChartType}
                   title="Locations"
-                  data={getLocationData().map((item) => ({
-                    skill: item.name,
-                    count: item.value,
-                  }))}
-                  dataKey="skill"
-                  barKey="count"
+                  data={locationData}
+                  dataKey="name"
+                  barKey="value"
                   expanded={locationExpanded}
                   onToggleExpand={() => setLocationExpanded(!locationExpanded)}
                 />
