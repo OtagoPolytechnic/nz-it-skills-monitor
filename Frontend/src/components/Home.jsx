@@ -5,6 +5,7 @@ import ChartWrapper from "./ChartStyle/ChartWrapper";
 import LeafletHeatmap from "./Heatmap";
 import "../App.css";
 import JobsOverTimeChart from "./JoboverTimeChart";
+import SummarySection from "./SummarySection";
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
@@ -30,7 +31,7 @@ const Home = () => {
   const parseSalary = (job) => {
     const min = Number(job?.min_salary);
     const max = Number(job?.max_salary);
-  const Jobs = filteredJobs;
+    const Jobs = filteredJobs;
 
     if (!Number.isNaN(min) && !Number.isNaN(max) && max > 0) {
       return (min + max) / 2;
@@ -261,7 +262,7 @@ const Home = () => {
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <h3 style={{ marginBottom: "1rem", color: "#333" }}>Locations</h3>
+        <h2 className="card-title">Location</h2>
         <div className="chart-type-toggle">
           <span className="chart-type-label">Chart Type:</span>
           {["bar", "pie", "wordcloud"].map((type) => (
@@ -304,7 +305,7 @@ const Home = () => {
 
     return (
       <div className="chart-card" key={`${typeKey}-${currentType}`}>
-        <h3 style={{ marginBottom: "1rem", color: "#333" }}>{title}</h3>
+        <h3 className="card-title">{title}</h3>
 
         {/* Local chart type toggle for this chart */}
         <div className="chart-type-toggle">
@@ -346,81 +347,35 @@ const Home = () => {
         onChartTypeChange={setGlobalChartType}
       />
       {/* ---- Summary Section ---- */}
-      <div
-        className="chart-card"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "12px",
-          alignItems: "stretch",
-        }}
-      >
-        <div style={{ padding: "0.75rem" }}>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Total Jobs</div>
-          <div style={{ fontSize: 24, fontWeight: 800 }}>
-            {summary.totalJobs}
-          </div>
-        </div>
+      <div className="section page-container">
+        <SummarySection jobs={filteredJobs} />
+      </div>
 
-        <div style={{ padding: "0.75rem" }}>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Average Salary</div>
-          <div style={{ fontSize: 24, fontWeight: 800 }}>
-            {summary.averageSalary
-              ? `$${summary.averageSalary.toLocaleString()}`
-              : "—"}
-          </div>
-        </div>
-
-        <div style={{ padding: "0.75rem" }}>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Most Common Location</div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>
-            {summary.topLocation || "—"}
-          </div>
-          <div style={{ fontSize: 12, opacity: 0.6 }}>
-            {summary.topLocationCount
-              ? `${summary.topLocationCount} listings`
-              : ""}
-          </div>
-        </div>
-
-        <div style={{ padding: "0.75rem" }}>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Top Category</div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>
-            {summary.topCategory || "—"}
-          </div>
-          <div style={{ fontSize: 12, opacity: 0.6 }}>
-            {summary.topCategoryCount
-              ? `${summary.topCategoryCount} listings`
-              : ""}
-          </div>
-        </div>
-
-        <div style={{ padding: "0.75rem" }}>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Top Skill</div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>
-            {summary.topSkill || "—"}
-          </div>
-          <div style={{ fontSize: 12, opacity: 0.6 }}>
-            {summary.topSkillCount ? `${summary.topSkillCount}` : ""}
-          </div>
+      <div className="section page-container">
+        <div
+          className="chart-card"
+          style={{
+            padding: "1.5rem",
+            backgroundColor: "#ffffff",
+            borderRadius: "0.375rem",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <h2 className="card-title">Jobs Posted Over Time</h2>
+          <JobsOverTimeChart jobs={filteredJobs} />
         </div>
       </div>
-      <JobsOverTimeChart jobs={filteredJobs} />
 
-      <div className="stacked-dashboard">
+      <div className="section stacked-dashboard">
         {/* Charts Section */}
         {hasData && (
           <div style={{ width: "100%" }}>
-            {/* Location + Heatmap Split */}
-            <div
-              className="chart-card"
-              style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}
-            >
-              {/* Left Column: Chart */}
-              <div style={{ flex: 1 }}>
-                <h3 style={{ marginBottom: "1rem", color: "#333" }}>
-                  Job Locations
-                </h3>
+            {/* Two-column layout for Location + Heatmap */}
+            <div className="two-col full-width">
+              {/* Left: Job Locations */}
+              <div className="chart-card">
+                <h2 className="card-title">Job Locations</h2>
                 <ChartWrapper
                   chartType={locationChartType}
                   title="Locations"
@@ -435,33 +390,25 @@ const Home = () => {
                 />
               </div>
 
-              {/* Right Column: Heatmap */}
-              <div style={{ flex: 1 }}>
-                <h3 style={{ marginBottom: "1rem", color: "#333" }}>
-                  Job Heatmap
-                </h3>
-                <div
-                  style={{
-                    height: "400px",
-                    width: "100%",
-                    position: "relative",
-                    overflow: "hidden",
-                    borderRadius: "0.375rem",
-                  }}
-                >
+              {/* Right: Heatmap */}
+              <div className="chart-card heatmap-wrapper">
+                <h2 className="card-title">Job Heatmap</h2>
+                <div className="heatmap-container">
                   <LeafletHeatmap />
                 </div>
               </div>
             </div>
 
             {/* Skill Charts */}
-            {Object.entries(skillsData).map(([type, list]) =>
-              renderSkillChart(
-                type.charAt(0).toUpperCase() + type.slice(1),
-                list,
-                type
-              )
-            )}
+            <div className="two-col">
+              {Object.entries(skillsData).map(([type, list]) =>
+                renderSkillChart(
+                  type.charAt(0).toUpperCase() + type.slice(1),
+                  list,
+                  type
+                )
+              )}
+            </div>
           </div>
         )}
 

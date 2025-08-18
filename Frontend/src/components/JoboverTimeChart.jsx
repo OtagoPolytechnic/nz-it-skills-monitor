@@ -23,22 +23,23 @@ export default function JobsOverTimeChart({ jobs }) {
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   return (
-    <div className="chart-card">
-      <h3 style={{ marginBottom: "1rem" }}>Jobs Posted Over Time</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis allowDecimals={false} />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="count"
-            stroke="#3b82f6"
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
+  <>
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart data={chartData}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="date" minTickGap={30} />
+      <YAxis allowDecimals={false} />
+      <Tooltip />
+      <Line
+        type="monotone"
+        dataKey="count"
+        stroke="#3b82f6"
+        strokeWidth={2}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+</>
+
+);
+
 }
