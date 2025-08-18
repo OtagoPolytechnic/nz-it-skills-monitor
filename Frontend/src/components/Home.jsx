@@ -1,9 +1,10 @@
 // src/components/Home.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Navbar from "../Navbar";
 import ChartWrapper from "./ChartStyle/ChartWrapper";
 import LeafletHeatmap from "./Heatmap";
 import "../App.css";
+import JobsOverTimeChart from "./JoboverTimeChart";
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
@@ -27,6 +28,95 @@ const Home = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
+  const parseSalary = (job) => {
+    const min = Number(job?.min_salary);
+    const max = Number(job?.max_salary);
+  const Jobs = filteredJobs;
+
+    if (!Number.isNaN(min) && !Number.isNaN(max) && max > 0) {
+      return (min + max) / 2;
+    }
+
+    // Fallback to a free‑text salary field
+    const txt = String(job?.salary || job?.salary_text || "").replace(/,/g, "");
+    if (!txt) return null;
+
+    // Extract numbers (handles "$120000" or "120k" or "120,000 - 140,000")
+    const nums =
+      txt.match(/\$?\s*\d+(?:\.\d+)?\s*[kK]?/g)?.map((raw) => {
+        const hasK = /k/i.test(raw);
+        const n = Number(raw.replace(/[^\d.]/g, ""));
+        return hasK ? n * 1000 : n;
+      }) || [];
+
+    if (nums.length === 0) return null;
+    if (nums.length === 1) return nums[0];
+    // range → average
+    return (nums[0] + nums[nums.length - 1]) / 2;
+  };
+
+  const modeOf = (arr) => {
+    const counts = {};
+    for (const v of arr) {
+      if (!v) continue;
+      const key = String(v).trim().toLowerCase();
+      if (!key) continue;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    let best = null,
+      bestCount = 0;
+    for (const [k, c] of Object.entries(counts)) {
+      if (c > bestCount) {
+        best = k;
+        bestCount = c;
+      }
+    }
+    return best ? { value: best, count: bestCount } : { value: null, count: 0 };
+  };
+  // ---- Summary metrics (based on current filter) ----
+  const summary = useMemo(() => {
+    const totalJobs = filteredJobs.length;
+
+    // Average salary
+    const salaries = filteredJobs
+      .map(parseSalary)
+      .filter((n) => typeof n === "number" && !Number.isNaN(n) && n > 0);
+    const averageSalary = salaries.length
+      ? Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length)
+      : null;
+
+    // Most common location
+    const topLoc = modeOf(filteredJobs.map((j) => j.location));
+
+    // Top category
+    const topCat = modeOf(filteredJobs.map((j) => j.category));
+
+    // Top skill across all types
+    const allSkills = [];
+    filteredJobs.forEach((job) => {
+      if (Array.isArray(job.skills)) {
+        job.skills.forEach((s) => {
+          const name = s?.name?.toLowerCase();
+          if (name) allSkills.push(name);
+        });
+      }
+    });
+    const topSkill = modeOf(allSkills);
+
+    const titleCase = (s) =>
+      s ? s.replace(/\b\w/g, (c) => c.toUpperCase()) : null;
+
+    return {
+      totalJobs,
+      averageSalary,
+      topLocation: topLoc.value ? titleCase(topLoc.value) : null,
+      topLocationCount: topLoc.count,
+      topCategory: topCat.value ? titleCase(topCat.value) : null,
+      topCategoryCount: topCat.count,
+      topSkill: topSkill.value ? titleCase(topSkill.value) : null,
+      topSkillCount: topSkill.count,
+    };
+  }, [filteredJobs]);
 
   useEffect(() => {
   fetchJobs();
@@ -108,8 +198,8 @@ const fetchLocationSummary = async () => {
     setCategoryFilter(value);
     const filtered = value
       ? allJobs.filter(
-        (job) => job.category?.toLowerCase() === value.toLowerCase()
-      )
+          (job) => job.category?.toLowerCase() === value.toLowerCase()
+        )
       : allJobs;
     setFilteredJobs(filtered);
   };
@@ -148,7 +238,9 @@ const fetchLocationSummary = async () => {
             <button
               key={type}
               onClick={() => handleLocationChartChange(type)}
-              className={`chart-type-btn ${locationChartType === type ? "active" : ""}`}
+              className={`chart-type-btn ${
+                locationChartType === type ? "active" : ""
+              }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
@@ -181,10 +273,7 @@ const fetchLocationSummary = async () => {
     };
 
     return (
-      <div
-        className="chart-card"
-        key={`${typeKey}-${currentType}`}
-      >
+      <div className="chart-card" key={`${typeKey}-${currentType}`}>
         <h3 style={{ marginBottom: "1rem", color: "#333" }}>{title}</h3>
 
         {/* Local chart type toggle for this chart */}
@@ -194,7 +283,9 @@ const fetchLocationSummary = async () => {
             <button
               key={type}
               onClick={() => setLocalChartType(type)}
-              className={`chart-type-btn ${currentType === type ? "active" : ""}`}
+              className={`chart-type-btn ${
+                currentType === type ? "active" : ""
+              }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
@@ -224,14 +315,77 @@ const fetchLocationSummary = async () => {
         chartType={globalChartType}
         onChartTypeChange={setGlobalChartType}
       />
+      {/* ---- Summary Section ---- */}
+      <div
+        className="chart-card"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: "12px",
+          alignItems: "stretch",
+        }}
+      >
+        <div style={{ padding: "0.75rem" }}>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>Total Jobs</div>
+          <div style={{ fontSize: 24, fontWeight: 800 }}>
+            {summary.totalJobs}
+          </div>
+        </div>
+
+        <div style={{ padding: "0.75rem" }}>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>Average Salary</div>
+          <div style={{ fontSize: 24, fontWeight: 800 }}>
+            {summary.averageSalary
+              ? `$${summary.averageSalary.toLocaleString()}`
+              : "—"}
+          </div>
+        </div>
+
+        <div style={{ padding: "0.75rem" }}>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>Most Common Location</div>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>
+            {summary.topLocation || "—"}
+          </div>
+          <div style={{ fontSize: 12, opacity: 0.6 }}>
+            {summary.topLocationCount
+              ? `${summary.topLocationCount} listings`
+              : ""}
+          </div>
+        </div>
+
+        <div style={{ padding: "0.75rem" }}>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>Top Category</div>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>
+            {summary.topCategory || "—"}
+          </div>
+          <div style={{ fontSize: 12, opacity: 0.6 }}>
+            {summary.topCategoryCount
+              ? `${summary.topCategoryCount} listings`
+              : ""}
+          </div>
+        </div>
+
+        <div style={{ padding: "0.75rem" }}>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>Top Skill</div>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>
+            {summary.topSkill || "—"}
+          </div>
+          <div style={{ fontSize: 12, opacity: 0.6 }}>
+            {summary.topSkillCount ? `${summary.topSkillCount}` : ""}
+          </div>
+        </div>
+      </div>
+      <JobsOverTimeChart jobs={filteredJobs} />
 
       <div className="stacked-dashboard">
         {/* Charts Section */}
         {hasData && (
           <div style={{ width: "100%" }}>
             {/* Location + Heatmap Split */}
-            <div className="chart-card" style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
-
+            <div
+              className="chart-card"
+              style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}
+            >
               {/* Left Column: Chart */}
               <div style={{ flex: 1 }}>
                 <h3 style={{ marginBottom: "1rem", color: "#333" }}>
