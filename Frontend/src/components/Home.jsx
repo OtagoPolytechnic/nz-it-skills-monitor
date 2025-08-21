@@ -120,10 +120,68 @@ const Home = () => {
   }, [filteredJobs]);
 
   useEffect(() => {
-  fetchJobs();
-  fetchSkillsSummary();
-  fetchLocationSummary();
+  // Fetch jobs
+  fetch(`${import.meta.env.VITE_API_URL}/jobs`)
+    .then((res) => res.json())
+    .then((data) => {
+      setAllJobs(data);
+      setFilteredJobs(data);
+    });
+
+  // Fetch skills-summary
+fetch(`${import.meta.env.VITE_API_URL}/skills-summary`)
+  .then((res) => res.json())
+  .then((data) => {
+    const allowedTypes = [
+      "database",
+      "tool",
+      "framework",
+      "programming language",
+      "platform",
+      "methodology",
+      "soft skill",
+      "software",
+      "technology",
+      "networking",
+    ];
+
+    const grouped = {};
+    data.forEach((item) => {
+      const type = item.type?.toLowerCase();
+      if (!allowedTypes.includes(type)) return;
+
+      if (!grouped[type]) grouped[type] = [];
+      grouped[type].push({ skill: item.skill, count: item.count });
+    });
+
+    setSkillsData(grouped);
+    setHasData(Object.keys(grouped).some((type) => grouped[type]?.length > 0));
+  })
+  .catch((err) => {
+    console.error("Error fetching skills summary:", err);
+    setHasData(false);
+  })
+  .finally(() => {
+    setIsLoading(false);
+  });
+
+
+  // Fetch location-summary
+  fetch(`${import.meta.env.VITE_API_URL}/location-summary`)
+    .then((res) => res.json())
+    .then((data) => {
+      const mapped = data.map((item) => ({
+        name: item.location,
+        value: item.count,
+      }));
+      setLocationData(mapped);
+    })
+    .catch((err) => {
+      console.error("Error fetching location summary:", err);
+      setLocationData([]);
+    });
 }, []);
+
 
   useEffect(() => {
     const updated = {};
