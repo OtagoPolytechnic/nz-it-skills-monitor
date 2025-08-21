@@ -10,11 +10,11 @@ import {
 } from "recharts";
 
 export default function JobsOverTimeChart({ jobs }) {
-  // Transform raw jobs array into date -> count array
   const counts = {};
+
   jobs.forEach((job) => {
-    if (!job.date) return; // Skip if no date
-    const date = job.date.split("T")[0]; // Only keep YYYY-MM-DD
+    if (!job.date) return;
+    const date = job.date.split("T")[0];
     counts[date] = (counts[date] || 0) + 1;
   });
 
@@ -23,23 +23,21 @@ export default function JobsOverTimeChart({ jobs }) {
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   return (
-  <>
-  <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={chartData}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="date" minTickGap={30} />
-      <YAxis allowDecimals={false} />
-      <Tooltip />
-      <Line
-        type="monotone"
-        dataKey="count"
-        stroke="#3b82f6"
-        strokeWidth={2}
-      />
-    </LineChart>
-  </ResponsiveContainer>
-</>
-
-);
-
+    <>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" minTickGap={30} />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
+          <Line
+            type="monotone"
+            dataKey="count"
+            stroke="#3b82f6"
+            strokeWidth={2}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </>
+  );
 }
