@@ -13,7 +13,7 @@ export default function JobsOverTimeChart({ jobs }) {
   const counts = {};
 
   jobs.forEach((job) => {
-    const date = job?.date?.split("T")[0]; // Only keep YYYY-MM-DD
+    const date = typeof job?.date === "string" ? job.date.slice(0, 10) : null;
     if (!date) return;
     counts[date] = (counts[date] || 0) + 1;
   });
@@ -23,23 +23,21 @@ export default function JobsOverTimeChart({ jobs }) {
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   return (
-  <>
-  <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={chartData}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="date" minTickGap={30} />
-      <YAxis allowDecimals={false} />
-      <Tooltip />
-      <Line
-        type="monotone"
-        dataKey="count"
-        stroke="#3b82f6"
-        strokeWidth={2}
-      />
-    </LineChart>
-  </ResponsiveContainer>
-</>
-
-);
-
+    <>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" minTickGap={30} />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
+          <Line
+            type="monotone"
+            dataKey="count"
+            stroke="#3b82f6"
+            strokeWidth={2}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </>
+  );
 }
