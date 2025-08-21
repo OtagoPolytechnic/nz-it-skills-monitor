@@ -13,8 +13,8 @@ export default function JobsOverTimeChart({ jobs }) {
   const counts = {};
 
   jobs.forEach((job) => {
-    const date = typeof job?.date === "string" ? job.date.slice(0, 10) : null;
-    if (!date) return;
+    if (!job.date) return;
+    const date = job.date.split("T")[0];
     counts[date] = (counts[date] || 0) + 1;
   });
 
