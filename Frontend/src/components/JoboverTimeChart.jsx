@@ -10,11 +10,11 @@ import {
 } from "recharts";
 
 export default function JobsOverTimeChart({ jobs }) {
-  // Transform raw jobs array into date -> count array
   const counts = {};
+
   jobs.forEach((job) => {
-    if (!job.date) return; // Skip if no date
-    const date = job.date.split("T")[0]; // Only keep YYYY-MM-DD
+    const date = job?.date?.split("T")[0]; // Only keep YYYY-MM-DD
+    if (!date) return;
     counts[date] = (counts[date] || 0) + 1;
   });
 
