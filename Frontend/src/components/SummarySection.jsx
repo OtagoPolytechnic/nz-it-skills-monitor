@@ -65,11 +65,36 @@ const titleCase = (s) => (s ? s.replace(/\b\w/g, (c) => c.toUpperCase()) : s);
 // ----- component -----
 const SummarySection = ({ jobs = [] }) => {
   const stats = useMemo(() => {
-    const total = jobs.length;
+    if (!jobs.length) return {};
+    // Normalize scrape dates
+const toDay = (v) => {
+  if (!v) return null;
+  const d = new Date(v);
+  if (isNaN(d)) return null;
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+};
+
+const pickDate = (j) =>
+  j.scrapeDate ?? j.scrape_date ?? j.scraped_at ?? j.scrapedAt ?? j.created_at ?? j.date;
+
+// Group jobs by scrape day
+const scrapeMap = {};
+for (const job of jobs) {
+  const key = toDay(pickDate(job));
+  if (!key) continue;
+  if (!scrapeMap[key]) scrapeMap[key] = [];
+  scrapeMap[key].push(job);
+}
+
+// Get most recent scrape batch
+const latestDate = Object.keys(scrapeMap).sort().pop();
+const latestJobs = scrapeMap[latestDate] || [];
+
+  
 
     // Average salary
     const salaries = [];
-    for (const j of jobs) {
+    for (const j of latestJobs) {
       const v = pickSalary(j);
       if (Number.isFinite(v)) salaries.push(v);
     }
@@ -78,9 +103,12 @@ const SummarySection = ({ jobs = [] }) => {
       : null;
 
     // Other key stats
-    const location = mostCommon(jobs.map((j) => j.location));
-    const category = mostCommon(jobs.map((j) => j.category));
-    const topSkill = topSkillFromJobs(jobs);
+    const location = mostCommon(latestJobs.map((j) => j.location));
+    const category = mostCommon(latestJobs.map((j) => j.category));
+    const topSkill = topSkillFromJobs(latestJobs);
+    const total = latestJobs.length;
+
+    
 
     return { total, avgSalary, location, category, topSkill };
   }, [jobs]);
