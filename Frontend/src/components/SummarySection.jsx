@@ -88,27 +88,27 @@ const SummarySection = ({ jobs = [] }) => {
   return (
     <section className="summary-grid">
       <SummaryCard
-        title="Total Jobs"
+        title="Total Available Jobs"
         value={stats.total.toLocaleString()}
         helper="Current dataset"
       />
       <SummaryCard
-        title="Average Salary"
+        title="Average Listed Salary"
         value={stats.avgSalary ? `NZ$ ${stats.avgSalary.toLocaleString()}` : "N/A"}
         helper={stats.avgSalary ? "From available listings" : "No salary data"}
       />
       <SummaryCard
-        title="Most Common Location"
+        title="Top Hiring Location"
         value={stats.location ? titleCase(stats.location.value) : "N/A"}
         helper={stats.location ? `${stats.location.count} listings` : "—"}
       />
       <SummaryCard
-        title="Top Skill"
+        title="Most In-Demand Skills"
         value={stats.topSkill ? titleCase(stats.topSkill.value) : "N/A"}
         helper={stats.topSkill ? `${stats.topSkill.count} mentions` : "—"}
       />
       <SummaryCard
-        title="Top Category"
+        title="Most Listed Category"
         value={stats.category ? titleCase(stats.category.value) : "N/A"}
         helper={stats.category ? `${stats.category.count} listings` : "—"}
       />
