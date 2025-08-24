@@ -117,7 +117,7 @@ const latestJobs = scrapeMap[latestDate] || [];
     <section className="summary-grid">
       <SummaryCard
         title="Total Available Jobs"
-        value={stats.total.toLocaleString()}
+        value={stats.total ? stats.total.toLocaleString() : "N/A"}
         helper="Current dataset"
       />
       <SummaryCard
