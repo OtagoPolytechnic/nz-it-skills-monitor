@@ -72,7 +72,7 @@ const Navbar = ({
               }}
             >
               {categoryFilter || "Category"}
-              <span className="caret" />
+              <span className="dropdown-arrow">▼</span>
             </button>
 
             {catOpen && (
@@ -104,7 +104,7 @@ const Navbar = ({
               }}
             >
               {`Chart Type: ${labelize(chartType)}`}
-              <span className="caret" />
+              <span className="dropdown-arrow">▼</span>
             </button>
 
             {chartOpen && (
