@@ -314,6 +314,7 @@ const fetchLocationSummary = async () => {
           barKey="count"
           expanded={locationExpanded}
           onToggleExpand={() => setLocationExpanded(!locationExpanded)}
+          layout="horizontal"
         />
       </div>
     );
@@ -360,6 +361,7 @@ const fetchLocationSummary = async () => {
           barKey="count"
           expanded={isExpanded}
           onToggleExpand={toggleExpand}
+          layout="vertical"
         />
       </div>
     );
