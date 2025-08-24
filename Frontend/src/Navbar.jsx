@@ -43,7 +43,7 @@ const Navbar = ({
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-brand">
-          <span style={{ color: "#3b82f6" }}>IT</span> Monitor
+          <span style={{ color: "#3b82f6" }}>IT</span> Skills Monitor
         </div>
 
         <button
