@@ -22,7 +22,7 @@ body {
 .navbar {
   background-color: #111827;
   color: white;
-  padding: 2.8rem 2rem;
+  padding: 1.2rem 2rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   z-index: 999;
 }
@@ -67,10 +67,24 @@ body {
 }
 
 .nav-link.dropdown-trigger {
-  background-color: #374151;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 1rem;
+  background: transparent;
+  border: none;
+  color: #f9fafb;
+  font-size: 1.1rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s ease;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1.1;
+  vertical-align: middle;
+}
+
+.nav-link.dropdown-trigger:hover {
+  color: var(--brand);
 }
 
 /* Actual dropdown menu */
@@ -78,10 +92,10 @@ body {
   position: absolute;
   top: 100%;
   left: 0;
-  background-color: #1f2937;
-  border: 1px solid #374151;
-  border-radius: 6px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 0.5rem 0;
   z-index: 999;
   min-width: 180px;
@@ -90,28 +104,40 @@ body {
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: #6b7280 #1f2937;
+  transition: all 0.25s ease-in-out
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  margin-top: 1px;
+  opacity: 0.7;
 }
 
 /* Each dropdown item */
 .dropdown-item {
   padding: 10px 16px;
   background-color: transparent;
-  color: white;
+  color: var(--text);
+  padding: 8px 14px;
+  font-weight: 500;
   border: none;
   width: 100%;
   text-align: left;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border: none;
 }
 
 .dropdown-item:hover {
-  background-color: #374151;
+  background-color: #f3f4f6;
+  color: var(--brand);
 }
 
 .dropdown-item.active {
   font-weight: bold;
-  background-color: #4b5563;
+  background-color: #e0e7ff;
+  color: #1e40af;
 }
 
 /* Hamburger */
@@ -165,6 +191,7 @@ body {
   .nav-link {
     font-size: 1.1rem;
     padding: 0.5rem 0;
+    vertical-align: middle;
   }
 }
 
