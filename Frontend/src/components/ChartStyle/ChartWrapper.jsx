@@ -4,7 +4,7 @@ import SkillsBarChart from './SkillsBarChart';
 import SkillsPieChart from './SkillsPieChart';
 import SkillsWordCloud from './SkillsWordCloud';
 
-const ChartWrapper = ({ chartType, title, data, dataKey, barKey, expanded, onToggleExpand }) => {
+const ChartWrapper = ({ chartType, title, data, dataKey, barKey, expanded, onToggleExpand, layout = "vertical" }) => {
   let ChartComponent;
 
   switch (chartType) {
@@ -44,6 +44,7 @@ const ChartWrapper = ({ chartType, title, data, dataKey, barKey, expanded, onTog
           currentMode={chartType}
           expanded={expanded}
           onToggleExpand={onToggleExpand}
+          layout={layout}
         />
       );
   }
