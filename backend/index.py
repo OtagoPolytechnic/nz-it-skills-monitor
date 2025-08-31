@@ -149,20 +149,24 @@ def get_skills_by_type():
 @app.route('/skills-summary', methods=['GET'])
 def get_skills_summary():
     try:
+
+        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+        if latest_scrape_id is None:
+            return jsonify([])
+
         results = (
             db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
+            .join(Job)
+            .filter(Job.scrape_id == latest_scrape_id)
             .group_by(Skill.type, Skill.name)
             .order_by(Skill.type, db.func.count().desc())
             .all()
         )
 
-        summary = []
-        for skill_type, skill_name, count in results:
-            summary.append({
-                "type": skill_type,
-                "skill": skill_name,
-                "count": count
-            })
+        summary = [
+            {"type": skill_type, "skill": skill_name, "count": count}
+            for skill_type, skill_name, count in results
+        ]
 
         return jsonify(summary), 200
     except Exception as e:
