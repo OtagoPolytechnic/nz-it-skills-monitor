@@ -96,7 +96,7 @@ def get_jobs():
 
     latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
     query = Job.query.options(subqueryload(Job.skills))
-    if latest_scrape_id is not None:
+    if latest_scrape_id:
         query = query.filter(Job.scrape_id == latest_scrape_id)
 
     if title:
@@ -149,24 +149,30 @@ def get_skills_by_type():
 @app.route('/skills-summary', methods=['GET'])
 def get_skills_summary():
     try:
-
+        
         latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
-        if latest_scrape_id is None:
-            return jsonify([])
 
         results = (
-            db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
-            .join(Job)
-            .filter(Job.scrape_id == latest_scrape_id)
-            .group_by(Skill.type, Skill.name)
+        db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
+        .join(Job)
+)
+
+        if latest_scrape_id:
+            results = results.filter(Job.scrape_id == latest_scrape_id)
+
+        results = (
+            results.group_by(Skill.type, Skill.name)
             .order_by(Skill.type, db.func.count().desc())
             .all()
-        )
+)
 
-        summary = [
-            {"type": skill_type, "skill": skill_name, "count": count}
-            for skill_type, skill_name, count in results
-        ]
+        summary = []
+        for skill_type, skill_name, count in results:
+            summary.append({
+                "type": skill_type,
+                "skill": skill_name,
+                "count": count
+            })
 
         return jsonify(summary), 200
     except Exception as e:
@@ -297,9 +303,15 @@ def job_locations():
 @app.route('/location-summary', methods=['GET'])
 def get_location_summary():
     try:
+
+        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+        results = db.session.query(Job.location, db.func.count().label("count"))
+
+        if latest_scrape_id:
+            results = results.filter(Job.scrape_id == latest_scrape_id)
+
         results = (
-            db.session.query(Job.location, db.func.count().label("count"))
-            .group_by(Job.location)
+            results.group_by(Job.location)
             .order_by(db.func.count().desc())
             .all()
         )
