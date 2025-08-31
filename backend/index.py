@@ -117,9 +117,15 @@ def get_jobs():
 @app.route('/jobs-over-time', methods=['GET'])
 def get_jobs_over_time():
     try:
+
+        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+        query = db.session.query(Job.date, db.func.count(Job.id))
+
+        if latest_scrape_id:
+            query = query.filter(Job.scrape_id == latest_scrape_id)
+
         results = (
-            db.session.query(Job.date, db.func.count(Job.id))
-            .group_by(Job.date)
+            query.group_by(Job.date)
             .order_by(Job.date)
             .all()
         )
