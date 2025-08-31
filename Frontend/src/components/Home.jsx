@@ -29,6 +29,9 @@ const Home = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
+  const [fullStatsLoaded, setFullStatsLoaded] = useState(false);
+
+
   const parseSalary = (job) => {
     const min = Number(job?.min_salary);
     const max = Number(job?.max_salary);
@@ -120,67 +123,17 @@ const Home = () => {
   }, [filteredJobs]);
 
   useEffect(() => {
-  // Fetch jobs
-  fetch(`${import.meta.env.VITE_API_URL}/jobs`)
-    .then((res) => res.json())
-    .then((data) => {
-      setAllJobs(data);
-      setFilteredJobs(data);
-    });
+    // Fetch jobs
+    fetch(`${import.meta.env.VITE_API_URL}/jobs`)
+      .then((res) => res.json())
+      .then((data) => {
+        setAllJobs(data);
+        setFilteredJobs(data);
+      });
 
-  // Fetch skills-summary
-fetch(`${import.meta.env.VITE_API_URL}/skills-summary`)
-  .then((res) => res.json())
-  .then((data) => {
-    const allowedTypes = [
-      "database",
-      "tool",
-      "framework",
-      "programming language",
-      "platform",
-      "methodology",
-      "soft skill",
-      "software",
-      "technology",
-      "networking",
-    ];
-
-    const grouped = {};
-    data.forEach((item) => {
-      const type = item.type?.toLowerCase();
-      if (!allowedTypes.includes(type)) return;
-
-      if (!grouped[type]) grouped[type] = [];
-      grouped[type].push({ skill: item.skill, count: item.count });
-    });
-
-    setSkillsData(grouped);
-    setHasData(Object.keys(grouped).some((type) => grouped[type]?.length > 0));
-  })
-  .catch((err) => {
-    console.error("Error fetching skills summary:", err);
-    setHasData(false);
-  })
-  .finally(() => {
-    setIsLoading(false);
-  });
-
-
-  // Fetch location-summary
-  fetch(`${import.meta.env.VITE_API_URL}/location-summary`)
-    .then((res) => res.json())
-    .then((data) => {
-      const mapped = data.map((item) => ({
-        name: item.location,
-        value: item.count,
-      }));
-      setLocationData(mapped);
-    })
-    .catch((err) => {
-      console.error("Error fetching location summary:", err);
-      setLocationData([]);
-    });
-}, []);
+    fetchSkillsSummary();
+    fetchLocationSummary();
+  }, []);
 
 
   useEffect(() => {
@@ -197,43 +150,43 @@ fetch(`${import.meta.env.VITE_API_URL}/skills-summary`)
   }, [globalChartType]);
 
   const fetchSkillsSummary = async () => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/skills-summary`);
-    const data = await res.json();
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/skills-summary`);
+      const data = await res.json();
 
-    const grouped = {};
-    data.forEach(item => {
-      const type = item.type?.toLowerCase();
-      if (!grouped[type]) grouped[type] = [];
-      grouped[type].push({ skill: item.skill, count: item.count });
-    });
+      const grouped = {};
+      data.forEach(item => {
+        const type = item.type?.toLowerCase();
+        if (!grouped[type]) grouped[type] = [];
+        grouped[type].push({ skill: item.skill, count: item.count });
+      });
 
-    setSkillsData(grouped);
-    setHasData(Object.keys(grouped).some(type => grouped[type]?.length > 0));
-  } catch (err) {
-    console.error("Error fetching skills summary:", err);
-    setHasData(false);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      setSkillsData(grouped);
+      setHasData(Object.keys(grouped).some(type => grouped[type]?.length > 0));
+    } catch (err) {
+      console.error("Error fetching skills summary:", err);
+      setHasData(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-const fetchLocationSummary = async () => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/location-summary`);
-    const data = await res.json();
+  const fetchLocationSummary = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/location-summary`);
+      const data = await res.json();
 
-    const mapped = data.map(item => ({
-      name: item.location,
-      value: item.count,
-    }));
+      const mapped = data.map(item => ({
+        name: item.location,
+        value: item.count,
+      }));
 
-    setLocationData(mapped);
-  } catch (err) {
-    console.error("Error fetching location summary:", err);
-    setLocationData([]);
-  }
-};
+      setLocationData(mapped);
+    } catch (err) {
+      console.error("Error fetching location summary:", err);
+      setLocationData([]);
+    }
+  };
 
 
   const fetchJobs = async () => {
@@ -257,8 +210,8 @@ const fetchLocationSummary = async () => {
     setCategoryFilter(value);
     const filtered = value
       ? allJobs.filter(
-          (job) => job.category?.toLowerCase() === value.toLowerCase()
-        )
+        (job) => job.category?.toLowerCase() === value.toLowerCase()
+      )
       : allJobs;
     setFilteredJobs(filtered);
   };
@@ -297,9 +250,8 @@ const fetchLocationSummary = async () => {
             <button
               key={type}
               onClick={() => handleLocationChartChange(type)}
-              className={`chart-type-btn ${
-                locationChartType === type ? "active" : ""
-              }`}
+              className={`chart-type-btn ${locationChartType === type ? "active" : ""
+                }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
@@ -343,9 +295,8 @@ const fetchLocationSummary = async () => {
             <button
               key={type}
               onClick={() => setLocalChartType(type)}
-              className={`chart-type-btn ${
-                currentType === type ? "active" : ""
-              }`}
+              className={`chart-type-btn ${currentType === type ? "active" : ""
+                }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
