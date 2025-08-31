@@ -94,7 +94,10 @@ def get_jobs():
     company = request.args.get('company')
     skill = request.args.get('skill')
 
+    latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
     query = Job.query.options(subqueryload(Job.skills))
+    if latest_scrape_id is not None:
+        query = query.filter(Job.scrape_id == latest_scrape_id)
 
     if title:
         query = query.filter(Job.title.ilike(f'%{title}%'))
