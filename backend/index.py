@@ -276,7 +276,12 @@ def stop_spiders():
 
 @app.route('/job-locations', methods=['GET'])
 def job_locations():
-    jobs = Job.query.all()
+    
+    latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+    jobs = Job.query
+    if latest_scrape_id:
+        jobs = jobs.filter(Job.scrape_id == latest_scrape_id)
+    jobs = jobs.all()
 
     CITY_COORDINATES = {
         'Auckland': [-36.8485, 174.7633],
