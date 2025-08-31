@@ -7,6 +7,24 @@ import "../App.css";
 import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
 
+
+// Utility: fetch with timeout
+const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+};
+
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
     "programming language": [],
@@ -151,7 +169,7 @@ const Home = () => {
 
   const fetchSkillsSummary = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/skills-summary`);
+      const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/skills-summary`);
       const data = await res.json();
 
       const grouped = {};
@@ -173,7 +191,7 @@ const Home = () => {
 
   const fetchLocationSummary = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/location-summary`);
+      const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/location-summary`);
       const data = await res.json();
 
       const mapped = data.map(item => ({
@@ -191,7 +209,7 @@ const Home = () => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/jobs`);
+      const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/jobs`);
       const data = await res.json();
 
       console.log(`✅ Total jobs fetched: ${data.length}`);
