@@ -24,6 +24,12 @@ def process_json_file():
     saved_count = 0
     skipped_count = 0
 
+    # Get the next scrape_id
+    max_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+    next_scrape_id = (max_scrape_id or 0) + 1
+    print(f"🧠 Using scrape_id: {next_scrape_id}")
+
+
     for item in items:
         # Check if a job with the same source already exists
         existing_job = db.session.query(Job).filter_by(source=item.get("source")).first()
@@ -31,7 +37,8 @@ def process_json_file():
             print(f"⚠️  Skipped: Job with source {item.get('source')} already exists in the database.")
             skipped_count += 1
             continue
-
+        
+        item["scrape_id"] = next_scrape_id
         pipeline.process_item(item, spider=None)
         print(f"✅ Saved job: {item.get('title') or 'UNKNOWN'} to database.")
         saved_count += 1

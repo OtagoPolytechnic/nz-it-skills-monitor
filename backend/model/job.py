@@ -23,6 +23,7 @@ class Job(db.Model):
     company = db.Column(db.String(255))
     source = db.Column(db.String(255))
     date = db.Column(db.Date, default=date.today)
+    scrape_id = db.Column(db.Integer)
     skills = db.relationship('Skill', backref='job', lazy=True, cascade="all, delete-orphan")  # If a job is deleted, all of its skills will also be deleted
 
 #  skills table

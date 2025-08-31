@@ -111,6 +111,24 @@ def get_jobs():
 
     return jsonify(jobs_data)
 
+@app.route('/jobs-over-time', methods=['GET'])
+def get_jobs_over_time():
+    try:
+        results = (
+            db.session.query(Job.date, db.func.count(Job.id))
+            .group_by(Job.date)
+            .order_by(Job.date)
+            .all()
+        )
+
+        # Convert to [{date: '2025-08-31', count: 5}, ...]
+        jobs_per_day = [{"date": date.isoformat(), "count": count} for date, count in results]
+
+        return jsonify(jobs_per_day), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/skills', methods=['GET'])
 def get_skills_by_type():
     skill_type = request.args.get('type')
