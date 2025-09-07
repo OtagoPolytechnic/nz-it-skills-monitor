@@ -470,9 +470,9 @@ const Home = () => {
                 <ChartWrapper
                   chartType={locationChartType}
                   title="Locations"
-                  data={locationData}
-                  dataKey="name"
-                  barKey="value"
+                  data={locationData.map(({ name, value }) => ({ skill: name, count: value }))}
+                  dataKey="skill"
+                  barKey="count"
                   expanded={locationExpanded}
                   onToggleExpand={() => setLocationExpanded(!locationExpanded)}
                 />
@@ -488,24 +488,44 @@ const Home = () => {
             </div>
 
             {/* Skill Charts */}
+            {[
+              "programming language",
+              "framework",
+              "tool",
+              "platform",
+              "methodology",
+              "database",
+            ].reduce((rows, type, idx, arr) => {
+              if (idx % 2 === 0) {
+                const left = type;
+                const right = arr[idx + 1];
+                rows.push(
+                  <div className="two-col" key={`skills-row-${idx}`}>
+                    {renderSkillChart(
+                      left.charAt(0).toUpperCase() + left.slice(1),
+                      skillsData[left] || [],
+                      left
+                    )}
+                    {right
+                      ? renderSkillChart(
+                        right.charAt(0).toUpperCase() + right.slice(1),
+                        skillsData[right] || [],
+                        right
+                      )
+                      : null}
+                  </div>
+                );
+              }
+              return rows;
+            }, [])}
+
+            {/* Last row: Soft skill + Job Titles (fills the gap) */}
             <div className="two-col">
-              {[
-                "programming language",
-                "framework",
-                "tool",
-                "platform",
-                "methodology",
-                "database",
-                "soft skill",
-              ].map((type) =>
-                renderSkillChart(
-                  type.charAt(0).toUpperCase() + type.slice(1),
-                  skillsData[type] || [],
-                  type
-                )
+              {renderSkillChart(
+                "Soft skill",
+                skillsData["soft skill"] || [],
+                "soft skill"
               )}
-            </div>
-            <div className="two-col">
               {renderGenericCountChart(
                 "Job Titles",
                 jobTitleData,
@@ -514,7 +534,10 @@ const Home = () => {
                 jobTitleExpanded,
                 setJobTitleExpanded
               )}
+            </div>
 
+            {/* Next row: Job Companies */}
+            <div className="two-col">
               {renderGenericCountChart(
                 "Job Companies",
                 jobCompanyData,
