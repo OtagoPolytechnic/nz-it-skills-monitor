@@ -61,7 +61,6 @@ export default function SalaryHistogram({ jobs = [] }) {
 
   return (
     <div className="chart-card">
-      <h2 className="card-title">Salary Distribution</h2>
 
       <ResponsiveContainer width="100%" height={360}>
         <BarChart
