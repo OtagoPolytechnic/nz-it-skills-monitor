@@ -42,6 +42,11 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
 
+  const [jobTitleChartType, setJobTitleChartType] = useState("bar");
+  const [jobTitleExpanded, setJobTitleExpanded] = useState(false);
+  const [jobCompanyChartType, setJobCompanyChartType] = useState("bar");
+  const [jobCompanyExpanded, setJobCompanyExpanded] = useState(false);
+
   const [globalChartType, setGlobalChartType] = useState("bar");
   const [chartTypes, setChartTypes] = useState({});
   const [expandedSections, setExpandedSections] = useState({});
@@ -158,6 +163,10 @@ useEffect(() => {
     setExpandedSections(expandedMap);
     setLocationChartType(globalChartType);
     setLocationExpanded(false);
+    setJobTitleChartType(globalChartType);
+    setJobCompanyChartType(globalChartType);
+    setJobTitleExpanded(false);
+    setJobCompanyExpanded(false);
   }, [globalChartType]);
 
 const fetchSkillsSummary = async () => {
@@ -165,29 +174,37 @@ const fetchSkillsSummary = async () => {
     const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/skills-summary`);
     const data = await res.json();
 
-    const allowedTypes = [
-      "database",
-      "tool",
-      "framework",
+    // ✅ Only allow these 7 groups (kept consistent across the app)
+    const ALLOWED = [
       "programming language",
+      "framework",
+      "tool",
       "platform",
       "methodology",
+      "database",
       "soft skill",
-      "software",
-      "technology",
-      "networking",
     ];
 
+    // Build and filter into the allowed buckets
     const grouped = {};
     data.forEach((item) => {
       const type = item.type?.toLowerCase();
-      if (!allowedTypes.includes(type)) return;
+      const skill = item.skill;
+      const count = Number(item.count ?? 0);
+      if (!type || !skill) return;
+      if (!ALLOWED.includes(type)) return;
       if (!grouped[type]) grouped[type] = [];
-      grouped[type].push({ skill: item.skill, count: item.count });
+      grouped[type].push({ skill, count });
     });
 
-    setSkillsData(grouped);
-    setHasData(Object.keys(grouped).some((type) => grouped[type]?.length > 0));
+    // Ensure each allowed key exists and is sorted
+    const filteredGrouped = {};
+    ALLOWED.forEach((k) => {
+      filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
+    });
+
+    setSkillsData(filteredGrouped);
+    setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
   } catch (err) {
     console.error("Error fetching skills summary:", err);
     setHasData(false);
@@ -196,14 +213,13 @@ const fetchSkillsSummary = async () => {
   }
 };
 
-
 const fetchLocationSummary = async () => {
   try {
     const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/location-summary`);
     const data = await res.json();
 
     const mapped = Array.isArray(data)
-      ? data.map(item => ({
+      ? data.map((item) => ({
           name: item.location ?? item.name ?? "Unknown",
           value: Number(item.count ?? item.value ?? 0),
         }))
@@ -243,6 +259,34 @@ const fetchLocationSummary = async () => {
       : allJobs;
     setFilteredJobs(filtered);
   };
+
+  const buildCountsFromField = (jobs, picker) => {
+    const counts = {};
+    for (const j of jobs) {
+      const raw = picker(j);
+      if (!raw) continue;
+      const key = String(raw).trim();
+      if (!key) continue;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .map(([skill, count]) => ({ skill, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  // Titles: try common keys safely
+  const jobTitleData = useMemo(() => {
+    return buildCountsFromField(filteredJobs, (j) =>
+      j.title ?? j.job_title ?? j.position ?? null
+    );
+  }, [filteredJobs]);
+
+  // Companies: try common keys safely
+  const jobCompanyData = useMemo(() => {
+    return buildCountsFromField(filteredJobs, (j) =>
+      j.company ?? j.company_name ?? j.employer ?? null
+    );
+  }, [filteredJobs]);
 
   const categories = [...new Set(allJobs.map((j) => j.category))]
     .filter(Boolean)
@@ -346,6 +390,39 @@ const fetchLocationSummary = async () => {
     );
   };
 
+  const renderGenericCountChart = (title, data, chartType, setChartType, expanded, setExpanded) => {
+    return (
+      <div className="chart-card" key={`${title}-${chartType}`}>
+        <h3 className="card-title">{title}</h3>
+
+        <div className="chart-type-toggle">
+          <span className="chart-type-label">Chart Type:</span>
+          {["bar", "pie", "wordcloud"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setChartType(type)}
+              className={`chart-type-btn ${chartType === type ? "active" : ""}`}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <ChartWrapper
+          chartType={chartType}
+          title={title}
+          data={data}
+          dataKey="skill"
+          barKey="count"
+          expanded={expanded}
+          onToggleExpand={() => setExpanded(!expanded)}
+          layout="vertical"
+        />
+      </div>
+    );
+  };
+
+
   return (
     <div>
       <Navbar
@@ -411,9 +488,9 @@ const fetchLocationSummary = async () => {
                 <ChartWrapper
                   chartType={locationChartType}
                   title="Locations"
-                  data={locationData}
-                  dataKey="name"
-                  barKey="value"
+                  data={locationData.map(({ name, value }) => ({ skill: name, count: value }))}
+                  dataKey="skill"
+                  barKey="count"
                   expanded={locationExpanded}
                   onToggleExpand={() => setLocationExpanded(!locationExpanded)}
                 />
@@ -421,13 +498,63 @@ const fetchLocationSummary = async () => {
             </div>
 
             {/* Skill Charts */}
+            {[
+              "programming language",
+              "framework",
+              "tool",
+              "platform",
+              "methodology",
+              "database",
+            ].reduce((rows, type, idx, arr) => {
+              if (idx % 2 === 0) {
+                const left = type;
+                const right = arr[idx + 1];
+                rows.push(
+                  <div className="two-col" key={`skills-row-${idx}`}>
+                    {renderSkillChart(
+                      left.charAt(0).toUpperCase() + left.slice(1),
+                      skillsData[left] || [],
+                      left
+                    )}
+                    {right
+                      ? renderSkillChart(
+                        right.charAt(0).toUpperCase() + right.slice(1),
+                        skillsData[right] || [],
+                        right
+                      )
+                      : null}
+                  </div>
+                );
+              }
+              return rows;
+            }, [])}
+
+            {/* Last row: Soft skill + Job Titles (fills the gap) */}
             <div className="two-col">
-              {Object.entries(skillsData).map(([type, list]) =>
-                renderSkillChart(
-                  type.charAt(0).toUpperCase() + type.slice(1),
-                  list,
-                  type
-                )
+              {renderSkillChart(
+                "Soft skill",
+                skillsData["soft skill"] || [],
+                "soft skill"
+              )}
+              {renderGenericCountChart(
+                "Job Titles",
+                jobTitleData,
+                jobTitleChartType,
+                setJobTitleChartType,
+                jobTitleExpanded,
+                setJobTitleExpanded
+              )}
+            </div>
+
+            {/* Next row: Job Companies */}
+            <div className="two-col">
+              {renderGenericCountChart(
+                "Job Companies",
+                jobCompanyData,
+                jobCompanyChartType,
+                setJobCompanyChartType,
+                jobCompanyExpanded,
+                setJobCompanyExpanded
               )}
             </div>
           </div>
