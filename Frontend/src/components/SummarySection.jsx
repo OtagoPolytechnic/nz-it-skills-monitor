@@ -10,9 +10,13 @@ function pickSalary(job) {
   if (!Number.isNaN(s) && s > 0) return s;
 
   const text = String(
-    job?.compensation || job?.salary_text || job?.salaryRange || job?.salaryStr || ""
+    job?.compensation ||
+      job?.salary_text ||
+      job?.salaryRange ||
+      job?.salaryStr ||
+      ""
   );
-  const nums = (text.match(/\d+(?:[.,]?\d+)?/g) || []).map(n =>
+  const nums = (text.match(/\d+(?:[.,]?\d+)?/g) || []).map((n) =>
     Number(n.replace(/,/g, ""))
   );
   if (nums.length === 2) return (nums[0] + nums[1]) / 2;
@@ -67,30 +71,33 @@ const SummarySection = ({ jobs = [] }) => {
   const stats = useMemo(() => {
     if (!jobs.length) return {};
     // Normalize scrape dates
-const toDay = (v) => {
-  if (!v) return null;
-  const d = new Date(v);
-  if (isNaN(d)) return null;
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
-};
+    const toDay = (v) => {
+      if (!v) return null;
+      const d = new Date(v);
+      if (isNaN(d)) return null;
+      return d.toISOString().slice(0, 10); // YYYY-MM-DD
+    };
 
-const pickDate = (j) =>
-  j.scrapeDate ?? j.scrape_date ?? j.scraped_at ?? j.scrapedAt ?? j.created_at ?? j.date;
+    const pickDate = (j) =>
+      j.scrapeDate ??
+      j.scrape_date ??
+      j.scraped_at ??
+      j.scrapedAt ??
+      j.created_at ??
+      j.date;
 
-// Group jobs by scrape day
-const scrapeMap = {};
-for (const job of jobs) {
-  const key = toDay(pickDate(job));
-  if (!key) continue;
-  if (!scrapeMap[key]) scrapeMap[key] = [];
-  scrapeMap[key].push(job);
-}
+    // Group jobs by scrape day
+    const scrapeMap = {};
+    for (const job of jobs) {
+      const key = toDay(pickDate(job));
+      if (!key) continue;
+      if (!scrapeMap[key]) scrapeMap[key] = [];
+      scrapeMap[key].push(job);
+    }
 
-// Get most recent scrape batch
-const latestDate = Object.keys(scrapeMap).sort().pop();
-const latestJobs = scrapeMap[latestDate] || [];
-
-  
+    // Get most recent scrape batch
+    const latestDate = Object.keys(scrapeMap).sort().pop();
+    const latestJobs = scrapeMap[latestDate] || [];
 
     // Average salary
     const salaries = [];
@@ -106,11 +113,23 @@ const latestJobs = scrapeMap[latestDate] || [];
     const location = mostCommon(latestJobs.map((j) => j.location));
     const category = mostCommon(latestJobs.map((j) => j.category));
     const topSkill = topSkillFromJobs(latestJobs);
+    const topTitle = mostCommon(
+      latestJobs.map((j) => j.title || j.title_text || j.role)
+    );
+    const topCompany = mostCommon(
+      latestJobs.map((j) => j.company || j.company_name)
+    );
     const total = latestJobs.length;
 
-    
-
-    return { total, avgSalary, location, category, topSkill };
+    return {
+      total,
+      avgSalary,
+      location,
+      category,
+      topSkill,
+      topTitle,
+      topCompany,
+    };
   }, [jobs]);
 
   return (
@@ -122,7 +141,9 @@ const latestJobs = scrapeMap[latestDate] || [];
       />
       <SummaryCard
         title="Average Listed Salary"
-        value={stats.avgSalary ? `NZ$ ${stats.avgSalary.toLocaleString()}` : "N/A"}
+        value={
+          stats.avgSalary ? `NZ$ ${stats.avgSalary.toLocaleString()}` : "N/A"
+        }
         helper={stats.avgSalary ? "From available listings" : "No salary data"}
       />
       <SummaryCard
@@ -139,6 +160,16 @@ const latestJobs = scrapeMap[latestDate] || [];
         title="Most Listed Category"
         value={stats.category ? titleCase(stats.category.value) : "N/A"}
         helper={stats.category ? `${stats.category.count} listings` : "—"}
+      />
+      <SummaryCard
+        title="Top Hiring Company"
+        value={stats.topCompany ? titleCase(stats.topCompany.value) : "N/A"}
+        helper={stats.topCompany ? `${stats.topCompany.count} listings` : "—"}
+      />
+      <SummaryCard
+        title="Most Common Title"
+        value={stats.topTitle ? titleCase(stats.topTitle.value) : "N/A"}
+        helper={stats.topTitle ? `${stats.topTitle.count} listings` : "—"}
       />
     </section>
   );

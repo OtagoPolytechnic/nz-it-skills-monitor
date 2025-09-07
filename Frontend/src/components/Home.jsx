@@ -1,4 +1,3 @@
-// src/components/Home.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import Navbar from "../Navbar";
 import ChartWrapper from "./ChartStyle/ChartWrapper";
@@ -6,6 +5,7 @@ import LeafletHeatmap from "./Heatmap";
 import "../App.css";
 import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
+import SalaryHistogram from "./salaryhistogram";
 
 
 // Utility: fetch with timeout
@@ -145,18 +145,11 @@ const Home = () => {
     };
   }, [filteredJobs]);
 
-  useEffect(() => {
-    // Fetch jobs
-    fetch(`${import.meta.env.VITE_API_URL}/jobs`)
-      .then((res) => res.json())
-      .then((data) => {
-        setAllJobs(data);
-        setFilteredJobs(data);
-      });
-
-    fetchSkillsSummary();
-    fetchLocationSummary();
-  }, []);
+useEffect(() => {
+  fetchJobs();
+  fetchSkillsSummary();
+  fetchLocationSummary();
+}, []);
 
 
   useEffect(() => {
@@ -176,66 +169,68 @@ const Home = () => {
     setJobCompanyExpanded(false);
   }, [globalChartType]);
 
-  const fetchSkillsSummary = async () => {
-    try {
-      const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/skills-summary`);
-      const data = await res.json();
+const fetchSkillsSummary = async () => {
+  try {
+    const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/skills-summary`);
+    const data = await res.json();
 
-      // ✅ Only allow these 7 groups
-      const ALLOWED = [
-        "programming language",
-        "framework",
-        "tool",
-        "platform",
-        "methodology",
-        "database",
-        "soft skill",
-      ];
+    // ✅ Only allow these 7 groups (kept consistent across the app)
+    const ALLOWED = [
+      "programming language",
+      "framework",
+      "tool",
+      "platform",
+      "methodology",
+      "database",
+      "soft skill",
+    ];
 
-      // Build full grouped map from API
-      const grouped = {};
-      data.forEach(item => {
-        const type = item.type?.toLowerCase();
-        if (!type) return;
-        if (!grouped[type]) grouped[type] = [];
-        grouped[type].push({ skill: item.skill, count: item.count });
-      });
+    // Build and filter into the allowed buckets
+    const grouped = {};
+    data.forEach((item) => {
+      const type = item.type?.toLowerCase();
+      const skill = item.skill;
+      const count = Number(item.count ?? 0);
+      if (!type || !skill) return;
+      if (!ALLOWED.includes(type)) return;
+      if (!grouped[type]) grouped[type] = [];
+      grouped[type].push({ skill, count });
+    });
 
-      // ✅ Keep only the allowed keys, and ensure each exists (even if empty)
-      const filteredGrouped = {};
-      ALLOWED.forEach(k => {
-        filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
-      });
+    // Ensure each allowed key exists and is sorted
+    const filteredGrouped = {};
+    ALLOWED.forEach((k) => {
+      filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
+    });
 
-      setSkillsData(filteredGrouped);
+    setSkillsData(filteredGrouped);
+    setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
+  } catch (err) {
+    console.error("Error fetching skills summary:", err);
+    setHasData(false);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-      // ✅ hasData only checks allowed groups
-      setHasData(ALLOWED.some(k => (filteredGrouped[k]?.length || 0) > 0));
-    } catch (err) {
-      console.error("Error fetching skills summary:", err);
-      setHasData(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const fetchLocationSummary = async () => {
+  try {
+    const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/location-summary`);
+    const data = await res.json();
 
+    const mapped = Array.isArray(data)
+      ? data.map((item) => ({
+          name: item.location ?? item.name ?? "Unknown",
+          value: Number(item.count ?? item.value ?? 0),
+        }))
+      : [];
 
-  const fetchLocationSummary = async () => {
-    try {
-      const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/location-summary`);
-      const data = await res.json();
-
-      const mapped = data.map(item => ({
-        name: item.location,
-        value: item.count,
-      }));
-
-      setLocationData(mapped);
-    } catch (err) {
-      console.error("Error fetching location summary:", err);
-      setLocationData([]);
-    }
-  };
+    setLocationData(mapped);
+  } catch (err) {
+    console.error("Error fetching location summary:", err);
+    setLocationData([]);
+  }
+};
 
 
   const fetchJobs = async () => {
@@ -443,18 +438,36 @@ const Home = () => {
       </div>
 
       <div className="section page-container">
-        <div
-          className="chart-card"
-          style={{
-            padding: "1.5rem",
-            backgroundColor: "#ffffff",
-            borderRadius: "0.375rem",
-            border: "1px solid #e5e7eb",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <h2 className="card-title">Jobs Posted Over Time</h2>
-          <JobsOverTimeChart jobs={filteredJobs} />
+        <div className="two-col full-width">
+          {/* Left: Jobs Over Time */}
+          <div
+            className="chart-card"
+            style={{
+              padding: "1.5rem",
+              backgroundColor: "#ffffff",
+              borderRadius: "0.375rem",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+            }}
+          >
+            <h2 className="card-title">Jobs Posted Over Time</h2>
+            <JobsOverTimeChart jobs={filteredJobs} />
+          </div>
+
+          {/* Right: Salary Histogram */}
+          <div
+            className="chart-card"
+            style={{
+              padding: "1.5rem",
+              backgroundColor: "#ffffff",
+              borderRadius: "0.375rem",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+            }}
+          >
+            <h2 className="card-title">Salary Distribution</h2>
+            <SalaryHistogram jobs={filteredJobs} />
+          </div>
         </div>
       </div>
 
@@ -464,7 +477,12 @@ const Home = () => {
           <div style={{ width: "100%" }}>
             {/* Two-column layout for Location + Heatmap */}
             <div className="two-col full-width">
-              {/* Left: Job Locations */}
+              <div className="chart-card heatmap-wrapper">
+                <h2 className="card-title">Job Heatmap</h2>
+                <div className="heatmap-container">
+                  <LeafletHeatmap />
+                </div>
+              </div>
               <div className="chart-card">
                 <h2 className="card-title">Job Locations</h2>
                 <ChartWrapper
@@ -476,14 +494,6 @@ const Home = () => {
                   expanded={locationExpanded}
                   onToggleExpand={() => setLocationExpanded(!locationExpanded)}
                 />
-              </div>
-
-              {/* Right: Heatmap */}
-              <div className="chart-card heatmap-wrapper">
-                <h2 className="card-title">Job Heatmap</h2>
-                <div className="heatmap-container">
-                  <LeafletHeatmap />
-                </div>
               </div>
             </div>
 
