@@ -94,7 +94,10 @@ def get_jobs():
     company = request.args.get('company')
     skill = request.args.get('skill')
 
+    latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
     query = Job.query.options(subqueryload(Job.skills))
+    if latest_scrape_id:
+        query = query.filter(Job.scrape_id == latest_scrape_id)
 
     if title:
         query = query.filter(Job.title.ilike(f'%{title}%'))
@@ -110,6 +113,30 @@ def get_jobs():
     jobs_data = job_schema.dump(jobs)
 
     return jsonify(jobs_data)
+
+@app.route('/jobs-over-time', methods=['GET'])
+def get_jobs_over_time():
+    try:
+
+        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+        query = db.session.query(Job.date, db.func.count(Job.id))
+
+        if latest_scrape_id:
+            query = query.filter(Job.scrape_id == latest_scrape_id)
+
+        results = (
+            query.group_by(Job.date)
+            .order_by(Job.date)
+            .all()
+        )
+
+        # Convert to [{date: '2025-08-31', count: 5}, ...]
+        jobs_per_day = [{"date": date.isoformat(), "count": count} for date, count in results]
+
+        return jsonify(jobs_per_day), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/skills', methods=['GET'])
 def get_skills_by_type():
@@ -128,12 +155,22 @@ def get_skills_by_type():
 @app.route('/skills-summary', methods=['GET'])
 def get_skills_summary():
     try:
+        
+        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+
         results = (
-            db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
-            .group_by(Skill.type, Skill.name)
+        db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
+        .join(Job)
+)
+
+        if latest_scrape_id:
+            results = results.filter(Job.scrape_id == latest_scrape_id)
+
+        results = (
+            results.group_by(Skill.type, Skill.name)
             .order_by(Skill.type, db.func.count().desc())
             .all()
-        )
+)
 
         summary = []
         for skill_type, skill_name, count in results:
@@ -239,7 +276,12 @@ def stop_spiders():
 
 @app.route('/job-locations', methods=['GET'])
 def job_locations():
-    jobs = Job.query.all()
+    
+    latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+    jobs = Job.query
+    if latest_scrape_id:
+        jobs = jobs.filter(Job.scrape_id == latest_scrape_id)
+    jobs = jobs.all()
 
     CITY_COORDINATES = {
         'Auckland': [-36.8485, 174.7633],
@@ -272,9 +314,15 @@ def job_locations():
 @app.route('/location-summary', methods=['GET'])
 def get_location_summary():
     try:
+
+        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
+        results = db.session.query(Job.location, db.func.count().label("count"))
+
+        if latest_scrape_id:
+            results = results.filter(Job.scrape_id == latest_scrape_id)
+
         results = (
-            db.session.query(Job.location, db.func.count().label("count"))
-            .group_by(Job.location)
+            results.group_by(Job.location)
             .order_by(db.func.count().desc())
             .all()
         )
