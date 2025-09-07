@@ -42,6 +42,11 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
 
+  const [jobTitleChartType, setJobTitleChartType] = useState("bar");
+  const [jobTitleExpanded, setJobTitleExpanded] = useState(false);
+  const [jobCompanyChartType, setJobCompanyChartType] = useState("bar");
+  const [jobCompanyExpanded, setJobCompanyExpanded] = useState(false);
+
   const [globalChartType, setGlobalChartType] = useState("bar");
   const [chartTypes, setChartTypes] = useState({});
   const [expandedSections, setExpandedSections] = useState({});
@@ -165,6 +170,10 @@ const Home = () => {
     setExpandedSections(expandedMap);
     setLocationChartType(globalChartType);
     setLocationExpanded(false);
+    setJobTitleChartType(globalChartType);
+    setJobCompanyChartType(globalChartType);
+    setJobTitleExpanded(false);
+    setJobCompanyExpanded(false);
   }, [globalChartType]);
 
   const fetchSkillsSummary = async () => {
@@ -172,15 +181,36 @@ const Home = () => {
       const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/skills-summary`);
       const data = await res.json();
 
+      // ✅ Only allow these 7 groups
+      const ALLOWED = [
+        "programming language",
+        "framework",
+        "tool",
+        "platform",
+        "methodology",
+        "database",
+        "soft skill",
+      ];
+
+      // Build full grouped map from API
       const grouped = {};
       data.forEach(item => {
         const type = item.type?.toLowerCase();
+        if (!type) return;
         if (!grouped[type]) grouped[type] = [];
         grouped[type].push({ skill: item.skill, count: item.count });
       });
 
-      setSkillsData(grouped);
-      setHasData(Object.keys(grouped).some(type => grouped[type]?.length > 0));
+      // ✅ Keep only the allowed keys, and ensure each exists (even if empty)
+      const filteredGrouped = {};
+      ALLOWED.forEach(k => {
+        filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
+      });
+
+      setSkillsData(filteredGrouped);
+
+      // ✅ hasData only checks allowed groups
+      setHasData(ALLOWED.some(k => (filteredGrouped[k]?.length || 0) > 0));
     } catch (err) {
       console.error("Error fetching skills summary:", err);
       setHasData(false);
@@ -188,6 +218,7 @@ const Home = () => {
       setIsLoading(false);
     }
   };
+
 
   const fetchLocationSummary = async () => {
     try {
@@ -233,6 +264,34 @@ const Home = () => {
       : allJobs;
     setFilteredJobs(filtered);
   };
+
+  const buildCountsFromField = (jobs, picker) => {
+    const counts = {};
+    for (const j of jobs) {
+      const raw = picker(j);
+      if (!raw) continue;
+      const key = String(raw).trim();
+      if (!key) continue;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .map(([skill, count]) => ({ skill, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  // Titles: try common keys safely
+  const jobTitleData = useMemo(() => {
+    return buildCountsFromField(filteredJobs, (j) =>
+      j.title ?? j.job_title ?? j.position ?? null
+    );
+  }, [filteredJobs]);
+
+  // Companies: try common keys safely
+  const jobCompanyData = useMemo(() => {
+    return buildCountsFromField(filteredJobs, (j) =>
+      j.company ?? j.company_name ?? j.employer ?? null
+    );
+  }, [filteredJobs]);
 
   const categories = [...new Set(allJobs.map((j) => j.category))]
     .filter(Boolean)
@@ -336,6 +395,39 @@ const Home = () => {
     );
   };
 
+  const renderGenericCountChart = (title, data, chartType, setChartType, expanded, setExpanded) => {
+    return (
+      <div className="chart-card" key={`${title}-${chartType}`}>
+        <h3 className="card-title">{title}</h3>
+
+        <div className="chart-type-toggle">
+          <span className="chart-type-label">Chart Type:</span>
+          {["bar", "pie", "wordcloud"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setChartType(type)}
+              className={`chart-type-btn ${chartType === type ? "active" : ""}`}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <ChartWrapper
+          chartType={chartType}
+          title={title}
+          data={data}
+          dataKey="skill"
+          barKey="count"
+          expanded={expanded}
+          onToggleExpand={() => setExpanded(!expanded)}
+          layout="vertical"
+        />
+      </div>
+    );
+  };
+
+
   return (
     <div>
       <Navbar
@@ -397,12 +489,39 @@ const Home = () => {
 
             {/* Skill Charts */}
             <div className="two-col">
-              {Object.entries(skillsData).map(([type, list]) =>
+              {[
+                "programming language",
+                "framework",
+                "tool",
+                "platform",
+                "methodology",
+                "database",
+                "soft skill",
+              ].map((type) =>
                 renderSkillChart(
                   type.charAt(0).toUpperCase() + type.slice(1),
-                  list,
+                  skillsData[type] || [],
                   type
                 )
+              )}
+            </div>
+            <div className="two-col">
+              {renderGenericCountChart(
+                "Job Titles",
+                jobTitleData,
+                jobTitleChartType,
+                setJobTitleChartType,
+                jobTitleExpanded,
+                setJobTitleExpanded
+              )}
+
+              {renderGenericCountChart(
+                "Job Companies",
+                jobCompanyData,
+                jobCompanyChartType,
+                setJobCompanyChartType,
+                jobCompanyExpanded,
+                setJobCompanyExpanded
               )}
             </div>
           </div>
