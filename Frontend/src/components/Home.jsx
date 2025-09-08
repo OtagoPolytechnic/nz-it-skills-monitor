@@ -6,6 +6,7 @@ import "../App.css";
 import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
+import AverageSalaryOverTimeChart from "./averagesalaryovertime";
 
 
 // Utility: fetch with timeout
@@ -53,6 +54,7 @@ const Home = () => {
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
   const [fullStatsLoaded, setFullStatsLoaded] = useState(false);
+  const [avgSalaryExpanded, setAvgSalaryExpanded] = useState(false);
 
 
   const parseSalary = (job) => {
@@ -468,6 +470,20 @@ const fetchLocationSummary = async () => {
             <h2 className="card-title">Salary Distribution</h2>
             <SalaryHistogram jobs={filteredJobs} />
           </div>
+        </div>
+      </div>
+
+            <div className="section page-container">
+        <div className="chart-card" style={{ padding: "1.5rem", backgroundColor: "#ffffff", borderRadius: "0.375rem", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)" }}>
+          <h2 className="card-title">Average Salary per Scrape</h2>
+          {/* Use allJobs to reflect each scrape run overall.
+              If you want it to respect the category filter, pass filteredJobs instead. */}
+          <AverageSalaryOverTimeChart
+            jobs={allJobs}
+            expanded={avgSalaryExpanded}
+            onToggleExpand={() => setAvgSalaryExpanded((v) => !v)}
+            maxCollapsedPoints={12}
+          />
         </div>
       </div>
 
