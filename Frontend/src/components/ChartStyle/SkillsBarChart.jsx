@@ -37,7 +37,7 @@ const SkillsBarChart = ({
   if (chartMode !== currentMode) return null;
 
   const sortedData = [...data].sort((a, b) => b[barKey] - a[barKey]);
-  const displayedData = expanded ? sortedData : sortedData.slice(0, 15);
+  const displayedData = expanded ? sortedData.slice(0, 30) : sortedData.slice(0, 15);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {

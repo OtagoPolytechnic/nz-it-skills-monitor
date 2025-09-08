@@ -12,7 +12,7 @@ const SkillsPieChart = ({ title, data, chartMode, currentMode, expanded, onToggl
   if (chartMode !== currentMode) return null;
 
   const sorted = [...data].sort((a, b) => b.count - a.count);
-  const displayedData = expanded ? sorted : sorted.slice(0, 20);
+  const displayedData = expanded ? sorted.slice(0, 30) : sorted.slice(0, 15);
 
   return (
     <div className="chart-card">
