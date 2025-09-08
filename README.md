@@ -1,4 +1,8 @@
 # nz-it-skills-monitor
+
+#Live Server
+https://nz-it-skills-monitor-25.netlify.app/
+
 ## scrapy set up
 - activate chosen virtual enviroment
 - pip install the followoing packages:
