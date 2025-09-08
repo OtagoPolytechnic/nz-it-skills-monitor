@@ -15,7 +15,7 @@ const SkillsWordCloud = ({ title = '', data = [], chartMode, currentMode, expand
     }
 
     const sorted = [...data].sort((a, b) => b.count - a.count);
-    const displayed = expanded ? sorted : sorted.slice(0, 40);
+    const displayed = expanded ? sorted : sorted.slice(0, 30);
     const layout = displayed.map(item => ({
       text: item.skill,
       value: item.count,
