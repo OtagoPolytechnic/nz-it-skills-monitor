@@ -142,7 +142,7 @@ def get_jobs_over_time():
         return jsonify(jobs_per_day), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 @app.route('/summary-metrics', methods=['GET'])
 def summary_metrics():
     try:
@@ -257,8 +257,43 @@ def summary_metrics():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/salary-distribution', methods=['GET'])
+def salary_distribution():
+    try:
+        # latest scrape id that actually exists
+        latest_scrape_id = (
+            db.session.query(Job.scrape_id)
+            .filter(Job.scrape_id.isnot(None))
+            .order_by(Job.scrape_id.desc())
+            .limit(1)
+            .scalar()
+        )
 
+        band = case(
+            (Job.salary < 50000,  '0-50k'),
+            (Job.salary < 75000,  '50k-75k'),
+            (Job.salary < 100000, '75k-100k'),
+            (Job.salary < 125000, '100k-125k'),
+            (Job.salary < 150000, '125k-150k'),
+            (Job.salary < 200000, '150k-200k'),
+            else_='200k+'
+        ).label('band')
 
+        q = db.session.query(band, db.func.count(Job.id)).filter(Job.salary.isnot(None))
+        if latest_scrape_id:
+            q = q.filter(Job.scrape_id == latest_scrape_id)
+
+        rows = q.group_by(band).all()
+
+        order = ['0-50k','50k-75k','75k-100k','100k-125k','125k-150k','150k-200k','200k+']
+        counts = {k: 0 for k in order}
+        for b, c in rows:
+            counts[b] = c
+
+        data = [{'band': k, 'count': counts[k]} for k in order]
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/skills', methods=['GET'])
 def get_skills_by_type():
@@ -273,17 +308,16 @@ def get_skills_by_type():
     except Exception as e:
         logging.error(f"Failed to fetch skills by type: {e}", exc_info=True)
         return jsonify({'error': 'Internal Server Error'}), 500
-    
+
 @app.route('/skills-summary', methods=['GET'])
 def get_skills_summary():
     try:
-        
         latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
 
         results = (
-        db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
-        .join(Job)
-)
+            db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
+            .join(Job)
+        )
 
         if latest_scrape_id:
             results = results.filter(Job.scrape_id == latest_scrape_id)
@@ -292,7 +326,7 @@ def get_skills_summary():
             results.group_by(Skill.type, Skill.name)
             .order_by(Skill.type, db.func.count().desc())
             .all()
-)
+        )
 
         summary = []
         for skill_type, skill_name, count in results:
@@ -305,7 +339,6 @@ def get_skills_summary():
         return jsonify(summary), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -398,7 +431,6 @@ def stop_spiders():
 
 @app.route('/job-locations', methods=['GET'])
 def job_locations():
-    
     latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
     jobs = Job.query
     if latest_scrape_id:
@@ -436,7 +468,6 @@ def job_locations():
 @app.route('/location-summary', methods=['GET'])
 def get_location_summary():
     try:
-
         latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
         results = db.session.query(Job.location, db.func.count().label("count"))
 
@@ -461,15 +492,11 @@ def get_location_summary():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.after_request
 def add_no_store(resp):
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
     return resp
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
