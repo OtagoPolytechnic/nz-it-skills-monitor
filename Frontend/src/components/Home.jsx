@@ -448,7 +448,7 @@ const fetchLocationSummary = async () => {
       />
       {/* ---- Summary Section ---- */}
       <div className="section page-container">
-        <SummarySection jobs={filteredJobs} />
+        <SummarySection />
       </div>
 
       <div className="section page-container">

@@ -146,62 +146,105 @@ def get_jobs_over_time():
 @app.route('/summary-metrics', methods=['GET'])
 def summary_metrics():
     try:
-        # latest scrape id that actually exists
+        source = request.args.get('source')
+
+        # 1) Get latest scrape_id (ignoring NULLs)
         latest_scrape_id = (
-            db.session.query(Job.scrape_id)
+            db.session.query(db.func.max(Job.scrape_id))
             .filter(Job.scrape_id.isnot(None))
-            .order_by(Job.scrape_id.desc())
-            .limit(1)
             .scalar()
         )
 
         base = db.session.query(Job)
-        if latest_scrape_id:
-            base = base.filter(Job.scrape_id == latest_scrape_id)
 
-        # total jobs
+        if source:
+            base = base.filter(Job.source == source)
+
+        # 2) Scope to the latest batch
+        if latest_scrape_id is not None:
+            # Normal path: use scrape_id
+            base = base.filter(Job.scrape_id == latest_scrape_id)
+        else:
+            # Fallback: use latest Job.date (mimics old client logic)
+            latest_date = (
+                db.session.query(db.func.max(Job.date))
+                .filter(Job.date.isnot(None))
+            )
+            if source:
+                latest_date = latest_date.filter(Job.source == source)
+            latest_date = latest_date.scalar()
+
+            if latest_date is not None:
+                base = base.filter(Job.date == latest_date)
+            # If even date is None, base stays unfiltered (edge case: empty table)
+
+        # --- totals ---
         total = base.with_entities(db.func.count(Job.id)).scalar() or 0
 
-        # average listed salary (ignore NULL/0)
+        # --- average salary ---
         avg_salary = (
             base.with_entities(db.func.avg(Job.salary))
-                .filter(Job.salary.isnot(None), Job.salary > 0)
-                .scalar()
+            .filter(Job.salary.isnot(None), Job.salary > 0)
+            .scalar()
         )
-        if avg_salary:
-            avg_salary = int(round(avg_salary))
+        avg_salary = int(round(avg_salary)) if avg_salary else None
 
-        # helpers to get top(value,count) for a column
+        # --- helper for top fields ---
         def top_for(col):
-            q = base.with_entities(col.label("val"), db.func.count().label("cnt"))\
-                    .filter(col.isnot(None))
-            # ignore 'none' strings
-            q = q.filter(db.func.lower(col) != 'none')
-            row = q.group_by(col).order_by(db.func.count().desc()).first()
-            if not row or not row.val:
-                return None
-            return {"value": row.val, "count": int(row.cnt)}
+            row = (
+                base.with_entities(col.label("val"), db.func.count().label("cnt"))
+                .filter(col.isnot(None), db.func.lower(col) != 'none')
+                .group_by(col)
+                .order_by(db.func.count().desc())
+                .first()
+            )
+            return {"value": row.val, "count": int(row.cnt)} if row and row.val else None
 
-        location = top_for(Job.location)
-        category = top_for(Job.category)
-        top_title = top_for(Job.title)
+        location    = top_for(Job.location)
+        category    = top_for(Job.category)
+        top_title   = top_for(Job.title)
         top_company = top_for(Job.company)
 
-        # top skill (join skills)
-        skill_row = (
+        # --- top skill ---
+        skill_q = (
             db.session.query(Skill.name.label("val"), db.func.count().label("cnt"))
             .join(Job, Skill.job_id == Job.id)
         )
-        if latest_scrape_id:
-            skill_row = skill_row.filter(Job.scrape_id == latest_scrape_id)
-        skill_row = skill_row.group_by(Skill.name)\
-                             .order_by(db.func.count().desc())\
-                             .first()
-        top_skill = None
-        if skill_row and skill_row.val:
-            top_skill = {"value": skill_row.val, "count": int(skill_row.cnt)}
+        if source:
+            skill_q = skill_q.filter(Job.source == source)
+
+        # reuse the same scope as `base`
+        if latest_scrape_id is not None:
+            skill_q = skill_q.filter(Job.scrape_id == latest_scrape_id)
+        else:
+            # if we fell back to date, mirror that
+            latest_date_for_skills = (
+                db.session.query(db.func.max(Job.date))
+                .filter(Job.date.isnot(None))
+            )
+            if source:
+                latest_date_for_skills = latest_date_for_skills.filter(Job.source == source)
+            latest_date_for_skills = latest_date_for_skills.scalar()
+            if latest_date_for_skills is not None:
+                skill_q = skill_q.filter(Job.date == latest_date_for_skills)
+
+        skill_row = (
+            skill_q.group_by(Skill.name)
+            .order_by(db.func.count().desc())
+            .first()
+        )
+        top_skill = {"value": skill_row.val, "count": int(skill_row.cnt)} if skill_row and skill_row.val else None
+
+        # --- scrape date helper (reporting only) ---
+        scrape_date = (
+            base.with_entities(db.func.max(Job.date)).scalar()
+        )
+        scrape_date = scrape_date.isoformat() if scrape_date else None
 
         return jsonify({
+            "source": source,
+            "scrapeId": int(latest_scrape_id) if latest_scrape_id is not None else None,
+            "scrapeDate": scrape_date,
             "total": int(total),
             "avgSalary": avg_salary,
             "location": location,
@@ -210,8 +253,11 @@ def summary_metrics():
             "topTitle": top_title,
             "topCompany": top_company,
         }), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 
 
 @app.route('/skills', methods=['GET'])
