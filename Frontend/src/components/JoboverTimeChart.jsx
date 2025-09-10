@@ -17,7 +17,6 @@ export default function JobsOverTimeChart() {
 
   const data = useMemo(() => {
     if (!Array.isArray(raw)) return [];
-    // 後端已經 group 好，但保持穩陣：確保排序及型態
     return [...raw]
       .filter(r => r && r.date && typeof r.count === "number")
       .sort((a, b) => a.date.localeCompare(b.date));
