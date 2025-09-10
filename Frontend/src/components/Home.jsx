@@ -146,9 +146,12 @@ const Home = () => {
   }, [filteredJobs]);
 
 useEffect(() => {
-  fetchJobs();
   fetchSkillsSummary();
   fetchLocationSummary();
+  const id = setTimeout(() => {
+    fetchJobs();
+  }, 1);
+  return () => clearTimeout(id);
 }, []);
 
 
@@ -171,7 +174,10 @@ useEffect(() => {
 
 const fetchSkillsSummary = async () => {
   try {
-    const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/skills-summary`);
+    const res = await fetchWithTimeout(
+  `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
+  { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+);
     const data = await res.json();
 
     // ✅ Only allow these 7 groups (kept consistent across the app)
@@ -215,7 +221,11 @@ const fetchSkillsSummary = async () => {
 
 const fetchLocationSummary = async () => {
   try {
-    const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/location-summary`);
+    const res = await fetchWithTimeout(
+  `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
+  { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+);
+
     const data = await res.json();
 
     const mapped = Array.isArray(data)
@@ -235,7 +245,11 @@ const fetchLocationSummary = async () => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/jobs`);
+      const res = await fetchWithTimeout(
+  `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
+  { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+);
+
       const data = await res.json();
 
       console.log(`✅ Total jobs fetched: ${data.length}`);
@@ -451,7 +465,7 @@ const fetchLocationSummary = async () => {
             }}
           >
             <h2 className="card-title">Jobs Posted Over Time</h2>
-            <JobsOverTimeChart jobs={filteredJobs} />
+            <JobsOverTimeChart/>
           </div>
 
           {/* Right: Salary Histogram */}
