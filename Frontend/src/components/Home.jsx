@@ -145,11 +145,16 @@ const Home = () => {
     };
   }, [filteredJobs]);
 
-  useEffect(() => {
+
+useEffect(() => {
+  fetchSkillsSummary();
+  fetchLocationSummary();
+  const id = setTimeout(() => {
     fetchJobs();
-    fetchSkillsSummary();
-    fetchLocationSummary();
-  }, []);
+  }, 1);
+  return () => clearTimeout(id);
+}, []);
+
 
   useEffect(() => {
     const updated = {};
@@ -168,53 +173,69 @@ const Home = () => {
     setJobCompanyExpanded(false);
   }, [globalChartType]);
 
-  const fetchSkillsSummary = async () => {
-    try {
-      const res = await fetchWithTimeout(
-        `${import.meta.env.VITE_API_URL}/skills-summary`
-      );
-      const data = await res.json();
+// Skills summary (with cache-busting + consistent allowed groups)
+const fetchSkillsSummary = async () => {
+  try {
+    const res = await fetchWithTimeout(
+      `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
+      { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+    );
+    const data = await res.json();
 
-      // ✅ Only allow these 7 groups (kept consistent across the app)
-      const ALLOWED = [
-        "programming language",
-        "framework",
-        "tool",
-        "platform",
-        "methodology",
-        "database",
-        "soft skill",
-      ];
+    // ✅ Only allow these 7 groups (kept consistent across the app)
+    const ALLOWED = [
+      "programming language",
+      "framework",
+      "tool",
+      "platform",
+      "methodology",
+      "database",
+      "soft skill",
+    ];
 
-      // Build and filter into the allowed buckets
-      const grouped = {};
-      data.forEach((item) => {
-        const type = item.type?.toLowerCase();
-        const skill = item.skill;
-        const count = Number(item.count ?? 0);
-        if (!type || !skill) return;
-        if (!ALLOWED.includes(type)) return;
-        if (!grouped[type]) grouped[type] = [];
-        grouped[type].push({ skill, count });
-      });
+    // Build and filter into the allowed buckets
+    const grouped = {};
+    data.forEach((item) => {
+      const type = item.type?.toLowerCase();
+      const skill = item.skill;
+      const count = Number(item.count ?? 0);
+      if (!type || !skill) return;
+      if (!ALLOWED.includes(type)) return;
+      if (!grouped[type]) grouped[type] = [];
+      grouped[type].push({ skill, count });
+    });
 
-      // Ensure each allowed key exists and is sorted
-      const filteredGrouped = {};
-      ALLOWED.forEach((k) => {
-        filteredGrouped[k] = (grouped[k] || []).sort(
-          (a, b) => b.count - a.count
-        );
-      });
+    // Ensure each allowed key exists and is sorted
+    const filteredGrouped = {};
+    ALLOWED.forEach((k) => {
+      filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
+    });
 
-      setSkillsData(filteredGrouped);
-      setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
-    } catch (err) {
-      console.error("Error fetching skills summary:", err);
-      setHasData(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setSkillsData(filteredGrouped);
+    setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
+  } catch (err) {
+    console.error("Error fetching skills summary:", err);
+    setHasData(false);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Location summary (with cache-busting)
+const fetchLocationSummary = async () => {
+  try {
+    const res = await fetchWithTimeout(
+      `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
+      { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+    );
+    const data = await res.json();
+    setLocationData(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error("Error fetching location summary:", err);
+    setLocationData([]);
+  }
+};
+
 
   const fetchLocationSummary = async () => {
     try {
@@ -240,8 +261,11 @@ const Home = () => {
   const fetchJobs = async () => {
     try {
       const res = await fetchWithTimeout(
-        `${import.meta.env.VITE_API_URL}/jobs`
-      );
+
+  `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
+  { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+);
+
       const data = await res.json();
 
       console.log(`✅ Total jobs fetched: ${data.length}`);
@@ -450,7 +474,7 @@ const Home = () => {
       />
       {/* ---- Summary Section ---- */}
       <div className="section page-container">
-        <SummarySection jobs={filteredJobs} />
+        <SummarySection />
       </div>
 
       <div className="section page-container">
@@ -467,7 +491,7 @@ const Home = () => {
             }}
           >
             <h2 className="card-title">Jobs Posted Over Time</h2>
-            <JobsOverTimeChart jobs={filteredJobs} />
+            <JobsOverTimeChart/>
           </div>
 
           {/* Right: Salary Histogram */}
@@ -482,7 +506,7 @@ const Home = () => {
             }}
           >
             <h2 className="card-title">Salary Distribution</h2>
-            <SalaryHistogram jobs={filteredJobs} />
+            <SalaryHistogram/>
           </div>
         </div>
       </div>
