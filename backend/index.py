@@ -2,7 +2,7 @@ import os
 from flask_cors import CORS
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, g
-from sqlalchemy import text, inspect, select
+from sqlalchemy import text, inspect, select, case
 from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
 from model import db
@@ -136,6 +136,44 @@ def get_jobs_over_time():
         return jsonify(jobs_per_day), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/salary-distribution', methods=['GET'])
+def salary_distribution():
+    try:
+        # latest scrape id that actually exists
+        latest_scrape_id = (
+            db.session.query(Job.scrape_id)
+            .filter(Job.scrape_id.isnot(None))
+            .order_by(Job.scrape_id.desc())
+            .limit(1)
+            .scalar()
+        )
+
+        band = case(
+            (Job.salary < 50000,  '0-50k'),
+            (Job.salary < 75000,  '50k-75k'),
+            (Job.salary < 100000, '75k-100k'),
+            (Job.salary < 125000, '100k-125k'),
+            (Job.salary < 150000, '125k-150k'),
+            (Job.salary < 200000, '150k-200k'),
+            else_='200k+'
+        ).label('band')
+
+        q = db.session.query(band, db.func.count(Job.id)).filter(Job.salary.isnot(None))
+        if latest_scrape_id:
+            q = q.filter(Job.scrape_id == latest_scrape_id)
+
+        rows = q.group_by(band).all()
+
+        order = ['0-50k','50k-75k','75k-100k','100k-125k','125k-150k','150k-200k','200k+']
+        counts = {k: 0 for k in order}
+        for b, c in rows:
+            counts[b] = c
+
+        data = [{'band': k, 'count': counts[k]} for k in order]
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/skills', methods=['GET'])
