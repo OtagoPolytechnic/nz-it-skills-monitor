@@ -6,7 +6,7 @@ import "../App.css";
 import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
-
+import AverageSalaryOverTimeChart from "./averagesalaryovertime";
 
 // Utility: fetch with timeout
 const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
@@ -53,7 +53,7 @@ const Home = () => {
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
   const [fullStatsLoaded, setFullStatsLoaded] = useState(false);
-
+  const [avgSalaryExpanded, setAvgSalaryExpanded] = useState(false);
 
   const parseSalary = (job) => {
     const min = Number(job?.min_salary);
@@ -145,6 +145,7 @@ const Home = () => {
     };
   }, [filteredJobs]);
 
+
 useEffect(() => {
   fetchSkillsSummary();
   fetchLocationSummary();
@@ -172,12 +173,13 @@ useEffect(() => {
     setJobCompanyExpanded(false);
   }, [globalChartType]);
 
+// Skills summary (with cache-busting + consistent allowed groups)
 const fetchSkillsSummary = async () => {
   try {
     const res = await fetchWithTimeout(
-  `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
-  { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
-);
+      `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
+      { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+    );
     const data = await res.json();
 
     // ✅ Only allow these 7 groups (kept consistent across the app)
@@ -219,23 +221,15 @@ const fetchSkillsSummary = async () => {
   }
 };
 
+// Location summary (with cache-busting)
 const fetchLocationSummary = async () => {
   try {
     const res = await fetchWithTimeout(
-  `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
-  { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
-);
-
+      `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
+      { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+    );
     const data = await res.json();
-
-    const mapped = Array.isArray(data)
-      ? data.map((item) => ({
-          name: item.location ?? item.name ?? "Unknown",
-          value: Number(item.count ?? item.value ?? 0),
-        }))
-      : [];
-
-    setLocationData(mapped);
+    setLocationData(Array.isArray(data) ? data : []);
   } catch (err) {
     console.error("Error fetching location summary:", err);
     setLocationData([]);
@@ -243,9 +237,31 @@ const fetchLocationSummary = async () => {
 };
 
 
+  const fetchLocationSummary = async () => {
+    try {
+      const res = await fetchWithTimeout(
+        `${import.meta.env.VITE_API_URL}/location-summary`
+      );
+      const data = await res.json();
+
+      const mapped = Array.isArray(data)
+        ? data.map((item) => ({
+            name: item.location ?? item.name ?? "Unknown",
+            value: Number(item.count ?? item.value ?? 0),
+          }))
+        : [];
+
+      setLocationData(mapped);
+    } catch (err) {
+      console.error("Error fetching location summary:", err);
+      setLocationData([]);
+    }
+  };
+
   const fetchJobs = async () => {
     try {
       const res = await fetchWithTimeout(
+
   `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
   { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
 );
@@ -268,8 +284,8 @@ const fetchLocationSummary = async () => {
     setCategoryFilter(value);
     const filtered = value
       ? allJobs.filter(
-        (job) => job.category?.toLowerCase() === value.toLowerCase()
-      )
+          (job) => job.category?.toLowerCase() === value.toLowerCase()
+        )
       : allJobs;
     setFilteredJobs(filtered);
   };
@@ -290,15 +306,17 @@ const fetchLocationSummary = async () => {
 
   // Titles: try common keys safely
   const jobTitleData = useMemo(() => {
-    return buildCountsFromField(filteredJobs, (j) =>
-      j.title ?? j.job_title ?? j.position ?? null
+    return buildCountsFromField(
+      filteredJobs,
+      (j) => j.title ?? j.job_title ?? j.position ?? null
     );
   }, [filteredJobs]);
 
   // Companies: try common keys safely
   const jobCompanyData = useMemo(() => {
-    return buildCountsFromField(filteredJobs, (j) =>
-      j.company ?? j.company_name ?? j.employer ?? null
+    return buildCountsFromField(
+      filteredJobs,
+      (j) => j.company ?? j.company_name ?? j.employer ?? null
     );
   }, [filteredJobs]);
 
@@ -336,8 +354,9 @@ const fetchLocationSummary = async () => {
             <button
               key={type}
               onClick={() => handleLocationChartChange(type)}
-              className={`chart-type-btn ${locationChartType === type ? "active" : ""
-                }`}
+              className={`chart-type-btn ${
+                locationChartType === type ? "active" : ""
+              }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
@@ -381,8 +400,9 @@ const fetchLocationSummary = async () => {
             <button
               key={type}
               onClick={() => setLocalChartType(type)}
-              className={`chart-type-btn ${currentType === type ? "active" : ""
-                }`}
+              className={`chart-type-btn ${
+                currentType === type ? "active" : ""
+              }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
@@ -404,7 +424,14 @@ const fetchLocationSummary = async () => {
     );
   };
 
-  const renderGenericCountChart = (title, data, chartType, setChartType, expanded, setExpanded) => {
+  const renderGenericCountChart = (
+    title,
+    data,
+    chartType,
+    setChartType,
+    expanded,
+    setExpanded
+  ) => {
     return (
       <div className="chart-card" key={`${title}-${chartType}`}>
         <h3 className="card-title">{title}</h3>
@@ -435,7 +462,6 @@ const fetchLocationSummary = async () => {
       </div>
     );
   };
-
 
   return (
     <div>
@@ -485,6 +511,28 @@ const fetchLocationSummary = async () => {
         </div>
       </div>
 
+      {/* Next row: Job Companies */}
+      <div className="two-col">
+        {renderGenericCountChart(
+          "Top Hiring Companies",
+          jobCompanyData,
+          jobCompanyChartType,
+          setJobCompanyChartType,
+          jobCompanyExpanded,
+          setJobCompanyExpanded
+        )}
+        {renderGenericCountChart(
+          "Top Job Titles",
+          jobTitleData,
+          jobTitleChartType,
+          setJobTitleChartType,
+          jobTitleExpanded,
+          setJobTitleExpanded
+        )}
+      </div>
+
+      <div className="section page-container"></div>
+
       <div className="section stacked-dashboard">
         {/* Charts Section */}
         {hasData && (
@@ -497,21 +545,53 @@ const fetchLocationSummary = async () => {
                   <LeafletHeatmap />
                 </div>
               </div>
+              <div
+                className="chart-card"
+                style={{
+                  padding: "1.5rem",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "0.375rem",
+                  border: "1px solid #e5e7eb",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                }}
+              >
+                <h2 className="card-title">Average Salary per Scrape</h2>
+                {/* Use allJobs to reflect each scrape run overall. */}
+                <AverageSalaryOverTimeChart
+                  jobs={allJobs}
+                  expanded={avgSalaryExpanded}
+                  onToggleExpand={() => setAvgSalaryExpanded((v) => !v)}
+                  maxCollapsedPoints={12}
+                />
+              </div>
+            </div>
+            {/* First row: Job Locations + Soft skill */}
+            <div className="two-col full-width">
               <div className="chart-card">
                 <h2 className="card-title">Job Locations</h2>
                 <ChartWrapper
                   chartType={locationChartType}
                   title="Locations"
-                  data={locationData.map(({ name, value }) => ({ skill: name, count: value }))}
+                  data={locationData.map(({ name, value }) => ({
+                    skill: name,
+                    count: value,
+                  }))}
                   dataKey="skill"
                   barKey="count"
                   expanded={locationExpanded}
                   onToggleExpand={() => setLocationExpanded(!locationExpanded)}
+                  layout="horizontal"
                 />
               </div>
+
+              {renderSkillChart(
+                "Soft skill",
+                skillsData["soft skill"] || [],
+                "soft skill"
+              )}
             </div>
 
-            {/* Skill Charts */}
+            {/* Remaining skill charts in 2-up rows */}
             {[
               "programming language",
               "framework",
@@ -532,45 +612,16 @@ const fetchLocationSummary = async () => {
                     )}
                     {right
                       ? renderSkillChart(
-                        right.charAt(0).toUpperCase() + right.slice(1),
-                        skillsData[right] || [],
-                        right
-                      )
+                          right.charAt(0).toUpperCase() + right.slice(1),
+                          skillsData[right] || [],
+                          right
+                        )
                       : null}
                   </div>
                 );
               }
               return rows;
             }, [])}
-
-            {/* Last row: Soft skill + Job Titles (fills the gap) */}
-            <div className="two-col">
-              {renderSkillChart(
-                "Soft skill",
-                skillsData["soft skill"] || [],
-                "soft skill"
-              )}
-              {renderGenericCountChart(
-                "Job Titles",
-                jobTitleData,
-                jobTitleChartType,
-                setJobTitleChartType,
-                jobTitleExpanded,
-                setJobTitleExpanded
-              )}
-            </div>
-
-            {/* Next row: Job Companies */}
-            <div className="two-col">
-              {renderGenericCountChart(
-                "Job Companies",
-                jobCompanyData,
-                jobCompanyChartType,
-                setJobCompanyChartType,
-                jobCompanyExpanded,
-                setJobCompanyExpanded
-              )}
-            </div>
           </div>
         )}
 
@@ -580,6 +631,14 @@ const fetchLocationSummary = async () => {
             No job data available.
           </p>
         )}
+        {/* Last row: Soft skill*/}
+        <div className="two-col">
+          {renderSkillChart(
+            "Soft skill",
+            skillsData["soft skill"] || [],
+            "soft skill"
+          )}
+        </div>
       </div>
     </div>
   );
