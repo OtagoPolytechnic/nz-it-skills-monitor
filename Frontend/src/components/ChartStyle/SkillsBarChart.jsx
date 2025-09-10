@@ -28,7 +28,7 @@ const SkillsBarChart = ({
   const sortedData = [...data].sort((a, b) => b[barKey] - a[barKey]);
 
   // limit rows when collapsed (you can tune these)
-  const displayedData = expanded ? sortedData : sortedData.slice(0, 15);
+  const displayedData = expanded ? sortedData.slice(0, 20) : sortedData.slice(0, 15);
 
   // unique ids so multiple charts don’t clash
   const uid = useId();
