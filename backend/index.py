@@ -2,7 +2,7 @@ import os
 from flask_cors import CORS
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, g
-from sqlalchemy import text, inspect, select
+from sqlalchemy import text, inspect, select, case
 from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
 from model import db
@@ -142,7 +142,76 @@ def get_jobs_over_time():
         return jsonify(jobs_per_day), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/summary-metrics', methods=['GET'])
+def summary_metrics():
+    try:
+        # latest scrape id that actually exists
+        latest_scrape_id = (
+            db.session.query(Job.scrape_id)
+            .filter(Job.scrape_id.isnot(None))
+            .order_by(Job.scrape_id.desc())
+            .limit(1)
+            .scalar()
+        )
 
+        base = db.session.query(Job)
+        if latest_scrape_id:
+            base = base.filter(Job.scrape_id == latest_scrape_id)
+
+        # total jobs
+        total = base.with_entities(db.func.count(Job.id)).scalar() or 0
+
+        # average listed salary (ignore NULL/0)
+        avg_salary = (
+            base.with_entities(db.func.avg(Job.salary))
+                .filter(Job.salary.isnot(None), Job.salary > 0)
+                .scalar()
+        )
+        if avg_salary:
+            avg_salary = int(round(avg_salary))
+
+        # helpers to get top(value,count) for a column
+        def top_for(col):
+            q = base.with_entities(col.label("val"), db.func.count().label("cnt"))\
+                    .filter(col.isnot(None))
+            # ignore 'none' strings
+            q = q.filter(db.func.lower(col) != 'none')
+            row = q.group_by(col).order_by(db.func.count().desc()).first()
+            if not row or not row.val:
+                return None
+            return {"value": row.val, "count": int(row.cnt)}
+
+        location = top_for(Job.location)
+        category = top_for(Job.category)
+        top_title = top_for(Job.title)
+        top_company = top_for(Job.company)
+
+        # top skill (join skills)
+        skill_row = (
+            db.session.query(Skill.name.label("val"), db.func.count().label("cnt"))
+            .join(Job, Skill.job_id == Job.id)
+        )
+        if latest_scrape_id:
+            skill_row = skill_row.filter(Job.scrape_id == latest_scrape_id)
+        skill_row = skill_row.group_by(Skill.name)\
+                             .order_by(db.func.count().desc())\
+                             .first()
+        top_skill = None
+        if skill_row and skill_row.val:
+            top_skill = {"value": skill_row.val, "count": int(skill_row.cnt)}
+
+        return jsonify({
+            "total": int(total),
+            "avgSalary": avg_salary,
+            "location": location,
+            "category": category,
+            "topSkill": top_skill,
+            "topTitle": top_title,
+            "topCompany": top_company,
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/skills', methods=['GET'])
