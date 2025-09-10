@@ -490,7 +490,7 @@ const Home = () => {
       {/* Next row: Job Companies */}
       <div className="two-col">
         {renderGenericCountChart(
-          "Job Companies",
+          "Top Hiring Companies",
           jobCompanyData,
           jobCompanyChartType,
           setJobCompanyChartType,
@@ -498,7 +498,7 @@ const Home = () => {
           setJobCompanyExpanded
         )}
         {renderGenericCountChart(
-          "Job Titles",
+          "Top Job Titles",
           jobTitleData,
           jobTitleChartType,
           setJobTitleChartType,

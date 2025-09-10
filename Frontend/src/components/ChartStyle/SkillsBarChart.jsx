@@ -20,7 +20,7 @@ const SkillsBarChart = ({
   currentMode,
   expanded,
   onToggleExpand,
-  layout = "Vertical", 
+  layout = "Vertical",
 }) => {
   if (chartMode !== currentMode) return null;
 
@@ -49,6 +49,57 @@ const SkillsBarChart = ({
   const handleMove = (state) => {
     setHovered(state?.activeTooltipIndex ?? null);
   };
+  const MultiLineYAxisTick = ({
+    x,
+    y,
+    payload,
+    maxLineChars = 28,
+    lineHeight = 14,
+    dx = 6,                 // nudge right into the gap
+    anchor = "start",       // left-align text
+    fill = "#374151",
+    fontSize = 16,
+  }) => {
+    const text = String(payload?.value ?? "");
+    const words = text.split(/\s+/);
+    const lines = [];
+    let current = "";
+    for (const w of words) {
+      const next = current ? current + " " + w : w;
+      if (next.length <= maxLineChars) current = next;
+      else { if (current) lines.push(current); current = w; }
+    }
+    if (current) lines.push(current);
+  
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text x={dx} y={0} dy={4} textAnchor={anchor} fill={fill} fontSize={fontSize}>
+          {lines.map((line, i) => (
+            <tspan key={i} x={dx} dy={i === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      </g>
+    );
+  };
+  
+
+  // longest label in the currently displayed data
+  const longestLabelLen = Math.max(
+    0,
+    ...displayedData.map((d) => String(d?.[dataKey] ?? "").length)
+  );
+
+  // Only widen for Job Titles (and optionally Job Companies)
+  const needsWideLabels = title === "Job Titles" || title === "Job Companies";
+
+  // ~7.2px per char + padding; clamp between 150 and 380
+  const yAxisWidth = needsWideLabels
+    ? Math.min(380, Math.max(150, Math.round(longestLabelLen * 7.2 + 24)))
+    : isVertical
+    ? 150
+    : 80; // your usual widths
 
   return (
     <div>
@@ -56,7 +107,7 @@ const SkillsBarChart = ({
         <BarChart
           data={displayedData}
           layout={layout}
-          margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
+          margin={{ top: 8, right: 12, bottom: 0, left: (isVertical && needsWideLabels) ? 8 : 0 }}
           onMouseMove={handleMove}
           onMouseLeave={() => setHovered(null)}
         >
@@ -67,7 +118,12 @@ const SkillsBarChart = ({
               <stop offset="100%" stopColor="#3b82f6" />
             </linearGradient>
             <filter id={shadowId} x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15" />
+              <feDropShadow
+                dx="0"
+                dy="2"
+                stdDeviation="2"
+                floodOpacity="0.15"
+              />
             </filter>
           </defs>
 
@@ -94,11 +150,18 @@ const SkillsBarChart = ({
           <YAxis
             type={yType}
             dataKey={yDataKey}
-            tick={{ fill: "#6b7280", fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             allowDecimals={false}
-            width={isVertical ? 150 : undefined}
+            interval={0} // show every label
+            width={isVertical ? yAxisWidth : undefined} // dynamic space
+            tick={
+              isVertical && needsWideLabels ? (
+                <MultiLineYAxisTick maxLineChars={28} dx={6} anchor="start" /> // wrap long names
+              ) : (
+                { fill: "#374151", fontSize: 12, textAnchor: "end" }
+              )
+            }
             domain={yType === "number" ? [0, "dataMax"] : undefined}
             tickCount={yType === "number" ? 6 : undefined}
           />
