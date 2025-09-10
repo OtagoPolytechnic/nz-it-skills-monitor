@@ -117,25 +117,32 @@ def get_jobs():
 @app.route('/jobs-over-time', methods=['GET'])
 def get_jobs_over_time():
     try:
+        latest_scrape_id = (
+            db.session.query(Job.scrape_id)
+            .filter(Job.scrape_id.isnot(None))
+            .order_by(Job.scrape_id.desc())
+            .limit(1)
+            .scalar()
+        )
 
-        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
         query = db.session.query(Job.date, db.func.count(Job.id))
-
         if latest_scrape_id:
             query = query.filter(Job.scrape_id == latest_scrape_id)
 
         results = (
             query.group_by(Job.date)
-            .order_by(Job.date)
+            .order_by(Job.date.asc())
             .all()
         )
 
-        # Convert to [{date: '2025-08-31', count: 5}, ...]
-        jobs_per_day = [{"date": date.isoformat(), "count": count} for date, count in results]
-
+        jobs_per_day = [
+            {"date": d.isoformat(), "count": c}
+            for d, c in results if d
+        ]
         return jsonify(jobs_per_day), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/skills', methods=['GET'])
@@ -338,6 +345,15 @@ def get_location_summary():
         return jsonify(summary), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.after_request
+def add_no_store(resp):
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
+
+
 
 
 if __name__ == '__main__':
