@@ -222,19 +222,6 @@ const fetchSkillsSummary = async () => {
 };
 
 // Location summary (with cache-busting)
-const fetchLocationSummary = async () => {
-  try {
-    const res = await fetchWithTimeout(
-      `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
-      { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
-    );
-    const data = await res.json();
-    setLocationData(Array.isArray(data) ? data : []);
-  } catch (err) {
-    console.error("Error fetching location summary:", err);
-    setLocationData([]);
-  }
-};
 
 
   const fetchLocationSummary = async () => {
