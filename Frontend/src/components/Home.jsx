@@ -507,9 +507,7 @@ const Home = () => {
         )}
       </div>
 
-      <div className="section page-container">
-        
-      </div>
+      <div className="section page-container"></div>
 
       <div className="section stacked-dashboard">
         {/* Charts Section */}
@@ -524,27 +522,28 @@ const Home = () => {
                 </div>
               </div>
               <div
-          className="chart-card"
-          style={{
-            padding: "1.5rem",
-            backgroundColor: "#ffffff",
-            borderRadius: "0.375rem",
-            border: "1px solid #e5e7eb",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <h2 className="card-title">Average Salary per Scrape</h2>
-          {/* Use allJobs to reflect each scrape run overall. */}
-          <AverageSalaryOverTimeChart
-            jobs={allJobs}
-            expanded={avgSalaryExpanded}
-            onToggleExpand={() => setAvgSalaryExpanded((v) => !v)}
-            maxCollapsedPoints={12}
-          />
-        </div>
-              
+                className="chart-card"
+                style={{
+                  padding: "1.5rem",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "0.375rem",
+                  border: "1px solid #e5e7eb",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                }}
+              >
+                <h2 className="card-title">Average Salary per Scrape</h2>
+                {/* Use allJobs to reflect each scrape run overall. */}
+                <AverageSalaryOverTimeChart
+                  jobs={allJobs}
+                  expanded={avgSalaryExpanded}
+                  onToggleExpand={() => setAvgSalaryExpanded((v) => !v)}
+                  maxCollapsedPoints={12}
+                />
+              </div>
             </div>
-            <div className="chart-card">
+            {/* First row: Job Locations + Soft skill */}
+            <div className="two-col full-width">
+              <div className="chart-card">
                 <h2 className="card-title">Job Locations</h2>
                 <ChartWrapper
                   chartType={locationChartType}
@@ -557,10 +556,18 @@ const Home = () => {
                   barKey="count"
                   expanded={locationExpanded}
                   onToggleExpand={() => setLocationExpanded(!locationExpanded)}
+                  layout="horizontal"
                 />
               </div>
 
-            {/* Skill Charts */}
+              {renderSkillChart(
+                "Soft skill",
+                skillsData["soft skill"] || [],
+                "soft skill"
+              )}
+            </div>
+
+            {/* Remaining skill charts in 2-up rows */}
             {[
               "programming language",
               "framework",
