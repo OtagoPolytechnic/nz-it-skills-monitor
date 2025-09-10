@@ -7,6 +7,7 @@ import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
 import AverageSalaryOverTimeChart from "./averagesalaryovertime";
+import DownloadCSVButton from "./downloadcsvbutton";
 
 // Utility: fetch with timeout
 const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
@@ -367,19 +368,30 @@ const fetchSkillsSummary = async () => {
   const renderSkillChart = (title, data, typeKey) => {
     const currentType = chartTypes[typeKey] || globalChartType;
     const isExpanded = expandedSections[typeKey] || false;
-
+  
     const setLocalChartType = (mode) => {
       setChartTypes((prev) => ({ ...prev, [typeKey]: mode }));
     };
-
+  
     const toggleExpand = () => {
       setExpandedSections((prev) => ({ ...prev, [typeKey]: !prev[typeKey] }));
     };
-
+  
     return (
       <div className="chart-card" key={`${typeKey}-${currentType}`}>
-        <h3 className="card-title">{title}</h3>
-
+        <h3 className="card-title">
+          <span>{title}</span>
+          <DownloadCSVButton
+            title={title}
+            filename={`skills_${typeKey.replace(/\s+/g, "-")}.csv`}
+            rows={Array.isArray(data) ? data : []}
+            columns={[
+              ["Skill", "skill"],
+              ["Count", "count"],
+            ]}
+          />
+        </h3>
+  
         {/* Local chart type toggle for this chart */}
         <div className="chart-type-toggle">
           <span className="chart-type-label">Chart Type:</span>
@@ -395,7 +407,7 @@ const fetchSkillsSummary = async () => {
             </button>
           ))}
         </div>
-
+  
         {/* Chart component */}
         <ChartWrapper
           chartType={currentType}
@@ -410,6 +422,7 @@ const fetchSkillsSummary = async () => {
       </div>
     );
   };
+  
 
   const renderGenericCountChart = (
     title,
