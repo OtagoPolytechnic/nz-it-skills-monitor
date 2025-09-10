@@ -438,6 +438,7 @@ const fetchLocationSummary = async () => {
       <div className="section page-container">
         <SummarySection jobs={filteredJobs} />
       </div>
+      
 
       <div className="section page-container">
         <div className="two-col full-width">
@@ -455,6 +456,7 @@ const fetchLocationSummary = async () => {
             <h2 className="card-title">Jobs Posted Over Time</h2>
             <JobsOverTimeChart jobs={filteredJobs} />
           </div>
+          
 
           {/* Right: Salary Histogram */}
           <div
@@ -472,6 +474,34 @@ const fetchLocationSummary = async () => {
           </div>
         </div>
       </div>
+      {/* Last row: Soft skill + Job Titles (fills the gap) */}
+      <div className="two-col">
+              {renderSkillChart(
+                "Soft skill",
+                skillsData["soft skill"] || [],
+                "soft skill"
+              )}
+              {renderGenericCountChart(
+                "Job Titles",
+                jobTitleData,
+                jobTitleChartType,
+                setJobTitleChartType,
+                jobTitleExpanded,
+                setJobTitleExpanded
+              )}
+            </div>
+
+            {/* Next row: Job Companies */}
+            <div className="two-col">
+              {renderGenericCountChart(
+                "Job Companies",
+                jobCompanyData,
+                jobCompanyChartType,
+                setJobCompanyChartType,
+                jobCompanyExpanded,
+                setJobCompanyExpanded
+              )}
+            </div>
 
             <div className="section page-container">
         <div className="chart-card" style={{ padding: "1.5rem", backgroundColor: "#ffffff", borderRadius: "0.375rem", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)" }}>
@@ -545,34 +575,7 @@ const fetchLocationSummary = async () => {
               return rows;
             }, [])}
 
-            {/* Last row: Soft skill + Job Titles (fills the gap) */}
-            <div className="two-col">
-              {renderSkillChart(
-                "Soft skill",
-                skillsData["soft skill"] || [],
-                "soft skill"
-              )}
-              {renderGenericCountChart(
-                "Job Titles",
-                jobTitleData,
-                jobTitleChartType,
-                setJobTitleChartType,
-                jobTitleExpanded,
-                setJobTitleExpanded
-              )}
-            </div>
-
-            {/* Next row: Job Companies */}
-            <div className="two-col">
-              {renderGenericCountChart(
-                "Job Companies",
-                jobCompanyData,
-                jobCompanyChartType,
-                setJobCompanyChartType,
-                jobCompanyExpanded,
-                setJobCompanyExpanded
-              )}
-            </div>
+            
           </div>
         )}
 
