@@ -20,7 +20,7 @@ const SkillsBarChart = ({
   currentMode,
   expanded,
   onToggleExpand,
-  layout = "vertical", // "vertical" (default) or "horizontal"
+  layout = "Vertical", 
 }) => {
   if (chartMode !== currentMode) return null;
 
