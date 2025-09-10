@@ -480,7 +480,7 @@ const fetchLocationSummary = async () => {
             }}
           >
             <h2 className="card-title">Salary Distribution</h2>
-            <SalaryHistogram jobs={filteredJobs} />
+            <SalaryHistogram/>
           </div>
         </div>
       </div>
