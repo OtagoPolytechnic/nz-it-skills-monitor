@@ -7,24 +7,8 @@ import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
 import AverageSalaryOverTimeChart from "./averagesalaryovertime";
+import { fetchWithTimeout } from "./fetchwithtimeout";
 import DownloadCSVButton from "./downloadcsvbutton";
-
-// Utility: fetch with timeout
-const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    clearTimeout(id);
-    return response;
-  } catch (err) {
-    clearTimeout(id);
-    throw err;
-  }
-};
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
@@ -42,6 +26,7 @@ const Home = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
 
   const [jobTitleChartType, setJobTitleChartType] = useState("bar");
   const [jobTitleExpanded, setJobTitleExpanded] = useState(false);
@@ -53,23 +38,19 @@ const Home = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
-  const [fullStatsLoaded, setFullStatsLoaded] = useState(false);
   const [avgSalaryExpanded, setAvgSalaryExpanded] = useState(false);
 
   const parseSalary = (job) => {
     const min = Number(job?.min_salary);
     const max = Number(job?.max_salary);
-    const Jobs = filteredJobs;
 
     if (!Number.isNaN(min) && !Number.isNaN(max) && max > 0) {
       return (min + max) / 2;
     }
 
-    // Fallback to a free‑text salary field
     const txt = String(job?.salary || job?.salary_text || "").replace(/,/g, "");
     if (!txt) return null;
 
-    // Extract numbers (handles "$120000" or "120k" or "120,000 - 140,000")
     const nums =
       txt.match(/\$?\s*\d+(?:\.\d+)?\s*[kK]?/g)?.map((raw) => {
         const hasK = /k/i.test(raw);
@@ -79,7 +60,6 @@ const Home = () => {
 
     if (nums.length === 0) return null;
     if (nums.length === 1) return nums[0];
-    // range → average
     return (nums[0] + nums[nums.length - 1]) / 2;
   };
 
@@ -101,11 +81,11 @@ const Home = () => {
     }
     return best ? { value: best, count: bestCount } : { value: null, count: 0 };
   };
+
   // ---- Summary metrics (based on current filter) ----
   const summary = useMemo(() => {
     const totalJobs = filteredJobs.length;
 
-    // Average salary
     const salaries = filteredJobs
       .map(parseSalary)
       .filter((n) => typeof n === "number" && !Number.isNaN(n) && n > 0);
@@ -113,13 +93,9 @@ const Home = () => {
       ? Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length)
       : null;
 
-    // Most common location
     const topLoc = modeOf(filteredJobs.map((j) => j.location));
-
-    // Top category
     const topCat = modeOf(filteredJobs.map((j) => j.category));
 
-    // Top skill across all types
     const allSkills = [];
     filteredJobs.forEach((job) => {
       if (Array.isArray(job.skills)) {
@@ -146,13 +122,99 @@ const Home = () => {
     };
   }, [filteredJobs]);
 
+  // Load all data once on mount; safe to abort on unmount
   useEffect(() => {
-    fetchSkillsSummary();
-    fetchLocationSummary();
-    const id = setTimeout(() => {
-      fetchJobs();
-    }, 1);
-    return () => clearTimeout(id);
+    const outer = new AbortController();
+    let fetching = false;
+
+    const ALLOWED = [
+      "programming language",
+      "framework",
+      "tool",
+      "platform",
+      "methodology",
+      "database",
+      "soft skill",
+    ];
+
+    const load = async () => {
+      if (fetching) return;
+      fetching = true;
+      setIsLoading(true);
+      setErrMsg("");
+
+      try {
+        const [skillsRes, locRes, jobsRes] = await Promise.all([
+          fetchWithTimeout(
+            `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
+            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
+            30000
+          ),
+          fetchWithTimeout(
+            `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
+            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
+            30000
+          ),
+          fetchWithTimeout(
+            `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
+            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
+            30000
+          ),
+        ]);
+
+        const [skillsRaw, locRaw, jobsRaw] = await Promise.all([
+          skillsRes.json(),
+          locRes.json(),
+          jobsRes.json(),
+        ]);
+
+        // --- skills ---
+        const grouped = {};
+        skillsRaw.forEach((item) => {
+          const type = item.type?.toLowerCase();
+          const skill = item.skill;
+          const count = Number(item.count ?? 0);
+          if (!type || !skill) return;
+          if (!ALLOWED.includes(type)) return;
+          if (!grouped[type]) grouped[type] = [];
+          grouped[type].push({ skill, count });
+        });
+
+        const filteredGrouped = {};
+        ALLOWED.forEach((k) => {
+          filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
+        });
+        setSkillsData(filteredGrouped);
+        setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
+
+        // --- locations ---
+        const mappedLocations = Array.isArray(locRaw)
+          ? locRaw.map((item) => ({
+              name: item.location ?? item.name ?? "Unknown",
+              value: Number(item.count ?? item.value ?? 0),
+            }))
+          : [];
+        setLocationData(mappedLocations);
+
+        // --- jobs ---
+        setAllJobs(jobsRaw);
+        setFilteredJobs(jobsRaw);
+      } catch (e) {
+        if (e?.name === "AbortError") return;
+        if (e?.code === "ABORT_TIMEOUT") {
+          setErrMsg("The server is taking too long. Please try again.");
+        } else {
+          setErrMsg(e?.message || "Failed to load data.");
+        }
+        setHasData(false);
+      } finally {
+        setIsLoading(false);
+        fetching = false;
+      }
+    };
+
+    load();
+    return () => outer.abort();
   }, []);
 
   useEffect(() => {
@@ -170,18 +232,18 @@ const Home = () => {
     setJobCompanyChartType(globalChartType);
     setJobTitleExpanded(false);
     setJobCompanyExpanded(false);
-  }, [globalChartType]);
+  }, [globalChartType, skillsData]);
 
-  // Skills summary (with cache-busting + consistent allowed groups)
+  // Skills summary (on-demand)
   const fetchSkillsSummary = async () => {
     try {
       const res = await fetchWithTimeout(
         `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
-        { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+        { cache: "no-store", headers: { "Cache-Control": "no-cache" } },
+        30000
       );
       const data = await res.json();
 
-      // ✅ Only allow these 7 groups (kept consistent across the app)
       const ALLOWED = [
         "programming language",
         "framework",
@@ -192,7 +254,6 @@ const Home = () => {
         "soft skill",
       ];
 
-      // Build and filter into the allowed buckets
       const grouped = {};
       data.forEach((item) => {
         const type = item.type?.toLowerCase();
@@ -204,12 +265,9 @@ const Home = () => {
         grouped[type].push({ skill, count });
       });
 
-      // Ensure each allowed key exists and is sorted
       const filteredGrouped = {};
       ALLOWED.forEach((k) => {
-        filteredGrouped[k] = (grouped[k] || []).sort(
-          (a, b) => b.count - a.count
-        );
+        filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
       });
 
       setSkillsData(filteredGrouped);
@@ -222,12 +280,13 @@ const Home = () => {
     }
   };
 
-  // Location summary (with cache-busting)
-
+  // Location summary (on-demand)
   const fetchLocationSummary = async () => {
     try {
       const res = await fetchWithTimeout(
-        `${import.meta.env.VITE_API_URL}/location-summary`
+        `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
+        undefined,
+        30000
       );
       const data = await res.json();
 
@@ -245,11 +304,13 @@ const Home = () => {
     }
   };
 
+  // Jobs (on-demand)
   const fetchJobs = async () => {
     try {
       const res = await fetchWithTimeout(
         `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
-        { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+        { cache: "no-store", headers: { "Cache-Control": "no-cache" } },
+        30000
       );
 
       const data = await res.json();
@@ -290,7 +351,6 @@ const Home = () => {
       .sort((a, b) => b.count - a.count);
   };
 
-  // Titles: try common keys safely
   const jobTitleData = useMemo(() => {
     return buildCountsFromField(
       filteredJobs,
@@ -298,7 +358,6 @@ const Home = () => {
     );
   }, [filteredJobs]);
 
-  // Companies: try common keys safely
   const jobCompanyData = useMemo(() => {
     return buildCountsFromField(
       filteredJobs,
@@ -309,59 +368,6 @@ const Home = () => {
   const categories = [...new Set(allJobs.map((j) => j.category))]
     .filter(Boolean)
     .sort();
-
-  const renderLocationChart = () => {
-    const data = locationData;
-
-    const handleLocationChartChange = (type) => {
-      setLocationChartType(type);
-    };
-
-    const chartData = data.map((item) => ({
-      skill: item.name,
-      count: item.value,
-    }));
-
-    return (
-      <div
-        className="chart-card"
-        style={{
-          padding: "1rem",
-          borderRadius: "0.375rem",
-          border: "1px solid #e5e7eb",
-          backgroundColor: "#ffffff",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <h2 className="card-title">Location</h2>
-        <div className="chart-type-toggle">
-          <span className="chart-type-label">Chart Type:</span>
-          {["bar", "pie", "wordcloud"].map((type) => (
-            <button
-              key={type}
-              onClick={() => handleLocationChartChange(type)}
-              className={`chart-type-btn ${
-                locationChartType === type ? "active" : ""
-              }`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        <ChartWrapper
-          chartType={locationChartType}
-          title="Locations"
-          data={chartData}
-          dataKey="skill"
-          barKey="count"
-          expanded={locationExpanded}
-          onToggleExpand={() => setLocationExpanded(!locationExpanded)}
-          layout="horizontal"
-        />
-      </div>
-    );
-  };
 
   const renderSkillChart = (title, data, typeKey) => {
     const currentType = chartTypes[typeKey] || globalChartType;
@@ -397,16 +403,13 @@ const Home = () => {
             <button
               key={type}
               onClick={() => setLocalChartType(type)}
-              className={`chart-type-btn ${
-                currentType === type ? "active" : ""
-              }`}
+              className={`chart-type-btn ${currentType === type ? "active" : ""}`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
           ))}
         </div>
 
-        {/* Chart component */}
         <ChartWrapper
           chartType={currentType}
           title={title}
@@ -480,9 +483,28 @@ const Home = () => {
         chartType={globalChartType}
         onChartTypeChange={setGlobalChartType}
       />
+
+      {/* Status UI */}
+      {isLoading && (
+        <div className="page-container text-sm opacity-70 mt-2">
+          Loading charts…
+        </div>
+      )}
+      {errMsg && (
+        <div className="page-container p-3 text-sm bg-yellow-50 border border-yellow-200 rounded mt-2">
+          {errMsg}{" "}
+          <button
+            className="ml-2 underline text-blue-600"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* ---- Summary Section ---- */}
       <div className="section page-container">
-        <SummarySection />
+        <SummarySection summary={summary} />
       </div>
 
       <div className="section page-container">
@@ -519,7 +541,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Next row: Job Companies */}
+      {/* Companies + Titles */}
       <div className="two-col">
         {renderGenericCountChart(
           "Top Hiring Companies",
@@ -542,10 +564,9 @@ const Home = () => {
       <div className="section page-container"></div>
 
       <div className="section stacked-dashboard">
-        {/* Charts Section */}
-        {hasData && (
+        {hasData && !isLoading && !errMsg && (
           <div style={{ width: "100%" }}>
-            {/* Two-column layout for Location + Heatmap */}
+            {/* Heatmap + Avg Salary per scrape */}
             <div className="two-col full-width">
               <div className="chart-card heatmap-wrapper">
                 <h2 className="card-title">Job Heatmap</h2>
@@ -564,7 +585,6 @@ const Home = () => {
                 }}
               >
                 <h2 className="card-title">Average Salary per Scrape</h2>
-                {/* Use allJobs to reflect each scrape run overall. */}
                 <AverageSalaryOverTimeChart
                   jobs={allJobs}
                   expanded={avgSalaryExpanded}
@@ -573,7 +593,8 @@ const Home = () => {
                 />
               </div>
             </div>
-            {/* First row: Job Locations + Soft skill */}
+
+            {/* Locations + Soft skill */}
             <div className="two-col full-width">
               <div className="chart-card">
                 <h2 className="card-title">
@@ -610,7 +631,7 @@ const Home = () => {
               )}
             </div>
 
-            {/* Remaining skill charts in 2-up rows */}
+            {/* Remaining skill charts */}
             {[
               "programming language",
               "framework",
@@ -644,20 +665,11 @@ const Home = () => {
           </div>
         )}
 
-        {/* No Data Fallback */}
-        {!hasData && !isLoading && (
+        {!hasData && !isLoading && !errMsg && (
           <p style={{ textAlign: "center", marginTop: "2rem" }}>
             No job data available.
           </p>
         )}
-        {/* Last row: Soft skill*/}
-        <div className="two-col">
-          {renderSkillChart(
-            "Soft skill",
-            skillsData["soft skill"] || [],
-            "soft skill"
-          )}
-        </div>
       </div>
     </div>
   );
