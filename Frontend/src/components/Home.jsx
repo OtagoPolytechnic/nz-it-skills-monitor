@@ -8,6 +8,7 @@ import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
 import AverageSalaryOverTimeChart from "./averagesalaryovertime";
 import { fetchWithTimeout } from "./fetchwithtimeout";
+import DownloadCSVButton from "./downloadcsvbutton";
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
@@ -25,7 +26,7 @@ const Home = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
-  const [errMsg, setErrMsg] = useState("");                
+  const [errMsg, setErrMsg] = useState("");
 
   const [jobTitleChartType, setJobTitleChartType] = useState("bar");
   const [jobTitleExpanded, setJobTitleExpanded] = useState(false);
@@ -146,15 +147,18 @@ const Home = () => {
         const [skillsRes, locRes, jobsRes] = await Promise.all([
           fetchWithTimeout(
             `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
-            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal }
+            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
+            30000
           ),
           fetchWithTimeout(
             `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
-            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal }
+            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
+            30000
           ),
           fetchWithTimeout(
             `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
-            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal }
+            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
+            30000
           ),
         ]);
 
@@ -196,8 +200,8 @@ const Home = () => {
         setAllJobs(jobsRaw);
         setFilteredJobs(jobsRaw);
       } catch (e) {
-        if (e.code === "ABORT_UNMOUNT") return;
-        if (e.code === "ABORT_TIMEOUT") {
+        if (e?.name === "AbortError") return;
+        if (e?.code === "ABORT_TIMEOUT") {
           setErrMsg("The server is taking too long. Please try again.");
         } else {
           setErrMsg(e?.message || "Failed to load data.");
@@ -229,6 +233,99 @@ const Home = () => {
     setJobTitleExpanded(false);
     setJobCompanyExpanded(false);
   }, [globalChartType, skillsData]);
+
+  // Skills summary (on-demand)
+  const fetchSkillsSummary = async () => {
+    try {
+      const res = await fetchWithTimeout(
+        `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
+        { cache: "no-store", headers: { "Cache-Control": "no-cache" } },
+        30000
+      );
+      const data = await res.json();
+
+      const ALLOWED = [
+        "programming language",
+        "framework",
+        "tool",
+        "platform",
+        "methodology",
+        "database",
+        "soft skill",
+      ];
+
+      const grouped = {};
+      data.forEach((item) => {
+        const type = item.type?.toLowerCase();
+        const skill = item.skill;
+        const count = Number(item.count ?? 0);
+        if (!type || !skill) return;
+        if (!ALLOWED.includes(type)) return;
+        if (!grouped[type]) grouped[type] = [];
+        grouped[type].push({ skill, count });
+      });
+
+      const filteredGrouped = {};
+      ALLOWED.forEach((k) => {
+        filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
+      });
+
+      setSkillsData(filteredGrouped);
+      setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
+    } catch (err) {
+      console.error("Error fetching skills summary:", err);
+      setHasData(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Location summary (on-demand)
+  const fetchLocationSummary = async () => {
+    try {
+      const res = await fetchWithTimeout(
+        `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
+        undefined,
+        30000
+      );
+      const data = await res.json();
+
+      const mapped = Array.isArray(data)
+        ? data.map((item) => ({
+            name: item.location ?? item.name ?? "Unknown",
+            value: Number(item.count ?? item.value ?? 0),
+          }))
+        : [];
+
+      setLocationData(mapped);
+    } catch (err) {
+      console.error("Error fetching location summary:", err);
+      setLocationData([]);
+    }
+  };
+
+  // Jobs (on-demand)
+  const fetchJobs = async () => {
+    try {
+      const res = await fetchWithTimeout(
+        `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
+        { cache: "no-store", headers: { "Cache-Control": "no-cache" } },
+        30000
+      );
+
+      const data = await res.json();
+
+      console.log(`✅ Total jobs fetched: ${data.length}`);
+      if (data.length > 0) {
+        console.log(`🕒 Latest job date: ${data[0].date}`);
+      }
+
+      setAllJobs(data);
+      setFilteredJobs(data);
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+    }
+  };
 
   const handleCategoryChange = (value) => {
     setCategoryFilter(value);
@@ -286,7 +383,20 @@ const Home = () => {
 
     return (
       <div className="chart-card" key={`${typeKey}-${currentType}`}>
-        <h3 className="card-title">{title}</h3>
+        <h3 className="card-title">
+          <span>{title}</span>
+          <DownloadCSVButton
+            title={title}
+            filename={`skills_${typeKey.replace(/\s+/g, "-")}.csv`}
+            rows={Array.isArray(data) ? data : []}
+            columns={[
+              ["Skill", "skill"],
+              ["Count", "count"],
+            ]}
+          />
+        </h3>
+
+        {/* Local chart type toggle for this chart */}
         <div className="chart-type-toggle">
           <span className="chart-type-label">Chart Type:</span>
           {["bar", "pie", "wordcloud"].map((type) => (
@@ -324,7 +434,18 @@ const Home = () => {
   ) => {
     return (
       <div className="chart-card" key={`${title}-${chartType}`}>
-        <h3 className="card-title">{title}</h3>
+        <h3 className="card-title">
+          <span>{title}</span>
+          <DownloadCSVButton
+            title={title}
+            filename={`${title.toLowerCase().replace(/\s+/g, "_")}.csv`}
+            rows={data} // [{skill, count}]
+            columns={[
+              [title.includes("Company") ? "Company" : "Title", "skill"],
+              ["Count", "count"],
+            ]}
+          />
+        </h3>
 
         <div className="chart-type-toggle">
           <span className="chart-type-label">Chart Type:</span>
@@ -476,7 +597,18 @@ const Home = () => {
             {/* Locations + Soft skill */}
             <div className="two-col full-width">
               <div className="chart-card">
-                <h2 className="card-title">Job Locations</h2>
+                <h2 className="card-title">
+                  <span>Job Locations</span>
+                  <DownloadCSVButton
+                    title="Job Locations"
+                    filename="locations.csv"
+                    rows={locationData} // [{name, value}]
+                    columns={[
+                      ["Location", "name"],
+                      ["Count", "value"],
+                    ]}
+                  />
+                </h2>
                 <ChartWrapper
                   chartType={locationChartType}
                   title="Locations"
