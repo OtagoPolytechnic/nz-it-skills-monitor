@@ -7,6 +7,7 @@ import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
 import AverageSalaryOverTimeChart from "./averagesalaryovertime";
+import DownloadCSVButton from "./downloadcsvbutton";
 
 // Utility: fetch with timeout
 const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
@@ -145,16 +146,14 @@ const Home = () => {
     };
   }, [filteredJobs]);
 
-
-useEffect(() => {
-  fetchSkillsSummary();
-  fetchLocationSummary();
-  const id = setTimeout(() => {
-    fetchJobs();
-  }, 1);
-  return () => clearTimeout(id);
-}, []);
-
+  useEffect(() => {
+    fetchSkillsSummary();
+    fetchLocationSummary();
+    const id = setTimeout(() => {
+      fetchJobs();
+    }, 1);
+    return () => clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     const updated = {};
@@ -173,56 +172,57 @@ useEffect(() => {
     setJobCompanyExpanded(false);
   }, [globalChartType]);
 
-// Skills summary (with cache-busting + consistent allowed groups)
-const fetchSkillsSummary = async () => {
-  try {
-    const res = await fetchWithTimeout(
-      `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
-      { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
-    );
-    const data = await res.json();
+  // Skills summary (with cache-busting + consistent allowed groups)
+  const fetchSkillsSummary = async () => {
+    try {
+      const res = await fetchWithTimeout(
+        `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
+        { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+      );
+      const data = await res.json();
 
-    // ✅ Only allow these 7 groups (kept consistent across the app)
-    const ALLOWED = [
-      "programming language",
-      "framework",
-      "tool",
-      "platform",
-      "methodology",
-      "database",
-      "soft skill",
-    ];
+      // ✅ Only allow these 7 groups (kept consistent across the app)
+      const ALLOWED = [
+        "programming language",
+        "framework",
+        "tool",
+        "platform",
+        "methodology",
+        "database",
+        "soft skill",
+      ];
 
-    // Build and filter into the allowed buckets
-    const grouped = {};
-    data.forEach((item) => {
-      const type = item.type?.toLowerCase();
-      const skill = item.skill;
-      const count = Number(item.count ?? 0);
-      if (!type || !skill) return;
-      if (!ALLOWED.includes(type)) return;
-      if (!grouped[type]) grouped[type] = [];
-      grouped[type].push({ skill, count });
-    });
+      // Build and filter into the allowed buckets
+      const grouped = {};
+      data.forEach((item) => {
+        const type = item.type?.toLowerCase();
+        const skill = item.skill;
+        const count = Number(item.count ?? 0);
+        if (!type || !skill) return;
+        if (!ALLOWED.includes(type)) return;
+        if (!grouped[type]) grouped[type] = [];
+        grouped[type].push({ skill, count });
+      });
 
-    // Ensure each allowed key exists and is sorted
-    const filteredGrouped = {};
-    ALLOWED.forEach((k) => {
-      filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
-    });
+      // Ensure each allowed key exists and is sorted
+      const filteredGrouped = {};
+      ALLOWED.forEach((k) => {
+        filteredGrouped[k] = (grouped[k] || []).sort(
+          (a, b) => b.count - a.count
+        );
+      });
 
-    setSkillsData(filteredGrouped);
-    setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
-  } catch (err) {
-    console.error("Error fetching skills summary:", err);
-    setHasData(false);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      setSkillsData(filteredGrouped);
+      setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
+    } catch (err) {
+      console.error("Error fetching skills summary:", err);
+      setHasData(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-// Location summary (with cache-busting)
-
+  // Location summary (with cache-busting)
 
   const fetchLocationSummary = async () => {
     try {
@@ -248,10 +248,9 @@ const fetchSkillsSummary = async () => {
   const fetchJobs = async () => {
     try {
       const res = await fetchWithTimeout(
-
-  `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
-  { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
-);
+        `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
+        { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+      );
 
       const data = await res.json();
 
@@ -378,7 +377,18 @@ const fetchSkillsSummary = async () => {
 
     return (
       <div className="chart-card" key={`${typeKey}-${currentType}`}>
-        <h3 className="card-title">{title}</h3>
+        <h3 className="card-title">
+          <span>{title}</span>
+          <DownloadCSVButton
+            title={title}
+            filename={`skills_${typeKey.replace(/\s+/g, "-")}.csv`}
+            rows={Array.isArray(data) ? data : []}
+            columns={[
+              ["Skill", "skill"],
+              ["Count", "count"],
+            ]}
+          />
+        </h3>
 
         {/* Local chart type toggle for this chart */}
         <div className="chart-type-toggle">
@@ -421,7 +431,18 @@ const fetchSkillsSummary = async () => {
   ) => {
     return (
       <div className="chart-card" key={`${title}-${chartType}`}>
-        <h3 className="card-title">{title}</h3>
+        <h3 className="card-title">
+          <span>{title}</span>
+          <DownloadCSVButton
+            title={title}
+            filename={`${title.toLowerCase().replace(/\s+/g, "_")}.csv`}
+            rows={data} // [{skill, count}]
+            columns={[
+              [title.includes("Company") ? "Company" : "Title", "skill"],
+              ["Count", "count"],
+            ]}
+          />
+        </h3>
 
         <div className="chart-type-toggle">
           <span className="chart-type-label">Chart Type:</span>
@@ -478,7 +499,7 @@ const fetchSkillsSummary = async () => {
             }}
           >
             <h2 className="card-title">Jobs Posted Over Time</h2>
-            <JobsOverTimeChart/>
+            <JobsOverTimeChart />
           </div>
 
           {/* Right: Salary Histogram */}
@@ -493,7 +514,7 @@ const fetchSkillsSummary = async () => {
             }}
           >
             <h2 className="card-title">Salary Distribution</h2>
-            <SalaryHistogram/>
+            <SalaryHistogram />
           </div>
         </div>
       </div>
@@ -555,7 +576,18 @@ const fetchSkillsSummary = async () => {
             {/* First row: Job Locations + Soft skill */}
             <div className="two-col full-width">
               <div className="chart-card">
-                <h2 className="card-title">Job Locations</h2>
+                <h2 className="card-title">
+                  <span>Job Locations</span>
+                  <DownloadCSVButton
+                    title="Job Locations"
+                    filename="locations.csv"
+                    rows={locationData} // [{name, value}]
+                    columns={[
+                      ["Location", "name"],
+                      ["Count", "value"],
+                    ]}
+                  />
+                </h2>
                 <ChartWrapper
                   chartType={locationChartType}
                   title="Locations"

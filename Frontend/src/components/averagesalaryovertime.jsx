@@ -9,6 +9,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import DownloadCSVButton from "./downloadcsvbutton";
 
 // ----- salary helpers -----
 function parseFreeTextSalary(txt) {
@@ -55,7 +56,11 @@ export default function AverageSalaryOverTimeChart({ jobs = [] }) {
     const buckets = new Map(); // key: YYYY-MM-DD -> { sum, count }
     for (const job of jobs) {
       const raw =
-        job?.date || job?.posted_at || job?.created_at || job?.createdAt || job?.scraped_at;
+        job?.date ||
+        job?.posted_at ||
+        job?.created_at ||
+        job?.createdAt ||
+        job?.scraped_at;
       if (!raw) continue;
       const d = new Date(raw);
       if (Number.isNaN(d.getTime())) continue;
@@ -80,16 +85,38 @@ export default function AverageSalaryOverTimeChart({ jobs = [] }) {
 
   return (
     <div style={{ height: 360 }}>
+      <div className="card-title" style={{ marginBottom: 8 }}>
+        <span>Average Salary per Scrape</span>
+        <DownloadCSVButton
+          title="Average Salary per Scrape"
+          filename="avg_salary_over_time.csv"
+          rows={data}
+          columns={[
+            ["Date", "date"],
+            ["Average Salary (NZD)", "avg"],
+          ]}
+        />
+      </div>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
+        <LineChart
+          data={data}
+          margin={{ top: 8, right: 12, bottom: 8, left: 0 }}
+        >
           <CartesianGrid stroke="#e5e7eb" vertical={false} />
-          <XAxis dataKey="date" tickMargin={6} axisLine={false} tickLine={false} />
+          <XAxis
+            dataKey="date"
+            tickMargin={6}
+            axisLine={false}
+            tickLine={false}
+          />
           <YAxis
             allowDecimals={false}
             tickMargin={6}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(v) => (v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`)}
+            tickFormatter={(v) =>
+              v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`
+            }
           />
           <Tooltip
             cursor={{ fill: "rgba(59,130,246,0.06)" }}
