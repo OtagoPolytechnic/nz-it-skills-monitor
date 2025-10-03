@@ -65,6 +65,10 @@ class JobDatabasePipeline:
                 db.session.flush()
 
                 for skill in skills:
+                    normalized_name = normalize_skill_name(skill.get("name", ""))  # <-- new function
+                    if not normalized_name:
+                        continue
+                    skill["name"] = normalized_name
                     db.session.add(Skill(job_id=job.id, **skill))
                 db.session.commit()
 
