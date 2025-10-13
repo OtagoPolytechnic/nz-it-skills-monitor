@@ -7,7 +7,6 @@ import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
 import AverageSalaryOverTimeChart from "./averagesalaryovertime";
-import { fetchWithTimeout } from "./fetchwithtimeout";
 import DownloadCSVButton from "./downloadcsvbutton";
 
 const Home = () => {
@@ -24,7 +23,6 @@ const Home = () => {
   const [locationData, setLocationData] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
   const [errMsg, setErrMsg] = useState("");
 
@@ -43,10 +41,8 @@ const Home = () => {
   const parseSalary = (job) => {
     const min = Number(job?.min_salary);
     const max = Number(job?.max_salary);
-
-    if (!Number.isNaN(min) && !Number.isNaN(max) && max > 0) {
+    if (!Number.isNaN(min) && !Number.isNaN(max) && max > 0)
       return (min + max) / 2;
-    }
 
     const txt = String(job?.salary || job?.salary_text || "").replace(/,/g, "");
     if (!txt) return null;
@@ -82,17 +78,14 @@ const Home = () => {
     return best ? { value: best, count: bestCount } : { value: null, count: 0 };
   };
 
-  // ---- Summary metrics (based on current filter) ----
   const summary = useMemo(() => {
     const totalJobs = filteredJobs.length;
-
     const salaries = filteredJobs
       .map(parseSalary)
       .filter((n) => typeof n === "number" && !Number.isNaN(n) && n > 0);
     const averageSalary = salaries.length
       ? Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length)
       : null;
-
     const topLoc = modeOf(filteredJobs.map((j) => j.location));
     const topCat = modeOf(filteredJobs.map((j) => j.category));
 
@@ -122,101 +115,6 @@ const Home = () => {
     };
   }, [filteredJobs]);
 
-  // Load all data once on mount; safe to abort on unmount
-  useEffect(() => {
-    const outer = new AbortController();
-    let fetching = false;
-
-    const ALLOWED = [
-      "programming language",
-      "framework",
-      "tool",
-      "platform",
-      "methodology",
-      "database",
-      "soft skill",
-    ];
-
-    const load = async () => {
-      if (fetching) return;
-      fetching = true;
-      setIsLoading(true);
-      setErrMsg("");
-
-      try {
-        const [skillsRes, locRes, jobsRes] = await Promise.all([
-          fetchWithTimeout(
-            `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
-            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
-            30000
-          ),
-          fetchWithTimeout(
-            `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
-            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
-            30000
-          ),
-          fetchWithTimeout(
-            `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
-            { cache: "no-store", headers: { "Cache-Control": "no-cache" }, signal: outer.signal },
-            30000
-          ),
-        ]);
-
-        const [skillsRaw, locRaw, jobsRaw] = await Promise.all([
-          skillsRes.json(),
-          locRes.json(),
-          jobsRes.json(),
-        ]);
-
-        // --- skills ---
-        const grouped = {};
-        skillsRaw.forEach((item) => {
-          const type = item.type?.toLowerCase();
-          const skill = item.skill;
-          const count = Number(item.count ?? 0);
-          if (!type || !skill) return;
-          if (!ALLOWED.includes(type)) return;
-          if (!grouped[type]) grouped[type] = [];
-          grouped[type].push({ skill, count });
-        });
-
-        const filteredGrouped = {};
-        ALLOWED.forEach((k) => {
-          filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
-        });
-        setSkillsData(filteredGrouped);
-        setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
-
-        // --- locations ---
-        const mappedLocations = Array.isArray(locRaw)
-          ? locRaw.map((item) => ({
-              name: item.location ?? item.name ?? "Unknown",
-              value: Number(item.count ?? item.value ?? 0),
-            }))
-          : [];
-        setLocationData(mappedLocations);
-
-        // --- jobs ---
-        setAllJobs(jobsRaw);
-        setFilteredJobs(jobsRaw);
-      } catch (e) {
-        if (e?.name === "AbortError") return;
-        if (e?.code === "ABORT_TIMEOUT") {
-          setErrMsg("The server is taking too long. Please try again.");
-        } else {
-          setErrMsg(e?.message || "Failed to load data.");
-        }
-        setHasData(false);
-      } finally {
-        setIsLoading(false);
-        fetching = false;
-      }
-    };
-
-    load();
-    return () => outer.abort();
-  }, []);
-
   useEffect(() => {
     const updated = {};
     const expandedMap = {};
@@ -226,21 +124,13 @@ const Home = () => {
     });
     setChartTypes(updated);
     setExpandedSections(expandedMap);
-    setLocationChartType(globalChartType);
-    setLocationExpanded(false);
-    setJobTitleChartType(globalChartType);
-    setJobCompanyChartType(globalChartType);
-    setJobTitleExpanded(false);
-    setJobCompanyExpanded(false);
   }, [globalChartType, skillsData]);
 
-  // Skills summary (on-demand)
   const fetchSkillsSummary = async () => {
     try {
-      const res = await fetchWithTimeout(
+      const res = await fetch(
         `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
-        { cache: "no-store", headers: { "Cache-Control": "no-cache" } },
-        30000
+        { cache: "no-store" }
       );
       const data = await res.json();
 
@@ -275,18 +165,14 @@ const Home = () => {
     } catch (err) {
       console.error("Error fetching skills summary:", err);
       setHasData(false);
-    } finally {
-      setIsLoading(false);
+      setErrMsg("Failed to fetch skill summary.");
     }
   };
 
-  // Location summary (on-demand)
   const fetchLocationSummary = async () => {
     try {
-      const res = await fetchWithTimeout(
-        `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`,
-        undefined,
-        30000
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`
       );
       const data = await res.json();
 
@@ -304,28 +190,24 @@ const Home = () => {
     }
   };
 
-  // Jobs (on-demand)
   const fetchJobs = async () => {
     try {
-      const res = await fetchWithTimeout(
-        `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`,
-        { cache: "no-store", headers: { "Cache-Control": "no-cache" } },
-        30000
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`
       );
-
       const data = await res.json();
-
-      console.log(`✅ Total jobs fetched: ${data.length}`);
-      if (data.length > 0) {
-        console.log(`🕒 Latest job date: ${data[0].date}`);
-      }
-
       setAllJobs(data);
       setFilteredJobs(data);
     } catch (err) {
       console.error("Error fetching jobs:", err);
     }
   };
+
+  useEffect(() => {
+    fetchJobs();
+    fetchSkillsSummary();
+    fetchLocationSummary();
+  }, []);
 
   const handleCategoryChange = (value) => {
     setCategoryFilter(value);
@@ -396,7 +278,6 @@ const Home = () => {
           />
         </h3>
 
-        {/* Local chart type toggle for this chart */}
         <div className="chart-type-toggle">
           <span className="chart-type-label">Chart Type:</span>
           {["bar", "pie", "wordcloud"].map((type) => (
@@ -439,7 +320,7 @@ const Home = () => {
           <DownloadCSVButton
             title={title}
             filename={`${title.toLowerCase().replace(/\s+/g, "_")}.csv`}
-            rows={data} // [{skill, count}]
+            rows={data}
             columns={[
               [title.includes("Company") ? "Company" : "Title", "skill"],
               ["Count", "count"],
@@ -484,12 +365,6 @@ const Home = () => {
         onChartTypeChange={setGlobalChartType}
       />
 
-      {/* Status UI */}
-      {isLoading && (
-        <div className="page-container text-sm opacity-70 mt-2">
-          Loading charts…
-        </div>
-      )}
       {errMsg && (
         <div className="page-container p-3 text-sm bg-yellow-50 border border-yellow-200 rounded mt-2">
           {errMsg}{" "}
@@ -502,46 +377,24 @@ const Home = () => {
         </div>
       )}
 
-      {/* ---- Summary Section ---- */}
       <div className="section page-container">
         <SummarySection summary={summary} />
       </div>
 
       <div className="section page-container">
         <div className="two-col full-width">
-          {/* Left: Jobs Over Time */}
-          <div
-            className="chart-card"
-            style={{
-              padding: "1.5rem",
-              backgroundColor: "#ffffff",
-              borderRadius: "0.375rem",
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-            }}
-          >
+          <div className="chart-card">
             <h2 className="card-title">Jobs Posted Over Time</h2>
             <JobsOverTimeChart />
           </div>
 
-          {/* Right: Salary Histogram */}
-          <div
-            className="chart-card"
-            style={{
-              padding: "1.5rem",
-              backgroundColor: "#ffffff",
-              borderRadius: "0.375rem",
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-            }}
-          >
+          <div className="chart-card">
             <h2 className="card-title">Salary Distribution</h2>
             <SalaryHistogram />
           </div>
         </div>
       </div>
 
-      {/* Companies + Titles */}
       <div className="two-col">
         {renderGenericCountChart(
           "Top Hiring Companies",
@@ -561,12 +414,9 @@ const Home = () => {
         )}
       </div>
 
-      <div className="section page-container"></div>
-
       <div className="section stacked-dashboard">
-        {hasData && !isLoading && !errMsg && (
+        {hasData && !errMsg && (
           <div style={{ width: "100%" }}>
-            {/* Heatmap + Avg Salary per scrape */}
             <div className="two-col full-width">
               <div className="chart-card heatmap-wrapper">
                 <h2 className="card-title">Job Heatmap</h2>
@@ -574,16 +424,7 @@ const Home = () => {
                   <LeafletHeatmap />
                 </div>
               </div>
-              <div
-                className="chart-card"
-                style={{
-                  padding: "1.5rem",
-                  backgroundColor: "#ffffff",
-                  borderRadius: "0.375rem",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-                }}
-              >
+              <div className="chart-card">
                 <h2 className="card-title">Average Salary per Scrape</h2>
                 <AverageSalaryOverTimeChart
                   jobs={allJobs}
@@ -594,7 +435,6 @@ const Home = () => {
               </div>
             </div>
 
-            {/* Locations + Soft skill */}
             <div className="two-col full-width">
               <div className="chart-card">
                 <h2 className="card-title">
@@ -602,7 +442,7 @@ const Home = () => {
                   <DownloadCSVButton
                     title="Job Locations"
                     filename="locations.csv"
-                    rows={locationData} // [{name, value}]
+                    rows={locationData}
                     columns={[
                       ["Location", "name"],
                       ["Count", "value"],
@@ -631,7 +471,6 @@ const Home = () => {
               )}
             </div>
 
-            {/* Remaining skill charts */}
             {[
               "programming language",
               "framework",
@@ -665,7 +504,7 @@ const Home = () => {
           </div>
         )}
 
-        {!hasData && !isLoading && !errMsg && (
+        {!hasData && !errMsg && (
           <p style={{ textAlign: "center", marginTop: "2rem" }}>
             No job data available.
           </p>

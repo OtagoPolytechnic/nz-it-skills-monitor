@@ -78,8 +78,8 @@ const SkillsBarChart = ({
   const handleMove = (state) => setHovered(state?.activeTooltipIndex ?? null);
 
   // Titles/companies tend to be long: give a bit more Y width even with truncation
-  const needsWideLabels = /title|company/i.test(title || "");
-  const yAxisWidth = isVertical ? (needsWideLabels ? 200 : 150) : undefined;
+  const needsWideLabels = /(title|company|hiring)/i.test(title || "");
+  const yAxisWidth = isVertical ? (needsWideLabels ? 250 : 160) : undefined;
 
   return (
     <div>
