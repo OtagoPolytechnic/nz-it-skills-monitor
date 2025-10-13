@@ -46,15 +46,65 @@ class Job(BaseModel):
 
 
 system_prompts = [
-  "Extract the job information and skills using the provided schema. This job data is being used to power a career planning and curriculum alignment tool for IT educators.\n\n# Steps\n\nTitle:\n- Extract the job title as it is written.\n- Avoid rewording, abbreviating or generalizing the title.\n\nCompany:\n- Extract the name of the company advertising the job.\n\nType:\n- Extract the type of position the job is advertising, matching types from the schema.\n- If the found type does not match the samples, decide the closest match.\n\nDuration:\n- Extract the duration of the job position, matching types from the schema.\n- Avoid listing specific time terms, keep it general.\n\nRemote:\n- Determine if the job position is a remote position (true/false).\n- If the position mentions \"Remote\", \"Work from Home\", \"WFH\", \"Flexible Location\", return true.\n\nSalary:\n- Extract salary details as a plain integer.\n- Avoid including dollar signs and comma/period delimiters in the value.\n- If there is no value listed, or the value is not clear, return 0.\n\nLocation:\n- Extract the location based on the nearest Major New Zealand city if the suburb or area is not included in the list found in the schema.\n- If the location is too general (e.g. New Zealand), or located outside of New Zealand, return nothing.\n\nYou will be given a block of text. In this text, there will be a phrase in the format:\n\nCategory (Sector)\n\nYour task is to find any phrase that follows that format and extract only the relevant information. Specifically:\n\n- The **Category** is everything before the first opening parenthesis.\n- The **Sector** is everything inside the parentheses.\n- Do not repeat the full phrase in both fields.\n- Do not include the parentheses in the output.\n- Trim any leading or trailing whitespace.\n\nFormat your response like this:\nCategory: <only the category>\nSector: <only the sector>\n\nExample:\nInput text:\n\"The role is listed as Programme & Project Management (Information & Communication Technology).\"\n\nOutput:\nCategory: Programme & Project Management\nSector: Information & Communication Technology\n\nDescription:\n- Extract the full body of the job description.\n- Do not summarize the content.",
-  "You are an expert at recognizing soft skills.\n\nExtract all the soft skills in this job description.\n\nTake a moment to read through all of the skills.\nEnsure there are no duplicates in meaning or spelling.\nSimplify the skills to a simpler form.\nOnly collect up to the top 10 most common soft skills.\n\nRules for splitting and formatting skills:\nIf a skill contains \"and\", \"or\", \"/\", or \",\", split it into multiple skills.\nIf you cannot split a skill, do not include the skill.\nDo not include the words \"skill\" or \"skills\" in the skill.\nReplace hyphens with spaces.\n\nEvery type should be \"soft skill\".",
-  "You are an expert at recognizing programming languages.\n\nExtract all of the programming languages in this job description if any exist.\n\nMatch items extracted from the description to items in this list.\nPython\nJavaScript\nJava\nC\nC#\nC++\nTypeScript\nGo\nRust\nPHP\nLua\nSwift\nHaskell\n\nIf an item does not match an item from the list, do not include it.\n\nEvery type should be programming language.",
-  "You are an expert at recognizing frameworks.\n\nExtract all of the frameworks in this job description if any exist.\n\nMatch extracted skills to items in this list.\nITIL\nCOBIT\nTOGAF\nZachman Framework\nNIST Cybersecurity Framework\nMITRE ATT&CK\nCIS Controls\nISO/IEC 27001\nISO/IEC 20000\nMOF\nCMMI\nOpen FAIR\nDODAF\nETOM\nIT4IT\nReact\nAngular\nVue.js\nNode.js\nExpress.js\nDjango\nFlask\nFastAPI\nSpring Boot\nASP.NET Core\n.NET\nLaravel\nRuby on Rails\nNext.js\nNuxt.js\nNestJS\nSvelte\nFlutter\nQt\nElectron\nReact Native\nIonic\nKtor\nPhoenix\nTensorFlow\nPyTorch\nUnity\nUnreal Engine\nGodot\n\nIf an item does not match an item from the list, do not include it.\n\nEvery type should be \"framework\".",
-  "You are an expert at recognizing databases.\n\nExtract all of the databases in this job description if any exist.\n\nReturn nothing if no databases are mentioned.\n\nMatch items extracted from the description to exact items in this list.\nMySQL\nPostgreSQL\nMongoDB\nSQLite\nOracle Database\nMicrosoft SQL Server\nRedis\nMariaDB\nDynamoDB\nElasticsearch\nCassandra\nFirestore\nFirebase Realtime Database\nAmazon Aurora\nAmazon RDS\nAmazon Redshift\nGoogle Cloud SQL\nGoogle BigQuery\nAzure SQL Database\nCosmos DB\nIBM Db2\nNeo4j\nCouchbase\nClickHouse\nInfluxDB\nSnowflake\nTimescaleDB\nTiDB\nMemcached\n\nEvery type should be \"databases\".",
-  "You are an expert at recognizing tools.\n\nExtract all of the tools in this job description if any exist.\n\nMatch extracted skills to exact items in this list.\nHTML\nCSS\nSQL\nBash\nMarkdown\nRegex\nGit\nGitHub\nGitLab\nBitbucket\nDocker\nKubernetes\nJenkins\nCircleCI\nTravis CI\nTerraform\nAnsible\nPuppet\nChef\nPostman\ncURL\nVisual Studio Code\nIntelliJ IDEA\nPyCharm\nEclipse\nAndroid Studio\nXcode\nFigma\nAdobe XD\nJIRA\nTrello\nSlack\nZoom\nNotion\nConfluence\nVS Code Dev Containers\nSentry\nNew Relic\nDatadog\nSplunk\nPrometheus\nGrafana\nElasticsearch\nLogstash\nKibana\nAWS CLI\nAzure CLI\nkubectl\nHelm\nngrok\nWireshark\nBurp Suite\nNmap\nZAP (OWASP)\n\nReturn nothing if no tools are mentioned.\n\nEvery type should be \"tool\".",
-  "You are an expert at recognizing platforms.\n\nExtract all of the platforms in this job description if any exist.\n\nReturn nothing if no platforms are mentioned.\n\nRemove items that do not match the list below.\n\nMatch extracted skills to items in this list.\nAWS\nMicrosoft Azure\nGoogle Cloud Platform (GCP)\nHeroku\nNetlify\nVercel\nFirebase\nRender\nDigitalOcean\nCloudflare\nSalesforce\nWordPress\nShopify\nOpenShift\nPlatform.sh\nIBM Cloud\nOracle Cloud\nContentful\nStrapi\nAuth0\nSupabase\n\nEvery type should be \"platform\".",
-  "You are an expert at recognizing methodologies.\n\nExtract all of the methodologies in this job description if any exist.\n\nMatch skills in the job descriptions to items in this list.\nAgile\nScrum\nKanban\nWaterfall\nLean\nExtreme Programming\nDevOps\nScaled Agile Framework\nSpiral Model\nRapid Application Development\nFeature-Driven Development\nTest-Driven Development\nBehavior-Driven Development\nDomain-Driven Design\nSix Sigma\nITIL\nPRINCE2\nPMBOK\nRational Unified Process\n\nReturn nothing if no methodologies are mentioned.\n\nEvery type should be \"methodology\"."
+    # 0 Base extraction (single main schema)
+    """Extract job fields strictly matching the provided schema.
+    • Keep original job title and company names.
+    • Salary → integer only; 0 if missing.
+    • Location → nearest NZ city from schema list.
+    • Category (text before '(') and Sector (inside '()').
+    • Remote = true if mentions 'Remote', 'Work from Home', 'Flexible'.
+    • Return full job description verbatim.""",
+
+    # 1 Soft skills
+    """Extract ≤10 soft skills from description.
+    • Split on 'and','or','/',' ,' and remove duplicates.
+    • Simplify phrases; no words 'skill'/'skills'.
+    • Replace hyphens with spaces.
+    • Type = soft skill.""",
+
+    # 2 Programming languages
+    """Extract programming languages appearing in description.
+    • Valid list: Python, JavaScript, Java, C, C#, C++, TypeScript,
+      Go, Rust, PHP, Lua, Swift, Haskell.
+    • Exclude HTML, CSS, SQL, markup or styling languages.
+    • Type = programming language.""",
+
+    # 3 Frameworks
+    """Extract frameworks only if in list:
+    ITIL, COBIT, TOGAF, Zachman Framework, NIST CSF, MITRE ATT&CK,
+    CIS Controls, ISO/IEC 27001, ISO/IEC 20000, MOF, CMMI,
+    React, Angular, Vue.js, Node.js, Express.js, Django, Flask, FastAPI,
+    Spring Boot, ASP.NET Core, .NET, Laravel, Ruby on Rails,
+    Next.js, Nuxt.js, NestJS, Svelte, Flutter, Qt, Electron,
+    React Native, Ionic, TensorFlow, PyTorch, Unity, Unreal Engine, Godot.
+    • Exclude Agile, Scrum, Kanban, DevOps, etc. (they're methodologies).
+    • Type = framework.""",
+
+    # 4 Databases
+    """Extract mentioned databases if in list:
+    MySQL, PostgreSQL, MongoDB, SQLite, Oracle Database,
+    SQL Server, Redis, MariaDB, DynamoDB, Elasticsearch,
+    Cassandra, Firestore, Firebase Realtime Database,
+    Aurora, RDS, Redshift, BigQuery, Azure SQL Database,
+    Snowflake, Neo4j, Couchbase, ClickHouse, InfluxDB, TimescaleDB.
+    • Type = databases.""",
+
+    # 5 Tools
+    """Extract tools/utilities (e.g., Git, Docker, Kubernetes, Jenkins, Terraform).
+    • Do NOT include frameworks or languages.
+    • Type = tool.""",
+
+    # 6 Platforms
+    """Extract hosting/platform services (e.g., AWS, Azure, GCP, Firebase, Vercel).
+    • Type = platform.""",
+
+    # 7 Methodologies
+    """Extract software-development methodologies:
+    Agile, Scrum, Kanban, Waterfall, Lean, XP, DevOps, SAFe,
+    RAD, FDD, TDD, BDD, DDD, Six Sigma, ITIL, PRINCE2, PMBOK, RUP.
+    • Type = methodology."""
 ]
+
 
 async def _async_parse(prompt, job_text):
     # If OpenAI client supports async, use await client.responses.parse(...)
