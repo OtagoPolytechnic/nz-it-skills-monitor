@@ -1,5 +1,5 @@
 // src/components/AverageSalaryOverTimeChart.jsx
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -11,36 +11,6 @@ import {
 } from "recharts";
 import DownloadCSVButton from "./downloadcsvbutton";
 
-// ----- salary helpers -----
-function parseFreeTextSalary(txt) {
-  if (!txt) return null;
-  const nums =
-    txt
-      .replace(/,/g, "")
-      .match(/\$?\s*\d+(?:\.\d+)?\s*[kK]?/g)
-      ?.map((raw) =>
-        /k/i.test(raw)
-          ? Number(raw.replace(/[^\d.]/g, "")) * 1000
-          : Number(raw.replace(/[^\d.]/g, ""))
-      ) || [];
-  if (!nums.length) return null;
-  return nums.length === 1 ? nums[0] : (nums[0] + nums[nums.length - 1]) / 2;
-}
-
-function pickAverage(job) {
-  const mins = [job?.min_salary, job?.salary_min].map(Number);
-  const maxs = [job?.max_salary, job?.salary_max].map(Number);
-  const single = Number(job?.salary);
-  const min = mins.find((n) => Number.isFinite(n) && n > 0);
-  const max = maxs.find((n) => Number.isFinite(n) && n > 0);
-  if (Number.isFinite(min) && Number.isFinite(max)) return (min + max) / 2;
-  if (Number.isFinite(single) && single > 0) return single;
-  if (Number.isFinite(min) && min > 0) return min;
-  return parseFreeTextSalary(
-    String(job?.salary_text || job?.salaryStr || job?.compensation || "")
-  );
-}
-
 const nzMoney = (n) =>
   n == null
     ? ""
@@ -50,38 +20,32 @@ const nzMoney = (n) =>
         maximumFractionDigits: 0,
       });
 
-export default function AverageSalaryOverTimeChart({ jobs = [] }) {
-  // Average salary per calendar day (same date sources as JobsOverTimeChart)
-  const data = useMemo(() => {
-    const buckets = new Map(); // key: YYYY-MM-DD -> { sum, count }
-    for (const job of jobs) {
-      const raw =
-        job?.date ||
-        job?.posted_at ||
-        job?.created_at ||
-        job?.createdAt ||
-        job?.scraped_at;
-      if (!raw) continue;
-      const d = new Date(raw);
-      if (Number.isNaN(d.getTime())) continue;
-      const day = d.toISOString().slice(0, 10); // YYYY-MM-DD
+export default function AverageSalaryOverTimeChart() {
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-      const avg = pickAverage(job);
-      if (!Number.isFinite(avg) || avg <= 0) continue;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/average-salary-over-time`
+        );
+        if (!res.ok) throw new Error("Failed to fetch average salary data");
+        const result = await res.json();
+        setData(result);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-      const rec = buckets.get(day) || { sum: 0, count: 0 };
-      rec.sum += avg;
-      rec.count += 1;
-      buckets.set(day, rec);
-    }
-
-    return Array.from(buckets.entries())
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-      .map(([date, { sum, count }]) => ({
-        date,
-        avg: Math.round(sum / count),
-      }));
-  }, [jobs]);
+  if (isLoading) return <p>Loading average salary data…</p>;
+  if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
 
   return (
     <div style={{ height: 360 }}>

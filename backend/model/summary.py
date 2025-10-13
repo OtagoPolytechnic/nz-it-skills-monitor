@@ -34,3 +34,10 @@ class SummaryTopCompanies(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     company_name = db.Column(db.String(255), nullable=False)
     job_count = db.Column(db.Integer, nullable=False)
+
+class SummaryAverageSalaryOverTime(db.Model):
+    __tablename__ = 'summary_average_salary_over_time'
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    avg_salary = db.Column(db.Float, nullable=False)
+

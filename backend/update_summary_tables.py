@@ -1,3 +1,4 @@
+import re
 from model import db
 from model.job import Job, Skill
 from model.summary import (
@@ -6,6 +7,7 @@ from model.summary import (
     SummaryLocations,
     SummarySalaryDistribution,
     SummaryTopCompanies,
+    SummaryAverageSalaryOverTime,
 )
 from sqlalchemy import func, case
 
@@ -125,3 +127,57 @@ def update_all_summaries():
     update_summary_salary_distribution()
     update_summary_top_companies()
     print(" All summaries updated successfully.")
+
+def parse_salary_text(text):
+    """Extract numeric salary averages from salary text (e.g. '$80k-$100k', '$90,000', '80k per year')."""
+    if not text:
+        return None
+
+    # Find numbers like 90k, 100k, 90,000, etc.
+    matches = re.findall(r"\$?\s*([\d.,]+)\s*([kK]?)", text)
+    if not matches:
+        return None
+
+    nums = []
+    for num, suffix in matches:
+        try:
+            # Normalize commas and dots
+            n = float(num.replace(",", "").replace(" ", ""))
+            # Convert 'k' to thousands
+            if suffix.lower() == "k":
+                n *= 1000
+            nums.append(n)
+        except ValueError:
+            continue
+
+    # Remove unrealistic values
+    nums = [n for n in nums if 1000 < n < 500000]
+    if not nums:
+        return None
+
+    # Return average
+    return round(sum(nums) / len(nums), 2)
+
+
+def update_summary_average_salary_over_time():
+    """Recalculate and refresh average salary per scrape date from Job table."""
+    print("🔄 Updating summary_average_salary_over_time ...")
+    db.session.query(SummaryAverageSalaryOverTime).delete()
+
+    jobs = db.session.query(Job.date, Job.salary, Job.description).filter(Job.date.isnot(None)).all()
+
+    buckets = {}  # {date: [salaries]}
+    for date_val, numeric_salary, desc in jobs:
+        # Prefer numeric salary if valid, otherwise parse from description
+        salary_val = numeric_salary or parse_salary_text(desc)
+        if not salary_val or salary_val <= 0:
+            continue
+        buckets.setdefault(date_val, []).append(salary_val)
+
+    # Insert averages into summary table
+    for d, salaries in buckets.items():
+        avg_salary = sum(salaries) / len(salaries)
+        db.session.add(SummaryAverageSalaryOverTime(date=d, avg_salary=round(avg_salary, 2)))
+
+    db.session.commit()
+    print(f"✅ Updated {len(buckets)} records in summary_average_salary_over_time.")
