@@ -491,6 +491,17 @@ def get_location_summary():
         return jsonify(summary), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/average-salary-over-time', methods=['GET'])
+def get_average_salary_over_time():
+    from model.summary import SummaryAverageSalaryOverTime
+    rows = SummaryAverageSalaryOverTime.query.order_by(SummaryAverageSalaryOverTime.date.asc()).all()
+    data = [
+        {"date": r.date.isoformat(), "avg": round(r.avg_salary or 0)}
+        for r in rows
+    ]
+    return jsonify(data), 200
+
 
 @app.after_request
 def add_no_store(resp):
