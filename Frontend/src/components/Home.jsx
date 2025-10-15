@@ -8,6 +8,7 @@ import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
 import AverageSalaryOverTimeChart from "./averagesalaryovertime";
 import DownloadCSVButton from "./downloadcsvbutton";
+import categoriseEntryLevelRole from "./utils/roleUtils";
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
@@ -37,6 +38,8 @@ const Home = () => {
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
   const [avgSalaryExpanded, setAvgSalaryExpanded] = useState(false);
+  const [rolesChartType, setRolesChartType] = useState("bar");
+  const [rolesExpanded, setRolesExpanded] = useState(false);
 
   const parseSalary = (job) => {
     const min = Number(job?.min_salary);
@@ -157,7 +160,9 @@ const Home = () => {
 
       const filteredGrouped = {};
       ALLOWED.forEach((k) => {
-        filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
+        filteredGrouped[k] = (grouped[k] || []).sort(
+          (a, b) => b.count - a.count
+        );
       });
 
       setSkillsData(filteredGrouped);
@@ -251,6 +256,32 @@ const Home = () => {
     .filter(Boolean)
     .sort();
 
+  const getRolesData = () => {
+    const counts = {};
+    for (const job of filteredJobs) {
+      const bucket = categoriseEntryLevelRole(job);
+      if (!bucket) continue;
+      counts[bucket] = (counts[bucket] || 0) + 1;
+    }
+    const entries = Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+    const sliced = rolesExpanded ? entries : entries.slice(0, 10);
+    return sliced.map(({ name, value }) => ({ skill: name, count: value }));
+  };
+
+  const renderRolesChart = () => {
+    const data = getRolesData();
+    return renderGenericCountChart(
+      "Entry-Level Roles",
+      data,
+      rolesChartType,
+      setRolesChartType,
+      rolesExpanded,
+      setRolesExpanded
+    );
+  };
+
   const renderSkillChart = (title, data, typeKey) => {
     const currentType = chartTypes[typeKey] || globalChartType;
     const isExpanded = expandedSections[typeKey] || false;
@@ -284,7 +315,9 @@ const Home = () => {
             <button
               key={type}
               onClick={() => setLocalChartType(type)}
-              className={`chart-type-btn ${currentType === type ? "active" : ""}`}
+              className={`chart-type-btn ${
+                currentType === type ? "active" : ""
+              }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
@@ -395,28 +428,23 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="two-col">
-        {renderGenericCountChart(
-          "Top Hiring Companies",
-          jobCompanyData,
-          jobCompanyChartType,
-          setJobCompanyChartType,
-          jobCompanyExpanded,
-          setJobCompanyExpanded
-        )}
-        {renderGenericCountChart(
-          "Top Job Titles",
-          jobTitleData,
-          jobTitleChartType,
-          setJobTitleChartType,
-          jobTitleExpanded,
-          setJobTitleExpanded
-        )}
-      </div>
-
       <div className="section stacked-dashboard">
         {hasData && !errMsg && (
           <div style={{ width: "100%" }}>
+            {/* Row 2 — Entry-Level Roles | Top Job Titles */}
+            <div className="two-col full-width">
+              {renderRolesChart()}
+              {renderGenericCountChart(
+                "Top Job Titles",
+                jobTitleData,
+                jobTitleChartType,
+                setJobTitleChartType,
+                jobTitleExpanded,
+                setJobTitleExpanded
+              )}
+            </div>
+
+            {/* Row 3 — Job Heatmap | Average Salary per Scrape */}
             <div className="two-col full-width">
               <div className="chart-card heatmap-wrapper">
                 <h2 className="card-title">Job Heatmap</h2>
@@ -424,6 +452,7 @@ const Home = () => {
                   <LeafletHeatmap />
                 </div>
               </div>
+
               <div className="chart-card">
                 <h2 className="card-title">Average Salary per Scrape</h2>
                 <AverageSalaryOverTimeChart
@@ -435,7 +464,17 @@ const Home = () => {
               </div>
             </div>
 
+            {/* Row 4 — Top Hiring Companies | (paired with Job Locations) */}
             <div className="two-col full-width">
+              {renderGenericCountChart(
+                "Top Hiring Companies",
+                jobCompanyData,
+                jobCompanyChartType,
+                setJobCompanyChartType,
+                jobCompanyExpanded,
+                setJobCompanyExpanded
+              )}
+
               <div className="chart-card">
                 <h2 className="card-title">
                   <span>Job Locations</span>
@@ -463,14 +502,9 @@ const Home = () => {
                   layout="horizontal"
                 />
               </div>
-
-              {renderSkillChart(
-                "Soft skill",
-                skillsData["soft skill"] || [],
-                "soft skill"
-              )}
             </div>
 
+            {/* Remaining skill rows (pairs) */}
             {[
               "programming language",
               "framework",
