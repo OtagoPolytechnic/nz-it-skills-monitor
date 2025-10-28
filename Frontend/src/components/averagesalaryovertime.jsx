@@ -31,7 +31,7 @@ export default function AverageSalaryOverTimeChart() {
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/average-salary-over-time`
         );
-        if (!res.ok) throw new Error("Failed to fetch average salary data");
+        if (!res.ok) throw new Error("Failed to fetch average salary data"); //it keeps failing here, bcs render has the older version of it
         const result = await res.json();
         setData(result);
       } catch (err) {
