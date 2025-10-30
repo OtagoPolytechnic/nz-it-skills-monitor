@@ -2,7 +2,7 @@ import os
 from flask_cors import CORS
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, g
-from sqlalchemy import text, inspect, select
+from sqlalchemy import text, inspect, select, case
 from sqlalchemy.orm import selectinload, load_only, subqueryload
 from flask_migrate import Migrate
 from model import db
@@ -117,26 +117,183 @@ def get_jobs():
 @app.route('/jobs-over-time', methods=['GET'])
 def get_jobs_over_time():
     try:
+        latest_scrape_id = (
+            db.session.query(Job.scrape_id)
+            .filter(Job.scrape_id.isnot(None))
+            .order_by(Job.scrape_id.desc())
+            .limit(1)
+            .scalar()
+        )
 
-        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
         query = db.session.query(Job.date, db.func.count(Job.id))
-
         if latest_scrape_id:
             query = query.filter(Job.scrape_id == latest_scrape_id)
 
         results = (
             query.group_by(Job.date)
-            .order_by(Job.date)
+            .order_by(Job.date.asc())
             .all()
         )
 
-        # Convert to [{date: '2025-08-31', count: 5}, ...]
-        jobs_per_day = [{"date": date.isoformat(), "count": count} for date, count in results]
-
+        jobs_per_day = [
+            {"date": d.isoformat(), "count": c}
+            for d, c in results if d
+        ]
         return jsonify(jobs_per_day), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/summary-metrics', methods=['GET'])
+def summary_metrics():
+    try:
+        source = request.args.get('source')
+
+        # 1) Get latest scrape_id (ignoring NULLs)
+        latest_scrape_id = (
+            db.session.query(db.func.max(Job.scrape_id))
+            .filter(Job.scrape_id.isnot(None))
+            .scalar()
+        )
+
+        base = db.session.query(Job)
+
+        if source:
+            base = base.filter(Job.source == source)
+
+        # 2) Scope to the latest batch
+        if latest_scrape_id is not None:
+            # Normal path: use scrape_id
+            base = base.filter(Job.scrape_id == latest_scrape_id)
+        else:
+            # Fallback: use latest Job.date (mimics old client logic)
+            latest_date = (
+                db.session.query(db.func.max(Job.date))
+                .filter(Job.date.isnot(None))
+            )
+            if source:
+                latest_date = latest_date.filter(Job.source == source)
+            latest_date = latest_date.scalar()
+
+            if latest_date is not None:
+                base = base.filter(Job.date == latest_date)
+            # If even date is None, base stays unfiltered (edge case: empty table)
+
+        # --- totals ---
+        total = base.with_entities(db.func.count(Job.id)).scalar() or 0
+
+        # --- average salary ---
+        avg_salary = (
+            base.with_entities(db.func.avg(Job.salary))
+            .filter(Job.salary.isnot(None), Job.salary > 0)
+            .scalar()
+        )
+        avg_salary = int(round(avg_salary)) if avg_salary else None
+
+        # --- helper for top fields ---
+        def top_for(col):
+            row = (
+                base.with_entities(col.label("val"), db.func.count().label("cnt"))
+                .filter(col.isnot(None), db.func.lower(col) != 'none')
+                .group_by(col)
+                .order_by(db.func.count().desc())
+                .first()
+            )
+            return {"value": row.val, "count": int(row.cnt)} if row and row.val else None
+
+        location    = top_for(Job.location)
+        category    = top_for(Job.category)
+        top_title   = top_for(Job.title)
+        top_company = top_for(Job.company)
+
+        # --- top skill ---
+        skill_q = (
+            db.session.query(Skill.name.label("val"), db.func.count().label("cnt"))
+            .join(Job, Skill.job_id == Job.id)
+        )
+        if source:
+            skill_q = skill_q.filter(Job.source == source)
+
+        # reuse the same scope as `base`
+        if latest_scrape_id is not None:
+            skill_q = skill_q.filter(Job.scrape_id == latest_scrape_id)
+        else:
+            # if we fell back to date, mirror that
+            latest_date_for_skills = (
+                db.session.query(db.func.max(Job.date))
+                .filter(Job.date.isnot(None))
+            )
+            if source:
+                latest_date_for_skills = latest_date_for_skills.filter(Job.source == source)
+            latest_date_for_skills = latest_date_for_skills.scalar()
+            if latest_date_for_skills is not None:
+                skill_q = skill_q.filter(Job.date == latest_date_for_skills)
+
+        skill_row = (
+            skill_q.group_by(Skill.name)
+            .order_by(db.func.count().desc())
+            .first()
+        )
+        top_skill = {"value": skill_row.val, "count": int(skill_row.cnt)} if skill_row and skill_row.val else None
+
+        # --- scrape date helper (reporting only) ---
+        scrape_date = (
+            base.with_entities(db.func.max(Job.date)).scalar()
+        )
+        scrape_date = scrape_date.isoformat() if scrape_date else None
+
+        return jsonify({
+            "source": source,
+            "scrapeId": int(latest_scrape_id) if latest_scrape_id is not None else None,
+            "scrapeDate": scrape_date,
+            "total": int(total),
+            "avgSalary": avg_salary,
+            "location": location,
+            "category": category,
+            "topSkill": top_skill,
+            "topTitle": top_title,
+            "topCompany": top_company,
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/salary-distribution', methods=['GET'])
+def salary_distribution():
+    try:
+        # latest scrape id that actually exists
+        latest_scrape_id = (
+            db.session.query(Job.scrape_id)
+            .filter(Job.scrape_id.isnot(None))
+            .order_by(Job.scrape_id.desc())
+            .limit(1)
+            .scalar()
+        )
+
+        band = case(
+            (Job.salary < 50000,  '0-50k'),
+            (Job.salary < 75000,  '50k-75k'),
+            (Job.salary < 100000, '75k-100k'),
+            (Job.salary < 125000, '100k-125k'),
+            (Job.salary < 150000, '125k-150k'),
+            (Job.salary < 200000, '150k-200k'),
+            else_='200k+'
+        ).label('band')
+
+        q = db.session.query(band, db.func.count(Job.id)).filter(Job.salary.isnot(None))
+        if latest_scrape_id:
+            q = q.filter(Job.scrape_id == latest_scrape_id)
+
+        rows = q.group_by(band).all()
+
+        order = ['0-50k','50k-75k','75k-100k','100k-125k','125k-150k','150k-200k','200k+']
+        counts = {k: 0 for k in order}
+        for b, c in rows:
+            counts[b] = c
+
+        data = [{'band': k, 'count': counts[k]} for k in order]
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/skills', methods=['GET'])
 def get_skills_by_type():
@@ -151,17 +308,16 @@ def get_skills_by_type():
     except Exception as e:
         logging.error(f"Failed to fetch skills by type: {e}", exc_info=True)
         return jsonify({'error': 'Internal Server Error'}), 500
-    
+
 @app.route('/skills-summary', methods=['GET'])
 def get_skills_summary():
     try:
-        
         latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
 
         results = (
-        db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
-        .join(Job)
-)
+            db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
+            .join(Job)
+        )
 
         if latest_scrape_id:
             results = results.filter(Job.scrape_id == latest_scrape_id)
@@ -170,7 +326,7 @@ def get_skills_summary():
             results.group_by(Skill.type, Skill.name)
             .order_by(Skill.type, db.func.count().desc())
             .all()
-)
+        )
 
         summary = []
         for skill_type, skill_name, count in results:
@@ -183,7 +339,6 @@ def get_skills_summary():
         return jsonify(summary), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -276,7 +431,6 @@ def stop_spiders():
 
 @app.route('/job-locations', methods=['GET'])
 def job_locations():
-    
     latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
     jobs = Job.query
     if latest_scrape_id:
@@ -314,7 +468,6 @@ def job_locations():
 @app.route('/location-summary', methods=['GET'])
 def get_location_summary():
     try:
-
         latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
         results = db.session.query(Job.location, db.func.count().label("count"))
 
@@ -338,7 +491,23 @@ def get_location_summary():
         return jsonify(summary), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/average-salary-over-time', methods=['GET'])
+def get_average_salary_over_time():
+    from model.summary import SummaryAverageSalaryOverTime
+    rows = SummaryAverageSalaryOverTime.query.order_by(SummaryAverageSalaryOverTime.date.asc()).all()
+    data = [
+        {"date": r.date.isoformat(), "avg": round(r.avg_salary or 0)}
+        for r in rows
+    ]
+    return jsonify(data), 200
 
+
+@app.after_request
+def add_no_store(resp):
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 if __name__ == '__main__':
     app.run(debug=True)

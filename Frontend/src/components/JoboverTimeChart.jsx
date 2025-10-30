@@ -8,28 +8,45 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import useJobsOverTime from "../hooks/useJobsOverTime";
+import DownloadCSVButton from "./downloadcsvbutton";
 
-export default function JobsOverTimeChart({ jobs = [] }) {
-  // roll up counts per calendar day (ISO date so sorting is easy)
+const API_BASE = import.meta.env.VITE_API_URL;
+
+export default function JobsOverTimeChart() {
+  const { data: raw, loading, err } = useJobsOverTime(API_BASE);
+
   const data = useMemo(() => {
-    const counts = jobs.reduce((acc, job) => {
-      const raw =
-        job?.date || job?.posted_at || job?.created_at || job?.createdAt;
-      if (!raw) return acc;
-      const d = new Date(raw);
-      if (Number.isNaN(d.getTime())) return acc;
-      const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
+    if (!Array.isArray(raw)) return [];
+    return [...raw]
+      .filter((r) => r && r.date && typeof r.count === "number")
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [raw]);
 
-    return Object.keys(counts)
-      .sort() // ISO dates sort correctly as strings
-      .map((date) => ({ date, count: counts[date] }));
-  }, [jobs]);
+  if (loading)
+    return <div style={{ height: 360 }}>Loading jobs over time…</div>;
+  if (err)
+    return (
+      <div style={{ height: 360, color: "crimson" }}>
+        Failed to load jobs over time.
+      </div>
+    );
+  if (data.length === 0) return <div style={{ height: 360 }}>No data yet.</div>;
 
   return (
     <div style={{ height: 360 }}>
+      <div className="card-title" style={{ marginBottom: 8 }}>
+        <span>Jobs Posted Over Time</span>
+        <DownloadCSVButton
+          title="Jobs Over Time"
+          filename="jobs_over_time.csv"
+          rows={data}
+          columns={[
+            ["Date", "date"],
+            ["Jobs", "count"],
+          ]}
+        />
+      </div>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}

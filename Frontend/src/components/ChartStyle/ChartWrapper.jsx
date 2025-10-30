@@ -44,7 +44,7 @@ const ChartWrapper = ({ chartType, title, data, dataKey, barKey, expanded, onTog
           currentMode={chartType}
           expanded={expanded}
           onToggleExpand={onToggleExpand}
-          layout={layout}
+          layout= "vertical"
         />
       );
   }

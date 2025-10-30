@@ -6,24 +6,9 @@ import "../App.css";
 import JobsOverTimeChart from "./JoboverTimeChart";
 import SummarySection from "./SummarySection";
 import SalaryHistogram from "./salaryhistogram";
-
-
-// Utility: fetch with timeout
-const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    clearTimeout(id);
-    return response;
-  } catch (err) {
-    clearTimeout(id);
-    throw err;
-  }
-};
+import AverageSalaryOverTimeChart from "./averagesalaryovertime";
+import DownloadCSVButton from "./downloadcsvbutton";
+import categoriseEntryLevelRole from "./utils/roleUtils";
 
 const Home = () => {
   const [skillsData, setSkillsData] = useState({
@@ -39,8 +24,8 @@ const Home = () => {
   const [locationData, setLocationData] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
 
   const [jobTitleChartType, setJobTitleChartType] = useState("bar");
   const [jobTitleExpanded, setJobTitleExpanded] = useState(false);
@@ -52,23 +37,19 @@ const Home = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const [locationChartType, setLocationChartType] = useState("bar");
   const [locationExpanded, setLocationExpanded] = useState(false);
-  const [fullStatsLoaded, setFullStatsLoaded] = useState(false);
-
+  const [avgSalaryExpanded, setAvgSalaryExpanded] = useState(false);
+  const [rolesChartType, setRolesChartType] = useState("bar");
+  const [rolesExpanded, setRolesExpanded] = useState(false);
 
   const parseSalary = (job) => {
     const min = Number(job?.min_salary);
     const max = Number(job?.max_salary);
-    const Jobs = filteredJobs;
-
-    if (!Number.isNaN(min) && !Number.isNaN(max) && max > 0) {
+    if (!Number.isNaN(min) && !Number.isNaN(max) && max > 0)
       return (min + max) / 2;
-    }
 
-    // Fallback to a free‑text salary field
     const txt = String(job?.salary || job?.salary_text || "").replace(/,/g, "");
     if (!txt) return null;
 
-    // Extract numbers (handles "$120000" or "120k" or "120,000 - 140,000")
     const nums =
       txt.match(/\$?\s*\d+(?:\.\d+)?\s*[kK]?/g)?.map((raw) => {
         const hasK = /k/i.test(raw);
@@ -78,7 +59,6 @@ const Home = () => {
 
     if (nums.length === 0) return null;
     if (nums.length === 1) return nums[0];
-    // range → average
     return (nums[0] + nums[nums.length - 1]) / 2;
   };
 
@@ -100,25 +80,18 @@ const Home = () => {
     }
     return best ? { value: best, count: bestCount } : { value: null, count: 0 };
   };
-  // ---- Summary metrics (based on current filter) ----
+
   const summary = useMemo(() => {
     const totalJobs = filteredJobs.length;
-
-    // Average salary
     const salaries = filteredJobs
       .map(parseSalary)
       .filter((n) => typeof n === "number" && !Number.isNaN(n) && n > 0);
     const averageSalary = salaries.length
       ? Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length)
       : null;
-
-    // Most common location
     const topLoc = modeOf(filteredJobs.map((j) => j.location));
-
-    // Top category
     const topCat = modeOf(filteredJobs.map((j) => j.category));
 
-    // Top skill across all types
     const allSkills = [];
     filteredJobs.forEach((job) => {
       if (Array.isArray(job.skills)) {
@@ -145,13 +118,6 @@ const Home = () => {
     };
   }, [filteredJobs]);
 
-useEffect(() => {
-  fetchJobs();
-  fetchSkillsSummary();
-  fetchLocationSummary();
-}, []);
-
-
   useEffect(() => {
     const updated = {};
     const expandedMap = {};
@@ -161,88 +127,80 @@ useEffect(() => {
     });
     setChartTypes(updated);
     setExpandedSections(expandedMap);
-    setLocationChartType(globalChartType);
-    setLocationExpanded(false);
-    setJobTitleChartType(globalChartType);
-    setJobCompanyChartType(globalChartType);
-    setJobTitleExpanded(false);
-    setJobCompanyExpanded(false);
-  }, [globalChartType]);
+  }, [globalChartType, skillsData]);
 
-const fetchSkillsSummary = async () => {
-  try {
-    const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/skills-summary`);
-    const data = await res.json();
+  const fetchSkillsSummary = async () => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/skills-summary?ts=${Date.now()}`,
+        { cache: "no-store" }
+      );
+      const data = await res.json();
 
-    // ✅ Only allow these 7 groups (kept consistent across the app)
-    const ALLOWED = [
-      "programming language",
-      "framework",
-      "tool",
-      "platform",
-      "methodology",
-      "database",
-      "soft skill",
-    ];
+      const ALLOWED = [
+        "programming language",
+        "framework",
+        "tool",
+        "platform",
+        "methodology",
+        "database",
+        "soft skill",
+      ];
 
-    // Build and filter into the allowed buckets
-    const grouped = {};
-    data.forEach((item) => {
-      const type = item.type?.toLowerCase();
-      const skill = item.skill;
-      const count = Number(item.count ?? 0);
-      if (!type || !skill) return;
-      if (!ALLOWED.includes(type)) return;
-      if (!grouped[type]) grouped[type] = [];
-      grouped[type].push({ skill, count });
-    });
+      const grouped = {};
+      data.forEach((item) => {
+        const type = item.type?.toLowerCase();
+        const skill = item.skill;
+        const count = Number(item.count ?? 0);
+        if (!type || !skill) return;
+        if (!ALLOWED.includes(type)) return;
+        if (!grouped[type]) grouped[type] = [];
+        grouped[type].push({ skill, count });
+      });
 
-    // Ensure each allowed key exists and is sorted
-    const filteredGrouped = {};
-    ALLOWED.forEach((k) => {
-      filteredGrouped[k] = (grouped[k] || []).sort((a, b) => b.count - a.count);
-    });
+      const filteredGrouped = {};
+      ALLOWED.forEach((k) => {
+        filteredGrouped[k] = (grouped[k] || []).sort(
+          (a, b) => b.count - a.count
+        );
+      });
 
-    setSkillsData(filteredGrouped);
-    setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
-  } catch (err) {
-    console.error("Error fetching skills summary:", err);
-    setHasData(false);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      setSkillsData(filteredGrouped);
+      setHasData(ALLOWED.some((k) => (filteredGrouped[k]?.length || 0) > 0));
+    } catch (err) {
+      console.error("Error fetching skills summary:", err);
+      setHasData(false);
+      setErrMsg("Failed to fetch skill summary.");
+    }
+  };
 
-const fetchLocationSummary = async () => {
-  try {
-    const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/location-summary`);
-    const data = await res.json();
+  const fetchLocationSummary = async () => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/location-summary?ts=${Date.now()}`
+      );
+      const data = await res.json();
 
-    const mapped = Array.isArray(data)
-      ? data.map((item) => ({
-          name: item.location ?? item.name ?? "Unknown",
-          value: Number(item.count ?? item.value ?? 0),
-        }))
-      : [];
+      const mapped = Array.isArray(data)
+        ? data.map((item) => ({
+            name: item.location ?? item.name ?? "Unknown",
+            value: Number(item.count ?? item.value ?? 0),
+          }))
+        : [];
 
-    setLocationData(mapped);
-  } catch (err) {
-    console.error("Error fetching location summary:", err);
-    setLocationData([]);
-  }
-};
-
+      setLocationData(mapped);
+    } catch (err) {
+      console.error("Error fetching location summary:", err);
+      setLocationData([]);
+    }
+  };
 
   const fetchJobs = async () => {
     try {
-      const res = await fetchWithTimeout(`${import.meta.env.VITE_API_URL}/jobs`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/jobs?ts=${Date.now()}`
+      );
       const data = await res.json();
-
-      console.log(`✅ Total jobs fetched: ${data.length}`);
-      if (data.length > 0) {
-        console.log(`🕒 Latest job date: ${data[0].date}`);
-      }
-
       setAllJobs(data);
       setFilteredJobs(data);
     } catch (err) {
@@ -250,12 +208,18 @@ const fetchLocationSummary = async () => {
     }
   };
 
+  useEffect(() => {
+    fetchJobs();
+    fetchSkillsSummary();
+    fetchLocationSummary();
+  }, []);
+
   const handleCategoryChange = (value) => {
     setCategoryFilter(value);
     const filtered = value
       ? allJobs.filter(
-        (job) => job.category?.toLowerCase() === value.toLowerCase()
-      )
+          (job) => job.category?.toLowerCase() === value.toLowerCase()
+        )
       : allJobs;
     setFilteredJobs(filtered);
   };
@@ -274,17 +238,17 @@ const fetchLocationSummary = async () => {
       .sort((a, b) => b.count - a.count);
   };
 
-  // Titles: try common keys safely
   const jobTitleData = useMemo(() => {
-    return buildCountsFromField(filteredJobs, (j) =>
-      j.title ?? j.job_title ?? j.position ?? null
+    return buildCountsFromField(
+      filteredJobs,
+      (j) => j.title ?? j.job_title ?? j.position ?? null
     );
   }, [filteredJobs]);
 
-  // Companies: try common keys safely
   const jobCompanyData = useMemo(() => {
-    return buildCountsFromField(filteredJobs, (j) =>
-      j.company ?? j.company_name ?? j.employer ?? null
+    return buildCountsFromField(
+      filteredJobs,
+      (j) => j.company ?? j.company_name ?? j.employer ?? null
     );
   }, [filteredJobs]);
 
@@ -292,55 +256,29 @@ const fetchLocationSummary = async () => {
     .filter(Boolean)
     .sort();
 
-  const renderLocationChart = () => {
-    const data = locationData;
+  const getRolesData = () => {
+    const counts = {};
+    for (const job of filteredJobs) {
+      const bucket = categoriseEntryLevelRole(job);
+      if (!bucket) continue;
+      counts[bucket] = (counts[bucket] || 0) + 1;
+    }
+    const entries = Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+    const sliced = rolesExpanded ? entries : entries.slice(0, 10);
+    return sliced.map(({ name, value }) => ({ skill: name, count: value }));
+  };
 
-    const handleLocationChartChange = (type) => {
-      setLocationChartType(type);
-    };
-
-    const chartData = data.map((item) => ({
-      skill: item.name,
-      count: item.value,
-    }));
-
-    return (
-      <div
-        className="chart-card"
-        style={{
-          padding: "1rem",
-          borderRadius: "0.375rem",
-          border: "1px solid #e5e7eb",
-          backgroundColor: "#ffffff",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <h2 className="card-title">Location</h2>
-        <div className="chart-type-toggle">
-          <span className="chart-type-label">Chart Type:</span>
-          {["bar", "pie", "wordcloud"].map((type) => (
-            <button
-              key={type}
-              onClick={() => handleLocationChartChange(type)}
-              className={`chart-type-btn ${locationChartType === type ? "active" : ""
-                }`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        <ChartWrapper
-          chartType={locationChartType}
-          title="Locations"
-          data={chartData}
-          dataKey="skill"
-          barKey="count"
-          expanded={locationExpanded}
-          onToggleExpand={() => setLocationExpanded(!locationExpanded)}
-          layout="horizontal"
-        />
-      </div>
+  const renderRolesChart = () => {
+    const data = getRolesData();
+    return renderGenericCountChart(
+      "Entry-Level Roles",
+      data,
+      rolesChartType,
+      setRolesChartType,
+      rolesExpanded,
+      setRolesExpanded
     );
   };
 
@@ -358,24 +296,34 @@ const fetchLocationSummary = async () => {
 
     return (
       <div className="chart-card" key={`${typeKey}-${currentType}`}>
-        <h3 className="card-title">{title}</h3>
+        <h3 className="card-title">
+          <span>{title}</span>
+          <DownloadCSVButton
+            title={title}
+            filename={`skills_${typeKey.replace(/\s+/g, "-")}.csv`}
+            rows={Array.isArray(data) ? data : []}
+            columns={[
+              ["Skill", "skill"],
+              ["Count", "count"],
+            ]}
+          />
+        </h3>
 
-        {/* Local chart type toggle for this chart */}
         <div className="chart-type-toggle">
           <span className="chart-type-label">Chart Type:</span>
           {["bar", "pie", "wordcloud"].map((type) => (
             <button
               key={type}
               onClick={() => setLocalChartType(type)}
-              className={`chart-type-btn ${currentType === type ? "active" : ""
-                }`}
+              className={`chart-type-btn ${
+                currentType === type ? "active" : ""
+              }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
           ))}
         </div>
 
-        {/* Chart component */}
         <ChartWrapper
           chartType={currentType}
           title={title}
@@ -390,10 +338,28 @@ const fetchLocationSummary = async () => {
     );
   };
 
-  const renderGenericCountChart = (title, data, chartType, setChartType, expanded, setExpanded) => {
+  const renderGenericCountChart = (
+    title,
+    data,
+    chartType,
+    setChartType,
+    expanded,
+    setExpanded
+  ) => {
     return (
       <div className="chart-card" key={`${title}-${chartType}`}>
-        <h3 className="card-title">{title}</h3>
+        <h3 className="card-title">
+          <span>{title}</span>
+          <DownloadCSVButton
+            title={title}
+            filename={`${title.toLowerCase().replace(/\s+/g, "_")}.csv`}
+            rows={data}
+            columns={[
+              [title.includes("Company") ? "Company" : "Title", "skill"],
+              ["Count", "count"],
+            ]}
+          />
+        </h3>
 
         <div className="chart-type-toggle">
           <span className="chart-type-label">Chart Type:</span>
@@ -422,7 +388,6 @@ const fetchLocationSummary = async () => {
     );
   };
 
-
   return (
     <div>
       <Navbar
@@ -432,50 +397,54 @@ const fetchLocationSummary = async () => {
         chartType={globalChartType}
         onChartTypeChange={setGlobalChartType}
       />
-      {/* ---- Summary Section ---- */}
+
+      {errMsg && (
+        <div className="page-container p-3 text-sm bg-yellow-50 border border-yellow-200 rounded mt-2">
+          {errMsg}{" "}
+          <button
+            className="ml-2 underline text-blue-600"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       <div className="section page-container">
-        <SummarySection jobs={filteredJobs} />
+        <SummarySection summary={summary} />
       </div>
 
       <div className="section page-container">
         <div className="two-col full-width">
-          {/* Left: Jobs Over Time */}
-          <div
-            className="chart-card"
-            style={{
-              padding: "1.5rem",
-              backgroundColor: "#ffffff",
-              borderRadius: "0.375rem",
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-            }}
-          >
+          <div className="chart-card">
             <h2 className="card-title">Jobs Posted Over Time</h2>
-            <JobsOverTimeChart jobs={filteredJobs} />
+            <JobsOverTimeChart />
           </div>
 
-          {/* Right: Salary Histogram */}
-          <div
-            className="chart-card"
-            style={{
-              padding: "1.5rem",
-              backgroundColor: "#ffffff",
-              borderRadius: "0.375rem",
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-            }}
-          >
+          <div className="chart-card">
             <h2 className="card-title">Salary Distribution</h2>
-            <SalaryHistogram jobs={filteredJobs} />
+            <SalaryHistogram />
           </div>
         </div>
       </div>
 
       <div className="section stacked-dashboard">
-        {/* Charts Section */}
-        {hasData && (
+        {hasData && !errMsg && (
           <div style={{ width: "100%" }}>
-            {/* Two-column layout for Location + Heatmap */}
+            {/* Row 2 — Entry-Level Roles | Top Job Titles */}
+            <div className="two-col full-width">
+              {renderRolesChart()}
+              {renderGenericCountChart(
+                "Top Job Titles",
+                jobTitleData,
+                jobTitleChartType,
+                setJobTitleChartType,
+                jobTitleExpanded,
+                setJobTitleExpanded
+              )}
+            </div>
+
+            {/* Row 3 — Job Heatmap | Average Salary per Scrape */}
             <div className="two-col full-width">
               <div className="chart-card heatmap-wrapper">
                 <h2 className="card-title">Job Heatmap</h2>
@@ -483,21 +452,59 @@ const fetchLocationSummary = async () => {
                   <LeafletHeatmap />
                 </div>
               </div>
+
               <div className="chart-card">
-                <h2 className="card-title">Job Locations</h2>
-                <ChartWrapper
-                  chartType={locationChartType}
-                  title="Locations"
-                  data={locationData.map(({ name, value }) => ({ skill: name, count: value }))}
-                  dataKey="skill"
-                  barKey="count"
-                  expanded={locationExpanded}
-                  onToggleExpand={() => setLocationExpanded(!locationExpanded)}
+                <h2 className="card-title">Average Salary per Scrape</h2>
+                <AverageSalaryOverTimeChart
+                  jobs={allJobs}
+                  expanded={avgSalaryExpanded}
+                  onToggleExpand={() => setAvgSalaryExpanded((v) => !v)}
+                  maxCollapsedPoints={12}
                 />
               </div>
             </div>
 
-            {/* Skill Charts */}
+            {/* Row 4 — Top Hiring Companies | (paired with Job Locations) */}
+            <div className="two-col full-width">
+              {renderGenericCountChart(
+                "Top Hiring Companies",
+                jobCompanyData,
+                jobCompanyChartType,
+                setJobCompanyChartType,
+                jobCompanyExpanded,
+                setJobCompanyExpanded
+              )}
+
+              <div className="chart-card">
+                <h2 className="card-title">
+                  <span>Job Locations</span>
+                  <DownloadCSVButton
+                    title="Job Locations"
+                    filename="locations.csv"
+                    rows={locationData}
+                    columns={[
+                      ["Location", "name"],
+                      ["Count", "value"],
+                    ]}
+                  />
+                </h2>
+                <ChartWrapper
+                  chartType={locationChartType}
+                  title="Locations"
+                  data={locationData.map(({ name, value }) => ({
+                    skill: name,
+                    count: value,
+                  }))}
+                  dataKey="skill"
+                  barKey="count"
+                  expanded={locationExpanded}
+                  onToggleExpand={() => setLocationExpanded(!locationExpanded)}
+                  layout="horizontal"
+                />
+              </div>
+            </div>
+
+            {/* Remaining skill rows (pairs) */}
             {[
               "programming language",
               "framework",
@@ -518,50 +525,20 @@ const fetchLocationSummary = async () => {
                     )}
                     {right
                       ? renderSkillChart(
-                        right.charAt(0).toUpperCase() + right.slice(1),
-                        skillsData[right] || [],
-                        right
-                      )
+                          right.charAt(0).toUpperCase() + right.slice(1),
+                          skillsData[right] || [],
+                          right
+                        )
                       : null}
                   </div>
                 );
               }
               return rows;
             }, [])}
-
-            {/* Last row: Soft skill + Job Titles (fills the gap) */}
-            <div className="two-col">
-              {renderSkillChart(
-                "Soft skill",
-                skillsData["soft skill"] || [],
-                "soft skill"
-              )}
-              {renderGenericCountChart(
-                "Job Titles",
-                jobTitleData,
-                jobTitleChartType,
-                setJobTitleChartType,
-                jobTitleExpanded,
-                setJobTitleExpanded
-              )}
-            </div>
-
-            {/* Next row: Job Companies */}
-            <div className="two-col">
-              {renderGenericCountChart(
-                "Job Companies",
-                jobCompanyData,
-                jobCompanyChartType,
-                setJobCompanyChartType,
-                jobCompanyExpanded,
-                setJobCompanyExpanded
-              )}
-            </div>
           </div>
         )}
 
-        {/* No Data Fallback */}
-        {!hasData && !isLoading && (
+        {!hasData && !errMsg && (
           <p style={{ textAlign: "center", marginTop: "2rem" }}>
             No job data available.
           </p>
