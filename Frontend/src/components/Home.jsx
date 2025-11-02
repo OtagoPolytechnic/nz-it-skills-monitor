@@ -398,18 +398,6 @@ const Home = () => {
         onChartTypeChange={setGlobalChartType}
       />
 
-      {errMsg && (
-        <div className="page-container p-3 text-sm bg-yellow-50 border border-yellow-200 rounded mt-2">
-          {errMsg}{" "}
-          <button
-            className="ml-2 underline text-blue-600"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
       <div className="section page-container">
         <SummarySection summary={summary} />
       </div>

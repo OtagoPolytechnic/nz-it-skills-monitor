@@ -64,7 +64,6 @@ def verify_jwt_token(token):
     except jwt.InvalidTokenError:
         logging.warning("Invalid token")
         return None
-
 def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
