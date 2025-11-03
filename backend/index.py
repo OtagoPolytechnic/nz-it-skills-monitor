@@ -143,117 +143,35 @@ def get_jobs_over_time():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/summary-metrics', methods=['GET'])
-def summary_metrics():
+def get_summary_metrics():
+    """Return precomputed metrics for the latest scrape"""
     try:
-        source = request.args.get('source')
+        row = db.session.execute(text("""
+            SELECT scrape_id, scrape_date, total_jobs, avg_salary,
+                   top_location, top_category, top_title,
+                   top_company, top_skill
+            FROM summary_metrics
+            ORDER BY scrape_id DESC
+            LIMIT 1
+        """)).mappings().first()
 
-        # 1) Get latest scrape_id (ignoring NULLs)
-        latest_scrape_id = (
-            db.session.query(db.func.max(Job.scrape_id))
-            .filter(Job.scrape_id.isnot(None))
-            .scalar()
-        )
-
-        base = db.session.query(Job)
-
-        if source:
-            base = base.filter(Job.source == source)
-
-        # 2) Scope to the latest batch
-        if latest_scrape_id is not None:
-            # Normal path: use scrape_id
-            base = base.filter(Job.scrape_id == latest_scrape_id)
-        else:
-            # Fallback: use latest Job.date (mimics old client logic)
-            latest_date = (
-                db.session.query(db.func.max(Job.date))
-                .filter(Job.date.isnot(None))
-            )
-            if source:
-                latest_date = latest_date.filter(Job.source == source)
-            latest_date = latest_date.scalar()
-
-            if latest_date is not None:
-                base = base.filter(Job.date == latest_date)
-            # If even date is None, base stays unfiltered (edge case: empty table)
-
-        # --- totals ---
-        total = base.with_entities(db.func.count(Job.id)).scalar() or 0
-
-        # --- average salary ---
-        avg_salary = (
-            base.with_entities(db.func.avg(Job.salary))
-            .filter(Job.salary.isnot(None), Job.salary > 0)
-            .scalar()
-        )
-        avg_salary = int(round(avg_salary)) if avg_salary else None
-
-        # --- helper for top fields ---
-        def top_for(col):
-            row = (
-                base.with_entities(col.label("val"), db.func.count().label("cnt"))
-                .filter(col.isnot(None), db.func.lower(col) != 'none')
-                .group_by(col)
-                .order_by(db.func.count().desc())
-                .first()
-            )
-            return {"value": row.val, "count": int(row.cnt)} if row and row.val else None
-
-        location    = top_for(Job.location)
-        category    = top_for(Job.category)
-        top_title   = top_for(Job.title)
-        top_company = top_for(Job.company)
-
-        # --- top skill ---
-        skill_q = (
-            db.session.query(Skill.name.label("val"), db.func.count().label("cnt"))
-            .join(Job, Skill.job_id == Job.id)
-        )
-        if source:
-            skill_q = skill_q.filter(Job.source == source)
-
-        # reuse the same scope as `base`
-        if latest_scrape_id is not None:
-            skill_q = skill_q.filter(Job.scrape_id == latest_scrape_id)
-        else:
-            # if we fell back to date, mirror that
-            latest_date_for_skills = (
-                db.session.query(db.func.max(Job.date))
-                .filter(Job.date.isnot(None))
-            )
-            if source:
-                latest_date_for_skills = latest_date_for_skills.filter(Job.source == source)
-            latest_date_for_skills = latest_date_for_skills.scalar()
-            if latest_date_for_skills is not None:
-                skill_q = skill_q.filter(Job.date == latest_date_for_skills)
-
-        skill_row = (
-            skill_q.group_by(Skill.name)
-            .order_by(db.func.count().desc())
-            .first()
-        )
-        top_skill = {"value": skill_row.val, "count": int(skill_row.cnt)} if skill_row and skill_row.val else None
-
-        # --- scrape date helper (reporting only) ---
-        scrape_date = (
-            base.with_entities(db.func.max(Job.date)).scalar()
-        )
-        scrape_date = scrape_date.isoformat() if scrape_date else None
+        if not row:
+            return jsonify({"error": "No precomputed summary metrics found."}), 404
 
         return jsonify({
-            "source": source,
-            "scrapeId": int(latest_scrape_id) if latest_scrape_id is not None else None,
-            "scrapeDate": scrape_date,
-            "total": int(total),
-            "avgSalary": avg_salary,
-            "location": location,
-            "category": category,
-            "topSkill": top_skill,
-            "topTitle": top_title,
-            "topCompany": top_company,
+            "scrapeId": row["scrape_id"],
+            "scrapeDate": str(row["scrape_date"]),
+            "total": row["total_jobs"],
+            "avgSalary": row["avg_salary"],
+            "location": {"value": row["top_location"]},
+            "category": {"value": row["top_category"]},
+            "topTitle": {"value": row["top_title"]},
+            "topCompany": {"value": row["top_company"]},
+            "topSkill": {"value": row["top_skill"]}
         }), 200
 
     except Exception as e:
+        print("❌ Error reading summary_metrics:", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route('/salary-distribution', methods=['GET'])
@@ -336,10 +254,9 @@ def get_skills_summary():
 
 
 
-    # ==========================
+# ==========================
 # REFRESH SUMMARY TABLES
 # ==========================
-from sqlalchemy import text
 
 def refresh_summary_salary_distribution():
     """Rebuilds the summary_salary_distribution table from jobs"""
@@ -383,6 +300,64 @@ def refresh_summary_locations():
     db.session.commit()
     print("✅ summary_locations updated")
 
+def refresh_summary_metrics():
+    """Rebuilds summary_metrics table for the latest scrape"""
+    print("♻️ Refreshing summary_metrics...")
+    latest_scrape_id = db.session.execute(
+        text("SELECT max(scrape_id) FROM jobs WHERE scrape_id IS NOT NULL")
+    ).scalar()
+    if not latest_scrape_id:
+        print("⚠️ No scrape_id found; skipping summary_metrics.")
+        return
+    db.session.execute(
+        text("DELETE FROM summary_metrics WHERE scrape_id = :sid"),
+        {"sid": latest_scrape_id}
+    )
+    db.session.execute(text("""
+        INSERT INTO summary_metrics (
+            scrape_id, scrape_date, total_jobs, avg_salary,
+            top_location, top_category, top_title, top_company, top_skill
+        )
+        SELECT
+            j.scrape_id,
+            MAX(j.date)::date AS scrape_date,
+            COUNT(j.id)::int AS total_jobs,
+            ROUND(AVG(j.salary))::int AS avg_salary,
+            (
+                SELECT location FROM jobs
+                WHERE scrape_id = j.scrape_id AND location IS NOT NULL AND LOWER(location) != 'none'
+                GROUP BY location ORDER BY COUNT(*) DESC LIMIT 1
+            ) AS top_location,
+            (
+                SELECT category FROM jobs
+                WHERE scrape_id = j.scrape_id AND category IS NOT NULL AND LOWER(category) != 'none'
+                GROUP BY category ORDER BY COUNT(*) DESC LIMIT 1
+            ) AS top_category,
+            (
+                SELECT title FROM jobs
+                WHERE scrape_id = j.scrape_id AND title IS NOT NULL AND LOWER(title) != 'none'
+                GROUP BY title ORDER BY COUNT(*) DESC LIMIT 1
+            ) AS top_title,
+            (
+                SELECT company FROM jobs
+                WHERE scrape_id = j.scrape_id AND company IS NOT NULL AND LOWER(company) != 'none'
+                GROUP BY company ORDER BY COUNT(*) DESC LIMIT 1
+            ) AS top_company,
+            (
+                SELECT s.name FROM skills s
+                JOIN jobs j2 ON j2.id = s.job_id
+                WHERE j2.scrape_id = j.scrape_id AND s.name IS NOT NULL
+                GROUP BY s.name ORDER BY COUNT(*) DESC LIMIT 1
+            ) AS top_skill
+        FROM jobs j
+        WHERE j.scrape_id = :sid
+        GROUP BY j.scrape_id
+    """), {"sid": latest_scrape_id})
+    db.session.commit()
+    print("✅ summary_metrics updated for scrape_id", latest_scrape_id)
+
+
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -418,6 +393,7 @@ def run_spiders():
         try:
             refresh_summary_salary_distribution()
             refresh_summary_locations()
+            refresh_summary_metrics()
             print("✅ All summary tables refreshed automatically after scrape.")
         except Exception as e:
             print("❌ Failed to refresh summaries:", e)
