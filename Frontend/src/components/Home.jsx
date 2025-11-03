@@ -271,16 +271,45 @@ const Home = () => {
   };
 
   const renderRolesChart = () => {
-    const data = getRolesData();
-    return renderGenericCountChart(
-      "Entry-Level Roles",
-      data,
-      rolesChartType,
-      setRolesChartType,
-      rolesExpanded,
-      setRolesExpanded
-    );
-  };
+  const data = getRolesData();
+
+  return (
+    <div className="chart-card">
+      <h3 className="card-title">
+        <span>Entry-Level Roles</span>
+      </h3>
+
+      {/* Restore Chart Type buttons */}
+      <div className="chart-type-toggle">
+        <span className="chart-type-label">Chart Type:</span>
+        {["bar", "pie", "wordcloud"].map((type) => (
+          <button
+            key={type}
+            onClick={() => setRolesChartType(type)}
+            className={`chart-type-btn ${
+              rolesChartType === type ? "active" : ""
+            }`}
+          >
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      <ChartWrapper
+        chartType={rolesChartType}
+        title="Entry-Level Roles"
+        data={data}
+        dataKey="skill"
+        barKey="count"
+        expanded={rolesExpanded}
+        onToggleExpand={() => setRolesExpanded(!rolesExpanded)}
+        layout="vertical"
+      />
+    </div>
+  );
+};
+
+
 
   const renderSkillChart = (title, data, typeKey) => {
     const currentType = chartTypes[typeKey] || globalChartType;
