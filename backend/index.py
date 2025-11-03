@@ -349,6 +349,57 @@ def get_skills_summary():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+
+
+    # ==========================
+# REFRESH SUMMARY TABLES
+# ==========================
+from sqlalchemy import text
+
+def refresh_summary_salary_distribution():
+    """Rebuilds the summary_salary_distribution table from jobs"""
+    print("♻️ Refreshing summary_salary_distribution...")
+    db.session.execute(text("TRUNCATE TABLE summary_salary_distribution RESTART IDENTITY"))
+    db.session.execute(text("""
+        INSERT INTO summary_salary_distribution (salary_band, job_count)
+        SELECT
+            CASE
+                WHEN salary < 50000 THEN '0-50k'
+                WHEN salary < 75000 THEN '50k-75k'
+                WHEN salary < 100000 THEN '75k-100k'
+                WHEN salary < 125000 THEN '100k-125k'
+                WHEN salary < 150000 THEN '125k-150k'
+                WHEN salary < 200000 THEN '150k-200k'
+                ELSE '200k+'
+            END AS salary_band,
+            COUNT(*)::int AS job_count
+        FROM jobs
+        WHERE salary IS NOT NULL
+        GROUP BY salary_band
+        ORDER BY MIN(salary)
+    """))
+    db.session.commit()
+    print("✅ summary_salary_distribution updated")
+
+def refresh_summary_locations():
+    """Rebuilds the summary_locations table from jobs"""
+    print("♻️ Refreshing summary_locations...")
+    db.session.execute(text("TRUNCATE TABLE summary_locations RESTART IDENTITY"))
+    db.session.execute(text("""
+        INSERT INTO summary_locations (location, job_count)
+        SELECT
+            location,
+            COUNT(*)::int AS job_count
+        FROM jobs
+        WHERE location IS NOT NULL AND LOWER(location) != 'none'
+        GROUP BY location
+        ORDER BY job_count DESC
+    """))
+    db.session.commit()
+    print("✅ summary_locations updated")
+
 
 @app.route('/login', methods=['POST'])
 def login():
