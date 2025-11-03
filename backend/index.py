@@ -257,42 +257,25 @@ def summary_metrics():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/salary-distribution', methods=['GET'])
-def salary_distribution():
+def get_salary_distribution():
+    """Return precomputed salary band counts"""
     try:
-        # latest scrape id that actually exists
-        latest_scrape_id = (
-            db.session.query(Job.scrape_id)
-            .filter(Job.scrape_id.isnot(None))
-            .order_by(Job.scrape_id.desc())
-            .limit(1)
-            .scalar()
-        )
+        rows = db.session.execute(text("""
+            SELECT salary_band, job_count
+            FROM summary_salary_distribution
+            ORDER BY id
+        """)).mappings().all()
 
-        band = case(
-            (Job.salary < 50000,  '0-50k'),
-            (Job.salary < 75000,  '50k-75k'),
-            (Job.salary < 100000, '75k-100k'),
-            (Job.salary < 125000, '100k-125k'),
-            (Job.salary < 150000, '125k-150k'),
-            (Job.salary < 200000, '150k-200k'),
-            else_='200k+'
-        ).label('band')
-
-        q = db.session.query(band, db.func.count(Job.id)).filter(Job.salary.isnot(None))
-        if latest_scrape_id:
-            q = q.filter(Job.scrape_id == latest_scrape_id)
-
-        rows = q.group_by(band).all()
-
-        order = ['0-50k','50k-75k','75k-100k','100k-125k','125k-150k','150k-200k','200k+']
-        counts = {k: 0 for k in order}
-        for b, c in rows:
-            counts[b] = c
-
-        data = [{'band': k, 'count': counts[k]} for k in order]
+        data = [
+            {"band": r["salary_band"], "count": int(r["job_count"])}
+            for r in rows
+        ]
+        print("✅ Using precomputed summary_salary_distribution")
         return jsonify(data), 200
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print("❌ Error reading summary_salary_distribution:", e)
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/skills', methods=['GET'])
 def get_skills_by_type():
@@ -536,31 +519,25 @@ def job_locations():
 
 @app.route('/location-summary', methods=['GET'])
 def get_location_summary():
+    """Return precomputed location counts"""
     try:
-        latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
-        results = db.session.query(Job.location, db.func.count().label("count"))
+        rows = db.session.execute(text("""
+            SELECT location, job_count
+            FROM summary_locations
+            ORDER BY job_count DESC
+        """)).mappings().all()
 
-        if latest_scrape_id:
-            results = results.filter(Job.scrape_id == latest_scrape_id)
+        data = [
+            {"location": r["location"], "count": int(r["job_count"])}
+            for r in rows
+        ]
+        print("✅ Using precomputed summary_locations")
+        return jsonify(data), 200
 
-        results = (
-            results.group_by(Job.location)
-            .order_by(db.func.count().desc())
-            .all()
-        )
-
-        summary = []
-        for location, count in results:
-            if location and location.lower() != 'none':
-                summary.append({
-                    "location": location,
-                    "count": count
-                })
-
-        return jsonify(summary), 200
     except Exception as e:
+        print("❌ Error reading summary_locations:", e)
         return jsonify({"error": str(e)}), 500
-    
+   
 @app.route('/average-salary-over-time', methods=['GET'])
 def get_average_salary_over_time():
     from model.summary import SummaryAverageSalaryOverTime
