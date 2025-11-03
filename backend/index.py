@@ -431,6 +431,14 @@ def run_spiders():
         script_path = os.path.join(os.path.dirname(__file__), 'seekscraper', 'run_spiders.py')
         print("🚀 Running script:", script_path)
         subprocess.run([sys.executable, script_path])
+            # After scraping completes, rebuild all summaries
+        try:
+            refresh_summary_salary_distribution()
+            refresh_summary_locations()
+            print("✅ All summary tables refreshed automatically after scrape.")
+        except Exception as e:
+            print("❌ Failed to refresh summaries:", e)
+
 
     thread = threading.Thread(target=start)
     thread.start()
