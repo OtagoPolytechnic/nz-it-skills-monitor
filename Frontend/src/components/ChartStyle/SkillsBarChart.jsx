@@ -79,7 +79,14 @@ const SkillsBarChart = ({
 
   // Titles/companies tend to be long: give a bit more Y width even with truncation
   const needsWideLabels = /(title|company|hiring)/i.test(title || "");
-  const yAxisWidth = isVertical ? (needsWideLabels ? 250 : 160) : undefined;
+  const yAxisWidth = isVertical
+  ? title === "Entry-Level Roles"
+    ? 260 // 💡 extra width for long labels
+    : needsWideLabels
+    ? 250
+    : 160
+  : undefined;
+
 
   return (
     <div>
