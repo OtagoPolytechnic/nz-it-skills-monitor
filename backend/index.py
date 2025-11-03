@@ -311,13 +311,27 @@ def get_skills_by_type():
 @app.route('/skills-summary', methods=['GET'])
 def get_skills_summary():
     try:
+        # --- Try precomputed summary_skills first ---
+        rows = db.session.execute(text("""
+            SELECT type, name AS skill, job_count AS count
+            FROM summary_skills
+            ORDER BY type, job_count DESC, name
+        """)).mappings().all()
+
+        # If table is empty, fallback to live aggregation
+        if rows and len(rows) > 0:
+            print("✅ Using precomputed summary_skills")
+            data = [{"type": r["type"], "skill": r["skill"], "count": int(r["count"])} for r in rows]
+            return jsonify(data), 200
+
+        # --- Fallback (live aggregation) ---
+        print("⚠️ Falling back to live aggregation")
         latest_scrape_id = db.session.query(db.func.max(Job.scrape_id)).scalar()
 
         results = (
             db.session.query(Skill.type, Skill.name, db.func.count().label("count"))
             .join(Job)
         )
-
         if latest_scrape_id:
             results = results.filter(Job.scrape_id == latest_scrape_id)
 
@@ -327,15 +341,12 @@ def get_skills_summary():
             .all()
         )
 
-        summary = []
-        for skill_type, skill_name, count in results:
-            summary.append({
-                "type": skill_type,
-                "skill": skill_name,
-                "count": count
-            })
-
+        summary = [
+            {"type": t, "skill": n, "count": c}
+            for (t, n, c) in results
+        ]
         return jsonify(summary), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
