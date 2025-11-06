@@ -3,6 +3,40 @@ from index import app
 from model import db
 from model.job import Job, Skill
 
+SYNONYMS = {
+    "python3": "python",
+    "py": "python",
+    "c#": "csharp",
+    "c-sharp": "csharp",
+    "c sharp": "csharp",
+    "c++": "cplusplus",
+    "cpp": "cplusplus",
+    "js": "javascript",
+    "java script": "javascript",
+    "react.js": "react",
+    "reactjs": "react",
+    "react js": "react",
+    "node.js": "node",
+    "nodejs": "node",
+    "node js": "node",
+    "vue.js": "vue",
+    "vuejs": "vue",
+    "angular.js": "angular",
+    "angularjs": "angular",
+    "aws cloud": "aws",
+    "amazon web services": "aws",
+    "gcp": "google cloud",
+    "google cloud platform": "google cloud",
+    "ms azure": "azure",
+}
+
+def normalize_skill_name(name: str) -> str:
+    """Normalize skill names (case + synonyms)."""
+    if not name:
+        return ""
+    cleaned = name.strip().lower()
+    return SYNONYMS.get(cleaned, cleaned)
+
 class JobDatabasePipeline:
     def process_item(self, item, spider=None):
         if not item.get('title') or not item.get('company') or not item.get('location'):
@@ -31,6 +65,10 @@ class JobDatabasePipeline:
                 db.session.flush()
 
                 for skill in skills:
+                    normalized_name = normalize_skill_name(skill.get("name", ""))  # <-- new function
+                    if not normalized_name:
+                        continue
+                    skill["name"] = normalized_name
                     db.session.add(Skill(job_id=job.id, **skill))
                 db.session.commit()
 
